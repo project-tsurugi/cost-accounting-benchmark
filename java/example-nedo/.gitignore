@@ -1,0 +1,9 @@
+*~
+.apt_generated/
+.apt_generated_tests/
+.gradle/
+/bin/
+.project
+.classpath
+.factorypath
+.settings

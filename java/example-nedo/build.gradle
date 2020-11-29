@@ -1,0 +1,42 @@
+// https://github.com/domaframework/simple-boilerplate/blob/master/build.gradle
+plugins {
+    id 'java'
+    id 'com.diffplug.eclipse.apt' version '3.24.0'
+    id 'org.seasar.doma.compile' version '1.1.0'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  // https://mvnrepository.com/artifact/org.postgresql/postgresql
+  compile group: 'org.postgresql', name: 'postgresql', version: '42.2.16'
+
+  // https://mvnrepository.com/artifact/org.apache.poi/poi
+  compile group: 'org.apache.poi', name: 'poi', version: '4.1.2'
+  // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml
+  compile group: 'org.apache.poi', name: 'poi-ooxml', version: '4.1.2'
+
+  // https://mvnrepository.com/artifact/org.seasar.doma/doma
+//  compile group: 'org.seasar.doma', name: 'doma', version: '2.41.0'
+  implementation "org.seasar.doma:doma-core:2.41.0"
+  annotationProcessor "org.seasar.doma:doma-processor:2.41.0"
+  
+  testCompile("org.junit.jupiter:junit-jupiter-api:5.7.0")
+  testRuntime("org.junit.jupiter:junit-jupiter-engine:5.7.0")
+  testRuntime("org.junit.platform:junit-platform-launcher:1.0.0") // for IDE
+}

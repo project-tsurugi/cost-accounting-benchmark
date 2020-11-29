@@ -1,0 +1,114 @@
+package com.example.nedo.init;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+
+import org.seasar.doma.jdbc.tx.TransactionManager;
+
+import com.example.nedo.jdbc.doma2.config.AppConfig;
+import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDaoImpl;
+import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
+import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDaoImpl;
+import com.example.nedo.jdbc.doma2.entity.HasDateRange;
+import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
+import com.example.nedo.jdbc.doma2.entity.ItemMaster;
+import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
+
+public class ConstraintCheck {
+
+	public static void main(String[] args) {
+		new ConstraintCheck().main();
+	}
+
+	public void main() {
+		TransactionManager tm = AppConfig.singleton().getTransactionManager();
+
+		tm.required(() -> {
+			checkDateRange(ItemMasterDao.TABLE_NAME, new ItemMasterDaoImpl().selectAll(), this::getKey);
+			checkDateRange(ItemConstructionMasterDao.TABLE_NAME, new ItemConstructionMasterDaoImpl().selectAll(),
+					this::getKey);
+			checkDateRange(ItemManufacturingMasterDao.TABLE_NAME, new ItemManufacturingMasterDaoImpl().selectAll(),
+					this::getKey);
+			checkBomChild(InitialData.DEFAULT_BATCH_DATE);
+		});
+	}
+
+	protected List<Object> getKey(ItemMaster entity) {
+		return Arrays.asList(entity.getIId());
+	}
+
+	protected List<Object> getKey(ItemConstructionMaster entity) {
+		return Arrays.asList(entity.getIcIId(), entity.getIcParentIId());
+	}
+
+	protected List<Object> getKey(ItemManufacturingMaster entity) {
+		return Arrays.asList(entity.getImFId(), entity.getImIId());
+	}
+
+	protected <T extends HasDateRange> void checkDateRange(String tableName, List<T> allList,
+			Function<T, List<Object>> keyGetter) {
+		Map<List<Object>, List<T>> map = toMap(allList, keyGetter);
+
+		map.forEach((key, list) -> {
+			for (T target : list) {
+				for (T entity : list) {
+					if (entity == target) {
+						continue;
+					}
+					if (between(target.getEffectiveDate(), entity.getEffectiveDate(), entity.getExpiredDate())
+							|| between(target.getExpiredDate(), entity.getEffectiveDate(), entity.getExpiredDate())) {
+						throw new ConstraintCheckException(tableName, key);
+					}
+				}
+			}
+		});
+	}
+
+	private <T> Map<List<Object>, List<T>> toMap(List<T> allList, Function<T, List<Object>> keyGetter) {
+		Map<List<Object>, List<T>> map = new HashMap<>(allList.size());
+		for (T entity : allList) {
+			List<Object> key = keyGetter.apply(entity);
+			List<T> list = map.computeIfAbsent(key, k -> new ArrayList<>());
+			list.add(entity);
+		}
+		return map;
+	}
+
+	private static boolean between(LocalDate date, LocalDate startDate, LocalDate endDate) {
+		return startDate.compareTo(date) <= 0 && date.compareTo(endDate) <= 0;
+	}
+
+	@SuppressWarnings("serial")
+	public static class ConstraintCheckException extends RuntimeException {
+		public ConstraintCheckException(String tableName, List<Object> key) {
+			super("constraint check error " + tableName + key);
+		}
+	}
+
+	protected void checkBomChild(LocalDate date) {
+		ItemConstructionMasterDao dao = new ItemConstructionMasterDaoImpl();
+		List<ItemConstructionMaster> allList = dao.selectAll(date);
+		Map<List<Object>, List<ItemConstructionMaster>> map = toMap(allList, e -> Arrays.asList(e.getIcParentIId()));
+		map.forEach((key, list) -> {
+			Set<Integer> set = new HashSet<>();
+			for (ItemConstructionMaster entity : list) {
+				Integer id = entity.getIcIId();
+				if (set.contains(id)) {
+					throw new ConstraintCheckException("ItemConstructionMaster",
+							Arrays.asList(entity.getIcParentIId(), id));
+				}
+				set.add(id);
+			}
+		});
+	}
+}
