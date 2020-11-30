@@ -4,8 +4,8 @@
 
 PostgreSQLで以下のsqlファイル（create procedure等）を実行する。
 
-- bb_measurement_value.sql
 - bb_measurement.sql
+- bb_measurement_value.sql
 - bench_batch.sql
 
 
