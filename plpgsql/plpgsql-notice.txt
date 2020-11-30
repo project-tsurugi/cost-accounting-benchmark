@@ -1,0 +1,134 @@
+
+■PL/pgSQLのコーディング上の注意点
+
+psql=> select version();
+                                                 version                                                 
+---------------------------------------------------------------------------------------------------------
+ PostgreSQL 12.4 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-39), 64-bit
+
+
+●PL/SQLのpackageが無い
+サブルーチンも全てグローバルなprocedure/functionにする必要がある。
+サブルーチン間で共有するグローバル変数を用意することが出来ない。
+
+
+●PL/SQLのtype（ローカルな構造体を定義する）が無い
+SQLのcreate type文でグローバルなユーザー定義型（複合型）を作ることは出来る。
+
+
+●構造体の配列の宣言方法
+declare
+  rec  hoge%rowtype;   --OK（行型の宣言）
+  recs hoge%rowtype[]; --NG（行型の配列を宣言しようとするとエラーになる）
+
+  rec  hoge;           --OK（複合型の宣言）
+  recs hoge[];         --OK（複合型の配列は宣言可能）
+begin
+
+hoge%rowtypeは「テーブル名%rowtype」という行型の宣言であり、hogeのみ（create table時に暗黙に定義された複合型）と同一。
+
+
+●配列の要素のカラムを更新できない
+declare
+  rec  hoge%rowtype;
+  recs hoge[];
+  n    int;
+begin
+  n := rec.id; --OK
+  rec.id := 1; --OK
+
+  n := recs[1].id; --OK
+  recs[1].id := 1; --NG（syntax error）
+
+  rec := recs[1]; --OK
+  rec.id := 1;
+  recs[1] := rec; --OK
+  ↑ただし、値のコピーであり、参照のコピーではないので遅そう
+end;
+
+
+●プロシージャーのinout引数に配列の要素を渡せない
+create or replace procedure example5r(inout h hoge)
+language plpgsql
+as $$
+begin
+  h.h_id := 9;
+end
+$$;
+
+create or replace procedure example5()
+language plpgsql
+as $$
+declare
+  hh hoge[];
+  h  hoge;
+begin
+  call example5r(h);     -- OK
+  call example5r(hh[1]); -- NG
+end
+$$;
+
+
+●JSON（jsonb型）
+JSONデータも値の変更が出来ない（値を変更した新しいJSONデータを作ることになる）
+
+
+●複合型のnullチェック方法
+  foreach rec in array recs loop
+    --recがnull以外の場合だけ処理したい
+    if rec is not null then --NG（rec内の全カラムがnullでないときだけtrue（1つでもnullがあるとfalse））
+    if not rec is null then --OK（rec is nullは、rec自体がnullあるいはrec内の全カラムがnullのときtrue）
+      ～
+    end if;
+  end loop;
+
+
+●ネストした複合型のカラムを参照する方法
+create type bb_bom_node as
+(
+  item_id   int,
+  manufact  item_manufacturing_master,
+  construct item_construction_master,
+  item      item_master
+);
+
+declare
+  node bb_bom_node;
+begin
+  if node.construct.ic_material_quantity is null then   --NG（スキーマ名.テーブル名.カラム名と解釈され、constructテーブルが無いのでエラー）
+  if (node.construct).ic_material_quantity is null then --OK
+
+
+●select結果を複合型のフィールドに代入する方法
+create type foo_type as (
+  foo_id   int,
+  hoge_rec hoge
+);
+
+declare
+  foo  foo_type;
+  hrec hoge;
+begin
+  select * into foo.hoge_rec from hoge where h_id=1;	--NG
+
+ERROR:  malformed record literal: "1"
+DETAIL:  Missing left parenthesis.
+
+
+  select * into hrec from hoge where h_id=1;	--OK
+  foo.hoge_rec := hrec;
+
+  select row(hoge.*) into foo.hoge_rec from hoge where h_id=1;	--OK（PL/pgSQL的にはこの方法が推奨？）
+
+  foo.hoge_rec := row(hoge.*) from hoge where h_id=1;	--OK
+
+
+●木構造の作り方
+create typeの中で自分自身の配列を定義できない。
+Map（連想配列）が無い。
+2次元配列は（1次元配列と違って）拡張できない。（事前に要素数を決定しておく必要がある）
+↓
+create typeの中でint[]（インデックスの配列）を持ち、1次元配列でデータを保持する。
+
+
+
