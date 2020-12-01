@@ -11,6 +11,15 @@ Eclipse上で、Doma2のDAOのsqlファイルが見つからなくてコンパ�
 
 
 
+## 実行用アーカイブファイル生成方法
+
+```bash
+./gradlew distTar
+ls build/distributions/
+```
+
+
+
 ## 実行方法
 
 以下のクラスを実行する。

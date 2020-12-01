@@ -3,6 +3,7 @@
 .apt_generated_tests/
 .gradle/
 /bin/
+build
 .project
 .classpath
 .factorypath
