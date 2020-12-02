@@ -106,10 +106,6 @@ as $$
 declare
   entity measurement_master;
 begin
-  select * into entity from measurement_master where m_unit = unit;
-  if entity is null then
-    return false;
-  end if;
-  return entity.m_type = 'weight';
+  return bb_measurement_get_type(unit) = 'weight';
 end
 $$;

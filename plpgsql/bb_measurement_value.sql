@@ -1,4 +1,5 @@
-create type bb_measurement_value as (
+create type bb_measurement_value as
+(
   value numeric,
   unit text
 );
