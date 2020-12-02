@@ -22,7 +22,7 @@ public class InitialData01MeasurementMaster extends InitialData {
 
 	public static void main(String[] args) throws Exception {
 //		new InitialDataMeasureMaster().main(args[0]);
-		new InitialData01MeasurementMaster().main(BenchConst.MEASUREMENT_XLSX);
+		new InitialData01MeasurementMaster().main(BenchConst.measurementXlsxPath());
 	}
 
 	public InitialData01MeasurementMaster() {

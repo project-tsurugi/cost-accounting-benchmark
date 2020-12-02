@@ -19,8 +19,8 @@ public class EntityGenerator {
 
 	public static void main(String[] args) throws Exception {
 		// new EntityExample().main(args[0], args[1]);
-		new EntityGenerator().main(BenchConst.TABLE_XLSX,
-				BenchConst.SRC_DIR + "/" + BenchConst.PACKAGE_ENTITY.replace('.', '/'));
+		new EntityGenerator().main(BenchConst.tableXlsxPath(),
+				BenchConst.srcDir() + "/" + BenchConst.PACKAGE_ENTITY.replace('.', '/'));
 	}
 
 	private void main(String src, String dst) throws Exception {

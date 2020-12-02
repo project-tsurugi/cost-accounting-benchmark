@@ -15,9 +15,9 @@ public class JdbcExample {
 	}
 
 	static void test0() throws SQLException {
-		String url = BenchConst.JDBC_URL;
-		String user = BenchConst.JDBC_USER;
-		String password = BenchConst.JDBC_PASSWORD;
+		String url = BenchConst.jdbcUrl();
+		String user = BenchConst.jdbcUser();
+		String password = BenchConst.jdbcPassword();
 		try (Connection connection = DriverManager.getConnection(url, user, password)) {
 			connection.setAutoCommit(false);
 			try (Statement statement = connection.createStatement()) {

@@ -1,20 +1,74 @@
 package com.example.nedo;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Properties;
+
 public class BenchConst {
 
-	public static final String JDBC_URL = "jdbc:postgresql://" + // DBURL
-			"192.168.91.137" + // DBのあるIPアドレス（又はサーバー名）
-			":" + "5432" + // DBが動いているポート
-			"/" + "hdb"; // PostgreSQLのDB名
-	public static final String JDBC_USER = "hishidama";
-	public static final String JDBC_PASSWORD = "hishidama";
+	public static String jdbcUrl() {
+		return getProperty("jdbc.url");
+	}
 
-	public static final String DOC_DIR = "D:/cygwin/home/hishidama4/git/nautilus/tsurugi/cost-batch-benchmark/docs";
-	public static final String TABLE_XLSX = DOC_DIR + "/table.xlsx";
-	public static final String MEASUREMENT_XLSX = DOC_DIR + "/measurement.xlsx";
-	public static final String SRC_DIR = "D:/cygwin/home/hishidama4/git/nautilus/tsurugi/cost-batch-benchmark/java/example-nedo/src/main/java";
+	public static String jdbcUser() {
+		return getProperty("jdbc.user");
+	}
+
+	public static String jdbcPassword() {
+		return getProperty("jdbc.password");
+	}
+
+	public static String docDir() {
+		return getProperty("doc.dir");
+	}
+
+	public static String tableXlsxPath() {
+		return docDir() + "/table.xlsx";
+	}
+
+	public static String measurementXlsxPath() {
+		return docDir() + "/measurement.xlsx";
+	}
+
+	public static String srcDir() {
+		return getProperty("src.dir");
+	}
+
 	public static final String PACKAGE_DOMAIN = "com.example.nedo.jdbc.doma2.domain";
 	public static final String PACKAGE_ENTITY = "com.example.nedo.jdbc.doma2.entity";
 
 	public static int DECIMAL_SCALE = 20;
+
+	private static Properties properties;
+
+	private static Properties getProperties() {
+		if (properties == null) {
+			String s = System.getProperty("property");
+			if (s == null) {
+				throw new RuntimeException("not found -Dproperty=property-file-path");
+			}
+			Path path = Paths.get(s);
+			try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+				Properties p = new Properties();
+				p.load(reader);
+				properties = p;
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return properties;
+	}
+
+	private static String getProperty(String key) {
+		Properties p = getProperties();
+		String s = p.getProperty(key);
+		if (s == null) {
+			throw new RuntimeException("not found key'" + key + "' in property-file");
+		}
+		return s;
+	}
 }

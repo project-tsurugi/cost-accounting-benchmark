@@ -25,9 +25,9 @@ public class AppConfig implements Config {
 	private final TransactionManager transactionManager;
 
 	private AppConfig() {
-		String url = BenchConst.JDBC_URL;
-		String user = BenchConst.JDBC_USER;
-		String password = BenchConst.JDBC_PASSWORD;
+		String url = BenchConst.jdbcUrl();
+		String user = BenchConst.jdbcUser();
+		String password = BenchConst.jdbcPassword();
 
 		this.dialect = new PostgresDialect();
 		this.dataSource = new LocalTransactionDataSource(url, user, password);

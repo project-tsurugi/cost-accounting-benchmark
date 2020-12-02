@@ -1,0 +1,102 @@
+
+-- 工場マスター
+drop table factory_master;
+create table factory_master
+(
+  f_id numeric(4), -- 工場ID
+  f_name varchar(20) -- 工場名
+  ,primary key(f_id)
+);
+
+-- 品目マスター
+drop table item_master;
+create table item_master
+(
+  i_id numeric(9), -- 品目ID
+  i_effective_date date, -- 開始日
+  i_expired_date date, -- 終了日
+  i_name varchar(20), -- 品目名
+  i_type varchar(20), -- 品目種類
+  i_unit varchar(5), -- 単位
+  i_weight_ratio numeric(9, 2), -- 重量比
+  i_weight_unit varchar(5), -- 重量単位
+  i_price numeric(11, 2), -- 品目単価
+  i_price_unit varchar(5) -- 品目単価単位
+  ,primary key(i_id, i_effective_date)
+);
+
+-- 品目構成マスター
+drop table item_construction_master;
+create table item_construction_master
+(
+  ic_i_id numeric(9), -- 品目ID
+  ic_parent_i_id numeric(9), -- 親品目ID
+  ic_effective_date date, -- 開始日
+  ic_expired_date date, -- 終了日
+  ic_material_unit varchar(5), -- 原料単位
+  ic_material_quantity numeric(15, 4), -- 原料数量
+  ic_loss_ratio numeric(5, 2) -- ロス率
+  ,primary key(ic_i_id, ic_parent_i_id, ic_effective_date)
+);
+
+-- 製造品目マスター
+drop table item_manufacturing_master;
+create table item_manufacturing_master
+(
+  im_f_id numeric(4), -- 工場ID
+  im_i_id numeric(9), -- 品目ID
+  im_effective_date date, -- 開始日
+  im_expired_date date, -- 終了日
+  im_manufacturing_quantity numeric(6) -- 生産数（1日分）
+  ,primary key(im_f_id, im_i_id, im_effective_date)
+);
+
+-- 原価マスター
+drop table cost_master;
+create table cost_master
+(
+  c_f_id numeric(4), -- 工場ID
+  c_i_id numeric(9), -- 品目ID
+  c_stock_unit varchar(5), -- 在庫単位
+  c_stock_quantity numeric(15, 4), -- 在庫数量（1日分）
+  c_stock_amount numeric(13, 2) -- 在庫金額（1日分）
+  ,primary key(c_f_id, c_i_id)
+);
+
+-- 度量衡マスター
+drop table measurement_master;
+create table measurement_master
+(
+  m_unit varchar(5), -- 単位
+  m_name varchar(20), -- 単位名称
+  m_type varchar(10), -- 単位種類
+  m_default_unit varchar(5), -- 標準単位
+  m_scale numeric(13, 6) -- スケール
+  ,primary key(m_unit)
+);
+
+-- 結果テーブル
+drop table result_table;
+create table result_table
+(
+  r_f_id numeric(4), -- 工場ID
+  r_manufacturing_date date, -- 日付
+  r_product_i_id numeric(9), -- 製造品目ID
+  r_parent_i_id numeric(9), -- 親品目ID
+  r_i_id numeric(9), -- 品目ID
+  r_manufacturing_quantity numeric(6), -- 生産数
+  r_weight_unit varchar(5), -- 重量単位
+  r_weight numeric(9, 2), -- 重量（品目当たり）
+  r_weight_total_unit varchar(5), -- 重量計単位
+  r_weight_total numeric(9, 2), -- 重量計
+  r_weight_ratio numeric(7, 3), -- 重量割合
+  r_standard_quantity_unit varchar(5), -- 標準量単位
+  r_standard_quantity numeric(15, 4), -- 標準量（品目当たり）
+  r_required_quantity_unit varchar(5), -- 所要量単位
+  r_required_quantity numeric(15, 4), -- 所要量
+  r_unit_cost numeric(11, 2), -- 原価（品目当たり）
+  r_total_unit_cost numeric(11, 2), -- 総原価
+  r_manufacturing_cost numeric(11, 2), -- 製造原価（品目当たり）
+  r_total_manufacturing_cost numeric(11, 2) -- 総製造原価
+  ,primary key(r_f_id, r_manufacturing_date, r_product_i_id, r_parent_i_id, r_i_id)
+);

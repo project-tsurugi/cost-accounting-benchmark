@@ -17,14 +17,14 @@ public class DdlGenarator {
 
 	public static void main(String[] args) throws Exception {
 		// new DdlExample().main(args[0]);
-		new DdlGenarator().main(BenchConst.TABLE_XLSX);
+		new DdlGenarator().main(BenchConst.tableXlsxPath());
 	}
 
 	private void main(String src) throws Exception {
 		File srcFile = new File(src);
 		System.out.println(srcFile);
 
-		File dstFile = new File(srcFile.getParent(), "ddl.txt");
+		File dstFile = new File(srcFile.getParent(), "ddl-postgresql.txt");
 		System.out.println(dstFile);
 
 		try (Workbook workbook = WorkbookFactory.create(srcFile);

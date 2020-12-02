@@ -37,11 +37,23 @@ public class BenchBatch {
 
 	public static void main(String[] args) {
 		LocalDate batchDate = InitialData.DEFAULT_BATCH_DATE;
+		if (args.length >= 1) {
+			batchDate = LocalDate.parse(args[0]);
+		}
+
 		List<Integer> factoryList = new ArrayList<>();
-		factoryList.add(1);
-//		factoryList.add(2);
-//		factoryList.add(3);
+		if (args.length >= 2) {
+			String[] ss = args[1].split(",");
+			for (String s : ss) {
+				factoryList.add(Integer.parseInt(s.trim()));
+			}
+		}
+
 		int commitRatio = 100;
+		if (args.length >= 3) {
+			commitRatio = Integer.parseInt(args[2].trim());
+		}
+
 		new BenchBatch().main(batchDate, factoryList, commitRatio);
 	}
 
@@ -53,6 +65,10 @@ public class BenchBatch {
 			factoryList = getAllFactory();
 		}
 		this.commitRatio = commitRatio;
+
+		System.out.println("batchDate=" + batchDate);
+		System.out.println("factory=" + factoryList);
+		System.out.println("commitRatio=" + commitRatio);
 
 		switch (2) {
 		case 1:
