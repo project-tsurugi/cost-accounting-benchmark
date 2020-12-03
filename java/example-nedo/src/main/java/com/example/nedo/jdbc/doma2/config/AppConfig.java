@@ -6,6 +6,7 @@ import org.seasar.doma.SingletonConfig;
 import org.seasar.doma.jdbc.Config;
 import org.seasar.doma.jdbc.JdbcLogger;
 import org.seasar.doma.jdbc.dialect.Dialect;
+import org.seasar.doma.jdbc.dialect.OracleDialect;
 import org.seasar.doma.jdbc.dialect.PostgresDialect;
 import org.seasar.doma.jdbc.tx.LocalTransactionDataSource;
 import org.seasar.doma.jdbc.tx.LocalTransactionManager;
@@ -29,9 +30,17 @@ public class AppConfig implements Config {
 		String user = BenchConst.jdbcUser();
 		String password = BenchConst.jdbcPassword();
 
-		this.dialect = new PostgresDialect();
+		this.dialect = createDialect(url);
 		this.dataSource = new LocalTransactionDataSource(url, user, password);
 		this.transactionManager = new LocalTransactionManager(dataSource.getLocalTransaction(getJdbcLogger()));
+	}
+
+	private Dialect createDialect(String url) {
+		if (url.contains("oracle")) {
+			return new OracleDialect();
+		} else {
+			return new PostgresDialect();
+		}
 	}
 
 	@Override

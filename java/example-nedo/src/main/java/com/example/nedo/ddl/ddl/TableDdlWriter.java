@@ -10,7 +10,7 @@ import org.apache.poi.ss.usermodel.Row;
 import com.example.nedo.ddl.common.TableSheet;
 import com.example.nedo.ddl.common.WriterWrapper;
 
-public class TableDdlWriter extends WriterWrapper {
+public abstract class TableDdlWriter extends WriterWrapper {
 
 	private final TableSheet table;
 
@@ -92,20 +92,12 @@ public class TableDdlWriter extends WriterWrapper {
 		if (typeName == null) {
 			return "";
 		}
-		switch (typeName) {
-		case "unique ID":
-		case "unsigned numeric":
-			return getType(row, "numeric");
-		case "variable text":
-			return getType(row, "varchar");
-		case "date":
-			return "date";
-		default:
-			throw new UnsupportedOperationException(typeName);
-		}
+		return getType(row, typeName);
 	}
 
-	protected String getType(Row row, String type) {
+	protected abstract String getType(Row row, String typeName);
+
+	protected String getTypeWithSize(Row row, String type) {
 		Integer size = table.getColumnTypeSize(row);
 		if (size == null) {
 			return type;

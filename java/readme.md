@@ -26,9 +26,8 @@ ls build/distributions/
 
 ### 準備用
 
-- BenchConst（実行クラスではない）
-  - JDBC URL等の固定値。
-- DdlGenarator
+- PostgresqlDdlGenarator
+- OracleDdlGenerator
   - table.xlsxを読み込み、ddlファイル（create table）を作成する。
 - EntityGenerator
   - table.xlsxを読み込み、Doma2のEntityクラスのソースファイルを生成する。

@@ -1,4 +1,4 @@
-package com.example.nedo.ddl;
+package com.example.nedo.ddl.ddl;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -11,21 +11,15 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import com.example.nedo.BenchConst;
 import com.example.nedo.ddl.common.TableSheet;
-import com.example.nedo.ddl.ddl.TableDdlWriter;
 
-public class DdlGenarator {
+public abstract class DdlGenarator {
 
-	public static void main(String[] args) throws Exception {
-		// new DdlExample().main(args[0]);
-		new DdlGenarator().main(BenchConst.tableXlsxPath());
-	}
+	public void execute() throws Exception {
+		File srcFile = new File(BenchConst.tableXlsxPath());
+		System.out.println("src = " + srcFile);
 
-	private void main(String src) throws Exception {
-		File srcFile = new File(src);
-		System.out.println(srcFile);
-
-		File dstFile = new File(srcFile.getParent(), "ddl-postgresql.txt");
-		System.out.println(dstFile);
+		File dstFile = new File(srcFile.getParent(), getDdlFileName());
+		System.out.println("dst = " + dstFile);
 
 		try (Workbook workbook = WorkbookFactory.create(srcFile);
 				BufferedWriter writer = Files.newBufferedWriter(dstFile.toPath(), StandardCharsets.UTF_8)) {
@@ -33,9 +27,13 @@ public class DdlGenarator {
 				Sheet sheet = workbook.getSheetAt(i);
 				TableSheet table = new TableSheet(sheet);
 
-				TableDdlWriter c = new TableDdlWriter(table, writer);
+				TableDdlWriter c = createTableDdlWriter(table, writer);
 				c.convert();
 			}
 		}
 	}
+
+	protected abstract String getDdlFileName();
+
+	protected abstract TableDdlWriter createTableDdlWriter(TableSheet table, BufferedWriter writer);
 }
