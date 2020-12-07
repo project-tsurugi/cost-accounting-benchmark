@@ -12,14 +12,14 @@ import org.seasar.doma.Table;
 public class ItemConstructionMaster implements Cloneable, HasDateRange {
 
     /** unique ID(9) */
-    @Column(name = "ic_i_id")
-    @Id
-    Integer icIId;
-
-    /** unique ID(9) */
     @Column(name = "ic_parent_i_id")
     @Id
     Integer icParentIId;
+
+    /** unique ID(9) */
+    @Column(name = "ic_i_id")
+    @Id
+    Integer icIId;
 
     /** date(8) */
     @Column(name = "ic_effective_date")
@@ -42,20 +42,20 @@ public class ItemConstructionMaster implements Cloneable, HasDateRange {
     @Column(name = "ic_loss_ratio")
     BigDecimal icLossRatio;
 
-    public void setIcIId(Integer value) {
-        this.icIId = value;
-    }
-
-    public Integer getIcIId() {
-        return this.icIId;
-    }
-
     public void setIcParentIId(Integer value) {
         this.icParentIId = value;
     }
 
     public Integer getIcParentIId() {
         return this.icParentIId;
+    }
+
+    public void setIcIId(Integer value) {
+        this.icIId = value;
+    }
+
+    public Integer getIcIId() {
+        return this.icIId;
     }
 
     public void setIcEffectiveDate(LocalDate value) {

@@ -29,14 +29,14 @@ create table item_master
 drop table item_construction_master;
 create table item_construction_master
 (
-  ic_i_id number(9), -- 品目ID
   ic_parent_i_id number(9), -- 親品目ID
+  ic_i_id number(9), -- 品目ID
   ic_effective_date date, -- 開始日
   ic_expired_date date, -- 終了日
   ic_material_unit varchar2(5), -- 原料単位
   ic_material_quantity number(15, 4), -- 原料数量
   ic_loss_ratio number(5, 2) -- ロス率
-  ,primary key(ic_i_id, ic_parent_i_id, ic_effective_date)
+  ,primary key(ic_parent_i_id, ic_i_id, ic_effective_date)
 );
 
 -- 製造品目マスター
