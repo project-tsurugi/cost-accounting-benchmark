@@ -77,29 +77,6 @@ begin
 end
 $$;
 
-create type bb_value_pair as
-(
-  unit text,
-  value1 numeric,
-  value2 numeric
-);
-
-create or replace function bb_measurement_get_common_unit_value(
-  value1 bb_measurement_value,
-  value2 bb_measurement_value
-) returns bb_value_pair
-language plpgsql
-as $$
-declare
-  result bb_value_pair;
-begin
-  result.unit := bb_measurement_get_common_unit(value1.unit, value2.unit);
-  result.value1 := bb_measurement_convert_unit(value1.value, value1.unit, result.unit);
-  result.value2 := bb_measurement_convert_unit(value2.value, value2.unit, result.unit);
-  return result;
-end
-$$;
-
 create or replace function bb_measurement_is_weight(unit text) returns boolean
 language plpgsql
 as $$
