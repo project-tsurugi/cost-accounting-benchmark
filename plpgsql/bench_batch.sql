@@ -6,8 +6,8 @@ create type bb_context as
 
 create type bb_bom_node as
 (
-  index int, -- index of node_list
-  item_id int,
+  node_index int, -- index of node_list
+  item_id        int,
   parent_item_id int,
   manufact  item_manufacturing_master,
   construct item_construction_master,
@@ -59,17 +59,17 @@ begin
   for construct in select * from item_construction_master where ic_parent_i_id = pnode.item_id and context.batch_date between ic_effective_date and ic_expired_date order by ic_i_id loop
     --raise debug 'bb_select_bom_tree_r = %', construct;
 
-    node.index := array_length(node_list, 1) + 1;
-    node.item_id := construct.ic_i_id;
+    node.node_index := array_length(node_list, 1) + 1;
+    node.item_id        := construct.ic_i_id;
     node.parent_item_id := pnode.item_id;
     node.construct := construct;
     node.child_list := array[]::int[];
-    node_list[node.index] := node;
+    node_list[node.node_index] := node;
 
     i := coalesce(array_length(pnode.child_list, 1), 0) + 1;
-    pnode.child_list[i] := node.index;
+    pnode.child_list[i] := node.node_index;
 
-    call bb_select_bom_tree_r(context, node_list, node.index);
+    call bb_select_bom_tree_r(context, node_list, node.node_index);
   end loop;
 
   node_list[parent_index] := pnode;
@@ -87,14 +87,14 @@ declare
   node_list bb_bom_node[];
 --  node bb_bom_node;
 begin
-  root.index := 1;
-  root.item_id := manufact.im_i_id;
+  root.node_index := 1;
+  root.item_id        := manufact.im_i_id;
   root.parent_item_id := 0;
   root.manufact := manufact;
   root.child_list := array[]::int[];
-  node_list[root.index] := root;
+  node_list[root.node_index] := root;
 
-  call bb_select_bom_tree_r(context, node_list, root.index);
+  call bb_select_bom_tree_r(context, node_list, root.node_index);
 
 /*  --debug dump
   foreach node in array node_list loop
@@ -120,7 +120,7 @@ declare
   child_index int;
 begin
   node := node_list[node_index];
---  raise debug 'bb_calculate_weight[%] item=%', node.index, node.item_id;
+--  raise debug 'bb_calculate_weight[%] item=%', node.node_index, node.item_id;
 
   if (node.construct).ic_material_quantity is null then
     node.weight := bb_measurement_value_create('mg', 0);
@@ -135,7 +135,7 @@ begin
       node.weight := bb_measurement_value_create((node.item).i_weight_unit, quantity * (node.item).i_weight_ratio);
     end if;
   end if;
---  raise debug 'node[%].weight=%', node.index, node.weight;
+--  raise debug 'node[%].weight=%', node.node_index, node.weight;
 
   weight_total := node.weight;
   foreach child_index in array node.child_list loop
@@ -144,7 +144,7 @@ begin
     weight_total := bb_measurement_value_add(weight_total, node_list[child_index].weight_total);
   end loop;
   node.weight_total := weight_total;
---  raise debug 'node[%].weight_total=%', node.index, node.weight_total;
+--  raise debug 'node[%].weight_total=%', node.node_index, node.weight_total;
 
   node_list[node_index] := node;
 end
@@ -165,14 +165,14 @@ declare
   child_index int;
 begin
   node := node_list[node_index];
---  raise debug 'bb_calculate_weight_ratio[%] item=%', node_index, node.item_id;
+--  raise debug 'bb_calculate_weight_ratio[%] item=%', node.node_index, node.item_id;
 
   if (node.weight_total).value = 0 then
     node.weight_ratio := 0;
   else
     node.weight_ratio := bb_measurement_value_divide(node.weight_total, root_weight_total) * 100;
   end if;
---  raise debug 'node[%].weight_ratio=%', node.index, node.weight_ratio;
+--  raise debug 'node[%].weight_ratio=%', node.node_index, node.weight_ratio;
 
   node_list[node_index] := node;
 
@@ -206,7 +206,7 @@ declare
   child_index int;
 begin
   node := node_list[node_index];
---  raise debug 'bb_calculate_required_quantity[%] item=%', node.index, node.item_id;
+--  raise debug 'bb_calculate_required_quantity[%] item=%', node.node_index, node.item_id;
 
   construct := node.construct;
   if construct.ic_loss_ratio is not null then
@@ -215,7 +215,7 @@ begin
   else
     ratio := parent_ratio;
   end if;
---  raise debug 'node[%].ratio=% %', node.index, ratio, ratio.numerator / ratio.denominator;
+--  raise debug 'node[%].ratio=% %', node.node_index, ratio, ratio.numerator / ratio.denominator;
 
   if construct.ic_material_quantity is null then
     if node.item is null then
@@ -228,7 +228,7 @@ begin
       construct.ic_material_quantity * ratio.numerator / ratio.denominator
     );
   end if;
---  raise debug 'node[%].standard_quantity=%', node.index, node.standard_quantity;
+--  raise debug 'node[%].standard_quantity=%', node.node_index, node.standard_quantity;
 
   required_unit := case bb_measurement_get_type((node.standard_quantity).unit)
     when 'capacity' then 'L'
@@ -239,7 +239,7 @@ begin
     bb_measurement_value_multiply(node.standard_quantity, manufacturing_quantity),
     required_unit
   );
---  raise debug 'node[%].required_quantity=%', node.index, node.required_quantity;
+--  raise debug 'node[%].required_quantity=%', node.node_index, node.required_quantity;
 
   node_list[node_index] := node;
 
@@ -267,7 +267,7 @@ declare
   child_index int;
 begin
   node := node_list[node_index];
---  raise debug 'bb_calculate_cost[%] item=%', node.index, node.item_id;
+--  raise debug 'bb_calculate_cost[%] item=%', node.node_index, node.item_id;
 
   select * into cost from cost_master where c_f_id = context.factory_id and c_i_id = node.item_id;
   if not cost is null then
@@ -288,10 +288,10 @@ begin
         * bb_measurement_convert_unit((node.required_quantity).value, (node.required_quantity).unit, common_unit);
     end if;
   end if;
---  raise debug 'node[%].total_unit_cost=%', node.index, node.total_unit_cost;
+--  raise debug 'node[%].total_unit_cost=%', node.node_index, node.total_unit_cost;
 
   node.unit_cost := node.total_unit_cost / manufacturing_quantity;
---  raise debug 'node[%].unit_cost=%', node.index, node.unit_cost;
+--  raise debug 'node[%].unit_cost=%', node.node_index, node.unit_cost;
 
   total_manufacturing_cost := node.total_unit_cost;
   foreach child_index in array node.child_list loop
@@ -300,10 +300,10 @@ begin
     total_manufacturing_cost := total_manufacturing_cost + node_list[child_index].total_manufacturing_cost;
   end loop;
   node.total_manufacturing_cost := total_manufacturing_cost;
---  raise debug 'node[%].total_manufacturing_cost=%', node.index, node.total_manufacturing_cost;
+--  raise debug 'node[%].total_manufacturing_cost=%', node.node_index, node.total_manufacturing_cost;
 
   node.manufacturing_cost := total_manufacturing_cost / manufacturing_quantity;
---  raise debug 'node[%].manufacturing_cost=%', node.index, node.manufacturing_cost;
+--  raise debug 'node[%].manufacturing_cost=%', node.node_index, node.manufacturing_cost;
 
   node_list[node_index] := node;
 end

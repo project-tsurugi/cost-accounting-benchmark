@@ -16,6 +16,15 @@ psql=> select version();
 SQLのcreate type文でグローバルなユーザー定義型（複合型）を作ることは出来る。
 
 
+●create typeで%typeが使えない
+create type bb_context as
+(
+  batch_date date,
+  factory_id int	--OK
+  factory_id factory_master.f_id%type	--NG
+);
+
+
 ●構造体の配列の宣言方法
 declare
   rec  hoge%rowtype;   --OK（行型の宣言）
