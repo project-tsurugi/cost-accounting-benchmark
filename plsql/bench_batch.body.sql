@@ -30,5 +30,33 @@ is
     total_manufacturing_cost number
   );
 
+  -- factory list
+  type bb_factory_id_list is table of factory_master.f_id%type;
+
+  function bb_get_factory_list(factories varchar2) return bb_factory_id_list
+  is
+    id_list bb_factory_id_list;
+
+    len binary_integer;
+    arr dbms_utility.uncl_array;
+  begin
+    id_list := bb_factory_id_list();
+
+    if nvl(length(factories), 0) = 0 then
+      for row in (select f_id from factory_master order by f_id) loop
+        id_list.extend();
+        id_list(id_list.last) := row.f_id;
+      end loop;
+    else
+      dbms_utility.comma_to_table(factories, len, arr);
+      id_list.extend(len);
+      for i in 1..len loop
+        id_list(i) := arr(i);
+      end loop;
+    end if;
+
+    return id_list;
+  end;
+
 end;
 /
