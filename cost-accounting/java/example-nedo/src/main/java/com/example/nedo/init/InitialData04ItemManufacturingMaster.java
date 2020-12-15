@@ -153,7 +153,8 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 
 	private Map<Integer, Set<Integer>> generateB(Map<Integer, Set<Integer>> map) {
 		int factorySize = map.size();
-		BigDecimal[] rs = random.split(BigDecimal.valueOf(300 * factorySize), factorySize);
+		int seed = factorySize;
+		BigDecimal[] rs = random.psplit(seed, BigDecimal.valueOf(300 * factorySize), factorySize);
 
 		int i = 0;
 		for (Set<Integer> list : map.values()) {
