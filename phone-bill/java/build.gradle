@@ -1,0 +1,33 @@
+// https://github.com/domaframework/simple-boilerplate/blob/master/build.gradle
+plugins {
+    id 'java'
+    id 'eclipse'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  // https://mvnrepository.com/artifact/org.postgresql/postgresql
+  runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.2.16'
+  // https://mvnrepository.com/artifact/com.oracle.database.jdbc/ojdbc8
+  runtimeOnly group: 'com.oracle.database.jdbc', name: 'ojdbc8', version: '19.8.0.0'
+
+  testCompileOnly("org.junit.jupiter:junit-jupiter-api:5.7.0")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.0.0") // for IDE
+}
