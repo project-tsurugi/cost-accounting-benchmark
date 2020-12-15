@@ -47,6 +47,9 @@ public class BenchRandom {
 		}
 	}
 
+	/**
+	 * 0に近い乱数
+	 */
 	public BigDecimal random0(BigDecimal end) {
 		BigDecimal start = BigDecimal.ZERO;
 		BigDecimal r = random(start, end);
@@ -96,6 +99,97 @@ public class BenchRandom {
 		TreeSet<BigDecimal> set = new TreeSet<>();
 		while (set.size() < splitSize - 1) {
 			BigDecimal r = randomExclude(BigDecimal.ZERO, value);
+			set.add(r);
+		}
+		assert set.size() == splitSize - 1;
+
+		BigDecimal[] result = new BigDecimal[splitSize];
+		int i = 0;
+		BigDecimal prev = BigDecimal.ZERO;
+		for (BigDecimal v : set) {
+			result[i++] = v.subtract(prev);
+			prev = v;
+		}
+		result[i] = value.subtract(prev);
+
+		return result;
+	}
+
+	public int prandom(int seed, int size) {
+		double r = (Math.sin(seed) + 1) / 2;
+		int n = (int) (r * size);
+		if (n >= size) {
+			return size - 1;
+		}
+		return n;
+	}
+
+	public int prandom(int seed, int start, int end) {
+		assert start <= end;
+
+		int size = end - start + 1;
+		return prandom(seed, size) + start;
+	}
+
+	private long prandom(int seed, long size) {
+		double r = (Math.sin(seed) + 1) / 2;
+		long n = (long) (r * size);
+		if (n >= size) {
+			return size - 1;
+		}
+		return n;
+	}
+
+	public BigDecimal prandom(int seed, BigDecimal start, BigDecimal end) {
+		int scale = Math.max(start.scale(), end.scale());
+		long s = start.movePointRight(scale).longValue();
+		long e = end.movePointRight(scale).longValue();
+		long size = e - s + 1;
+		long r = prandom(seed, size) + s;
+		return BigDecimal.valueOf(r).movePointLeft(scale);
+	}
+
+	public BigDecimal prandomExclude(int seed, BigDecimal start, BigDecimal end) {
+		for (;;) {
+			BigDecimal r = prandom(seed, start, end);
+			if (r.compareTo(start) == 0 || r.compareTo(end) == 0) {
+				continue;
+			}
+			return r;
+		}
+	}
+
+	public BigDecimal[] psplit(int seed, BigDecimal value, int splitSize) {
+		assert splitSize > 0;
+
+		if (splitSize == 1) {
+			return new BigDecimal[] { value };
+		}
+
+		int valueSize = getSize(value);
+		if (valueSize <= splitSize) {
+			return psplitUsingUlp(seed, value, valueSize, splitSize);
+		}
+
+		return psplitUsingSet(seed, value, splitSize);
+	}
+
+	private BigDecimal[] psplitUsingUlp(int seed, BigDecimal value, int valueSize, int splitSize) {
+		BigDecimal ulp = value.ulp();
+
+		BigDecimal[] result = new BigDecimal[splitSize];
+		Arrays.fill(result, BigDecimal.ZERO);
+		for (int i = 0; i < valueSize; i++) {
+			int n = prandom(seed + i, splitSize);
+			result[n] = result[n].add(ulp);
+		}
+		return result;
+	}
+
+	private BigDecimal[] psplitUsingSet(int seed, BigDecimal value, int splitSize) {
+		TreeSet<BigDecimal> set = new TreeSet<>();
+		while (set.size() < splitSize - 1) {
+			BigDecimal r = prandomExclude(seed++, BigDecimal.ZERO, value);
 			set.add(r);
 		}
 		assert set.size() == splitSize - 1;

@@ -243,7 +243,8 @@ public class InitialData03ItemMaster extends InitialData {
 		assert size % TREE_SIZE == 0;
 		for (int i = 0; i < size / TREE_SIZE; i++) {
 			// 木の要素数を決定する
-			int treeSize = 10 + random(-4, 4);
+			int seed = startId + i;
+			int treeSize = 10 + random.prandom(seed, -4, 4);
 
 			// ルート要素を作成する
 			Node root = new Node(new ItemMaster());
@@ -254,7 +255,7 @@ public class InitialData03ItemMaster extends InitialData {
 			while (nodeList.size() < treeSize) {
 				Node node = new Node(new ItemMaster());
 
-				Node parent = nodeList.get(random.nextInt(nodeList.size()));
+				Node parent = nodeList.get(random.prandom(++seed, nodeList.size()));
 				parent.addChild(node);
 
 				nodeList.add(node);
@@ -277,8 +278,8 @@ public class InitialData03ItemMaster extends InitialData {
 					continue;
 				}
 
-				int materialSize = random(1, 3);
-				List<ItemMaster> materialList = findRandomMaterial(materialSize, dao);
+				int materialSize = random.prandom(++seed, 1, 3);
+				List<ItemMaster> materialList = findRandomMaterial(++seed, materialSize, dao);
 				for (ItemMaster material : materialList) {
 					node.addChild(new Node(material));
 				}
@@ -326,10 +327,11 @@ public class InitialData03ItemMaster extends InitialData {
 			int workEnd = iId.get() - 1;
 			int productId = getProductStartId();
 			for (int i = 0; i < productSize; i++, productId++) {
-				int s = random(1, PRODUCT_TREE_SIZE);
+				int seed = productId;
+				int s = random.prandom(seed, 1, PRODUCT_TREE_SIZE);
 				Set<Integer> set = new HashSet<>(s);
 				while (set.size() < s) {
-					set.add(random(workStart, workEnd));
+					set.add(random.prandom(++seed, workStart, workEnd));
 				}
 
 				insertItemConstructionMasterProduct(productId, set, icDao);
@@ -358,13 +360,13 @@ public class InitialData03ItemMaster extends InitialData {
 		}
 	}
 
-	private List<ItemMaster> findRandomMaterial(int size, ItemMasterDao dao) {
+	private List<ItemMaster> findRandomMaterial(int seed, int size, ItemMasterDao dao) {
 		int materialStartId = getMaterialStartId();
 		int materialEndId = materialStartId + materialSize - 1;
 
 		Set<Integer> idSet = new TreeSet<>();
 		while (idSet.size() < size) {
-			idSet.add(random(materialStartId, materialEndId));
+			idSet.add(random.prandom(seed++, materialStartId, materialEndId));
 		}
 
 		return dao.selectByIds(idSet, batchDate);
@@ -376,7 +378,8 @@ public class InitialData03ItemMaster extends InitialData {
 
 		for (int i = 0; i < 2; i++) { // 3倍に増幅する
 			ItemMaster ent;
-			if (random(0, 1) == 0) {
+			int seed = entity.getIId() + i;
+			if (random.prandom(seed, 0, 1) == 0) {
 				ItemMaster src = map.firstEntry().getValue();
 				ent = src.clone();
 				initializePrevStartEndDate(src, ent);

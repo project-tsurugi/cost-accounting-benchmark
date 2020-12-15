@@ -97,4 +97,27 @@ class BenchRandomTest {
 		}
 		assertEquals(value, sum);
 	}
+
+	@Test
+	void testPrandomSize() {
+		for (int seed = 0; seed <= 1000_0000; seed++) {
+			int r = random.prandom(seed, 100);
+			int e = prandomExpected(seed, 100);
+			assertEquals(e, r, "seed=" + seed);
+
+			int r2 = random.prandom(seed, 100);
+			assertEquals(r, r2, "seed=" + seed);
+		}
+	}
+
+	private int prandomExpected(int seed, int size) {
+		double r = (Math.sin(seed) + 1) / 2;
+		for (int i = 1; i <= size; i++) {
+			double d = (double) i / size;
+			if (r < d) {
+				return i - 1;
+			}
+		}
+		return size - 1;
+	}
 }
