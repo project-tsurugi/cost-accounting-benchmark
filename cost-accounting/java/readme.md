@@ -18,6 +18,18 @@ Eclipse上で、Doma2のDAOのsqlファイルが見つからなくてコンパ�
 ls build/distributions/
 ```
 
+実行環境で解凍する。
+
+```bash
+tar xf example-nedo.tar
+cd example-nedo/bin
+chmod +x *.sh
+```
+
+binには実行用シェルとプロパティーファイルがある。
+実行用シェルの引数としてプロパティーファイルを指定する。
+プロパティーファイル内には主にJDBC接続のための情報が書かれているので、環境に応じて用意する。
+
 
 
 ## 実行方法
@@ -49,11 +61,23 @@ ls build/distributions/
 6. InitialData06Increase
    - データを増幅する（件数を増やす）。
 
+アーカイブの中に実行用シェルがある。
+
+```bash
+./initdata.sh プロパティーファイル
+```
+
 
 
 ### バッチ処理
 
 - BenchBatch
+
+アーカイブの中に実行用シェルがある。
+
+```bash
+./exec-batch.sh プロパティーファイル
+```
 
 
 
