@@ -1,0 +1,81 @@
+package com.example.nedo.app;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import com.example.nedo.db.DBUtils;
+
+class CreateTableTest {
+	private static Connection conn;
+	private static Statement stmt;
+
+	@BeforeAll
+	static void setUpBeforeClass() throws Exception {
+		conn = DBUtils.getConnection();
+		conn.setAutoCommit(true);
+		stmt = conn.createStatement();
+	}
+
+	@AfterAll
+	static void tearDownAfterClass() throws Exception {
+		conn.close();
+	}
+
+	@Test
+	void test() throws SQLException {
+		CreateTable createTable = new CreateTable();
+		createTable.dropTables(stmt);
+		// テーブルが存在しないことを確認
+		assertFalse(exists("billing"));
+		assertFalse(exists("contracts"));
+		assertFalse(exists("history"));
+
+		// テーブルが作成されることを確認
+		createTable.createBillingTable(stmt);
+		assertTrue(exists("billing"));
+		createTable.createContractsTable(stmt);
+		assertTrue(exists("contracts"));
+		createTable.createHistoryTable(stmt);
+		assertTrue(exists("history"));
+	}
+
+	@Test
+	void testExecute() throws SQLException {
+		CreateTable createTable = new CreateTable();
+		createTable.execute(null);
+
+		// テーブルが作成されることを確認
+		assertTrue(exists("billing"));
+		assertTrue(exists("contracts"));
+		assertTrue(exists("history"));
+	}
+
+
+
+	/**
+	 * 指定した名称のテーブルが存在するかチェックする
+	 *
+	 * @param tablename
+	 * @return 存在するときtrue
+	 * @throws SQLException
+	 */
+	private boolean exists(String tablename) throws SQLException {
+		String sql = "SELECT count(*) from pg_class WHERE relkind = 'r' AND relname = '"+tablename+"'";
+		Statement stmt = conn.createStatement();
+		ResultSet rs = stmt.executeQuery(sql);
+		int c = 0;
+		if (rs.next()) {
+			c = rs.getInt(1);
+		}
+		return c == 1;
+	}
+
+}
