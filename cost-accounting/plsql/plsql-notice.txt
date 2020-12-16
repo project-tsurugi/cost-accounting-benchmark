@@ -60,4 +60,23 @@ PL/SQL‚Å‚Íutype int_array varray(100) of intv‚Ì‚æ‚¤‚Éƒ†[ƒU[’è‹`Œ^‚Æ‚µ‚Ä’è‹`‚
 
 iPL/pgSQL‚Å‚Íuns int[]v‚Ì‚æ‚¤‚É•Ï”éŒ¾‚·‚éBãŒÀ‚ÌŽw’è‚Í•s—v‚ÅAŽ©—R‚ÉŠg’£‚Å‚«‚éj
 
+œƒpƒbƒP[ƒWŠÖ˜A
+ƒpƒbƒP[ƒW“à‚Ìˆê•”iŠÖ”‚âƒvƒƒV[ƒWƒƒ[’è‹`j‚¾‚¯‚ðXV‚·‚é‚±‚Æ‚Ío—ˆ‚È‚¢B
+ƒpƒbƒP[ƒW‘S‘Ì‚Ìì‚è’¼‚µ‚Æ‚È‚éB
+
+ƒpƒbƒP[ƒW“à‚Ì‰ÂŽ‹«‚Ípublic‚©private‚µ‚©–³‚¢‚Ì‚ÅAprivate‚ÈŠÖ”‚âƒvƒƒV[ƒWƒƒ[‚ðƒeƒXƒg‚·‚é‚Ì‚Í“ï‚µ‚¢B
+
+œƒvƒƒV[ƒWƒƒ[‚Ì’è‹`•û–@EŒÄ‚Ño‚µ•û–@
+ˆø”‚Ì–³‚¢ƒvƒƒV[ƒWƒƒ[‚ð’è‹`‚·‚éê‡Aˆø”éŒ¾‚ÌŠÛŠ‡ŒÊ‚à•t‚¯‚È‚¢B
+procedure test
+is
+begin
+end;
+
+ƒvƒƒV[ƒWƒƒ[‚ðŒÄ‚Ño‚·ê‡AƒvƒƒV[ƒWƒƒ[–¼‚ð‚»‚Ì‚Ü‚Ü‹Lq‚·‚éB
+begin
+  test;
+end;
+iPL/pgSQL‚¾‚Æcall‚ÅŒÄ‚Ño‚·j
+iOracle‚Ìê‡Acall‚âexecute‚ÍSQLiSQL*Plusj‚©‚çŒÄ‚Ño‚·‚Æ‚«‚ÉŽg—p‚·‚é‚à‚Ì‚Å‚ ‚èAPL/SQL“à‚©‚çŒÄ‚Ño‚·ê‡‚Í•s—vicall‚ð‘‚­‚ÆƒGƒ‰[jj
 
