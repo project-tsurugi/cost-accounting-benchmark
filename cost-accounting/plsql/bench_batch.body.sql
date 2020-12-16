@@ -31,14 +31,14 @@ is
   );
 
   -- factory list
-  type bb_factory_id_list is table of factory_master.f_id%type;
+  --type bb_factory_id_list is table of factory_master.f_id%type;
 
   function bb_get_factory_list(factories varchar2) return bb_factory_id_list
   is
     id_list bb_factory_id_list;
 
-    len binary_integer;
-    arr dbms_utility.uncl_array;
+    start_pos pls_integer;
+    s varchar2(1);
   begin
     id_list := bb_factory_id_list();
 
@@ -48,10 +48,16 @@ is
         id_list(id_list.last) := row.f_id;
       end loop;
     else
-      dbms_utility.comma_to_table(factories, len, arr);
-      id_list.extend(len);
-      for i in 1..len loop
-        id_list(i) := arr(i);
+      start_pos := 1;
+      for i in 1..length(factories) + 1 loop
+        s := substr(factories, i, 1);
+        if s = ',' or s is null then
+          if i - start_pos >= 1 then
+            id_list.extend();
+            id_list(id_list.last) := substr(factories, start_pos, i - start_pos);
+          end if;
+          start_pos := i + 1;
+        end if;
       end loop;
     end if;
 
