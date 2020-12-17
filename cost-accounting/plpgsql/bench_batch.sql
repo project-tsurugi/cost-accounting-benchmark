@@ -401,9 +401,9 @@ begin
   result := 0;
   -- TODO parallel
   for manufact in select * from item_manufacturing_master where im_f_id = context.factory_id and context.batch_date between im_effective_date and im_expired_date loop
-    raise log 'bb_item_execute start %, %', context, manufact.im_i_id;
+    --raise log 'bb_item_execute start %, %', context, manufact.im_i_id;
     call bb_item_execute(context, manufact);
-    raise log 'bb_item_execute end   %, %', context, manufact.im_i_id;
+    --raise log 'bb_item_execute end   %, %', context, manufact.im_i_id;
 
     result := result + 1;
   end loop;
