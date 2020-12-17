@@ -78,7 +78,7 @@ public class BenchOnlineInsertItemTask extends BenchOnlineTask {
 		int s = random.random(1, InitialData03ItemMaster.PRODUCT_TREE_SIZE);
 		Set<Integer> workSet = new HashSet<>(s);
 		for (int i = 0; i < s; i++) {
-			Integer id = initialData.getRandomAndRemove(workList);
+			Integer id = initialData.getRandomAndRemove(i, workList);
 			workSet.add(id);
 		}
 

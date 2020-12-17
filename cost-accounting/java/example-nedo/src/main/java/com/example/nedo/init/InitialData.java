@@ -76,10 +76,10 @@ public class InitialData {
 		return random.random(start, end);
 	}
 
-	public <T> T getRandomAndRemove(List<T> list) {
+	public <T> T getRandomAndRemove(int seed, List<T> list) {
 		assert list.size() > 0;
 
-		int i = random.nextInt(list.size());
+		int i = random.prandom(seed, list.size());
 		return list.remove(i);
 	}
 

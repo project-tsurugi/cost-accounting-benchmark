@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.seasar.doma.jdbc.tx.TransactionManager;
 
@@ -30,8 +31,8 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 		new InitialData04ItemManufacturingMaster(batchDate).main();
 	}
 
-	private final Set<Integer> factoryIdSet = new HashSet<>();
-	private final Set<Integer> productIdSet = new HashSet<>();
+	private final Set<Integer> factoryIdSet = new TreeSet<>();
+	private final Set<Integer> productIdSet = new TreeSet<>();
 
 	public InitialData04ItemManufacturingMaster(LocalDate batchDate) {
 		super(batchDate);
@@ -112,7 +113,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 
 		// A all
 		for (int i = 0; i < 10; i++) {
-			int productId = getRandomAndRemove(productIds);
+			int productId = getRandomAndRemove(i, productIds);
 			for (Set<Integer> list : mapA.values()) {
 				list.add(productId);
 			}
@@ -120,7 +121,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 
 		// A 50%
 		for (int i = 0; i < 20; i++) {
-			int productId = getRandomAndRemove(productIds);
+			int productId = getRandomAndRemove(i, productIds);
 			mapA.forEach((factoryId, list) -> {
 				if (factoryId.intValue() % 2 == 1) {
 					list.add(productId);
@@ -130,7 +131,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 
 		// A 25%
 		for (int i = 0; i < 30; i++) {
-			int productId = getRandomAndRemove(productIds);
+			int productId = getRandomAndRemove(i, productIds);
 			mapA.forEach((factoryId, list) -> {
 				if (factoryId.intValue() % 4 == 1) {
 					list.add(productId);
@@ -140,7 +141,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 
 		// A 10%
 		for (int i = 0; i < 40; i++) {
-			int productId = getRandomAndRemove(productIds);
+			int productId = getRandomAndRemove(i, productIds);
 			mapA.forEach((factoryId, list) -> {
 				if (factoryId.intValue() % 10 == 1) {
 					list.add(productId);
@@ -164,7 +165,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 			for (int j = 0; j < breadSize; j++) {
 				int breadId;
 				for (;;) {
-					breadId = getRandomAndRemove(breadIds);
+					breadId = getRandomAndRemove(++seed, breadIds);
 					if (!list.contains(breadId)) {
 						break;
 					}

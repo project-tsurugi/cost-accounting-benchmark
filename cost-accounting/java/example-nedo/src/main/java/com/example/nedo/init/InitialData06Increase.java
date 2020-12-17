@@ -47,7 +47,7 @@ public class InitialData06Increase extends InitialData {
 
 		int increaseSize = (int) (list.size() * 0.25); // 1.25倍に増幅する
 		for (int i = 0; i < increaseSize; i++) {
-			ItemConstructionMaster src = getRandomAndRemove(list);
+			ItemConstructionMaster src = getRandomAndRemove(i, list);
 
 			ItemConstructionMaster entity = src.clone();
 			int seed = entity.getIcParentIId() + entity.getIcIId();
@@ -67,7 +67,7 @@ public class InitialData06Increase extends InitialData {
 
 		int increaseSize = (int) (list.size() * 0.6); // 1.6倍に増幅する
 		for (int i = 0; i < increaseSize; i++) {
-			ItemManufacturingMaster src = getRandomAndRemove(list);
+			ItemManufacturingMaster src = getRandomAndRemove(i, list);
 
 			ItemManufacturingMaster entity = src.clone();
 			int seed = entity.getImFId() + entity.getImIId();

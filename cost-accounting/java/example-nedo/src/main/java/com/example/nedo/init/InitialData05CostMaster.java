@@ -4,11 +4,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.seasar.doma.jdbc.tx.TransactionManager;
 
@@ -30,8 +31,8 @@ public class InitialData05CostMaster extends InitialData {
 		new InitialData05CostMaster(batchDate).main();
 	}
 
-	private final Set<Integer> factoryIdSet = new HashSet<>();
-	private final Map<Integer, ItemMaster> materialSet = new HashMap<>();
+	private final Set<Integer> factoryIdSet = new TreeSet<>();
+	private final Map<Integer, ItemMaster> materialSet = new TreeMap<>();
 
 	public InitialData05CostMaster(LocalDate batchDate) {
 		super(batchDate);
@@ -92,8 +93,9 @@ public class InitialData05CostMaster extends InitialData {
 			factorySet.clear();
 			List<Integer> factoryIds = new ArrayList<>(factoryIdSet);
 			int size = factoryIdSet.size() / 2; // 50%
+			int seed = materialEntity.getIId();
 			while (factorySet.size() < size) {
-				int factoryId = getRandomAndRemove(factoryIds);
+				int factoryId = getRandomAndRemove(seed++, factoryIds);
 				factorySet.add(factoryId);
 			}
 
