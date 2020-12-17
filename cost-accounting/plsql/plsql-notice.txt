@@ -25,6 +25,16 @@ PL/SQLでは「%rowtype」が必須。
 
 ・nullを代入することは出来る。
 
+○ユーザー定義型の初期化構文（コンストラクター）が無い
+type bb_ratio is record (
+  numerator   number,
+  denominator number
+);
+
+ratio := bb_ratio(1, 1); --NG
+
+（PL/pgSQLだと(1,1)のようにして初期化できる）
+
 ●select * intoで0件の場合の処理
 「select * into 変数」で、select結果が0件の場合、
 （PL/pgSQLでは変数にnullが入ったが）

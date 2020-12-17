@@ -84,5 +84,11 @@ is
     return result;
   end;
 
+  --debug
+  function dump(value bb_measurement_value) return varchar2
+  is
+  begin
+    return value.value || value.unit;
+  end;
 end;
 /

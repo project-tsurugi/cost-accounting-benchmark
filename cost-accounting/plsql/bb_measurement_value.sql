@@ -39,5 +39,6 @@ is
     value2 bb_measurement_value
   ) return bb_value_pair;
 
+  function dump(value bb_measurement_value) return varchar2;
 end;
 /
