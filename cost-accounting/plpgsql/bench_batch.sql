@@ -387,24 +387,29 @@ begin
 end
 $$;
 
-create or replace procedure bb_execute(context bb_context)
+create or replace function bb_execute(context bb_context) returns numeric
 language plpgsql
 as $$
 declare
   manufact item_manufacturing_master;
+  result numeric;
 begin
   raise log 'bb_execute start %', context;
 
   delete from result_table where r_f_id = context.factory_id and r_manufacturing_date = context.batch_date;
 
+  result := 0;
   -- TODO parallel
   for manufact in select * from item_manufacturing_master where im_f_id = context.factory_id and context.batch_date between im_effective_date and im_expired_date loop
     raise log 'bb_item_execute start %, %', context, manufact.im_i_id;
     call bb_item_execute(context, manufact);
     raise log 'bb_item_execute end   %, %', context, manufact.im_i_id;
+
+    result := result + 1;
   end loop;
 
   raise log 'bb_execute end   %', context;
+  return result;
 end
 $$;
 
@@ -419,6 +424,7 @@ declare
   factory_list int[];
   factory_id   int;
   context bb_context;
+  c numeric;
 begin
   raise info 'batch_date = %', batch_date;
 
@@ -431,14 +437,14 @@ begin
   foreach factory_id in array factory_list loop
     context.batch_date := batch_date;
     context.factory_id := factory_id;
-    call bb_execute(context);
+    c := bb_execute(context);
 
     if random() * 100 < commit_ratio then
       commit;
-      raise info 'commit %', context;
+      raise info 'commit %, count=%', context, c;
     else
       rollback;
-      raise info 'rollback %', context;
+      raise info 'rollback %, count=%', context, c;
     end if;
   end loop;
 end

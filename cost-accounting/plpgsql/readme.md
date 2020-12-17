@@ -12,7 +12,10 @@ PostgreSQLで以下のsqlファイル（create procedure等）を実行する。
 
 ## 実行方法
 
+psqlから以下のようにして実行する。
+
 ```sql
+\timing on
 call bench_batch('2020-09-15', '1,2,3');
 ```
 
