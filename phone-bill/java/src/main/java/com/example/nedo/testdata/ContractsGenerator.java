@@ -1,9 +1,15 @@
-package com.example.nedo.db.testdata;
+package com.example.nedo.testdata;
 
+import java.sql.Connection;
 import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import com.example.nedo.db.DBUtils;
 
 /**
  * @author umega
@@ -19,9 +25,9 @@ public class ContractsGenerator {
 	private static final long MAX_PHNE_NUMBER = 99999999999L;
 
 	/**
-	 * 一度にコミットする行数
+	 * 一度にインサートする行数
 	 */
-	private static final long RECORDS_AT_COMMIT = 3000;
+	private static final long SQL_BATCH_EXEC_SIZE = 3000;
 
 	/**
 	 * ミリ秒で表した1日
@@ -33,7 +39,7 @@ public class ContractsGenerator {
 
 
 	private Random random;
-	private int numberOfRecords;
+	private long numberOfRecords;
 	private int duplicatePhoneNumberRatio;
 	private int expirationDateRate;
 	private int noExpirationDateRate;
@@ -53,7 +59,7 @@ public class ContractsGenerator {
 	 * @param minDate 契約開始日の最小値
 	 * @param maxDate 契約終了日の最大値
 	 */
-	public ContractsGenerator(long seed, int numberOfRecords, int duplicatePhoneNumberRatio,
+	public ContractsGenerator(long seed, long numberOfRecords, int duplicatePhoneNumberRatio,
 			int expirationDateRate, int noExpirationDateRate, Date minDate, Date maxDate) {
 		if (minDate.getTime() >= maxDate.getTime()) {
 			new RuntimeException(
@@ -71,8 +77,53 @@ public class ContractsGenerator {
 	}
 
 
+	/**
+	 * 契約マスタのテストデータを生成する
+	 *
+	 * @throws SQLException
+	 */
+	public void generate() throws SQLException {
+		try (Connection conn = DBUtils.getConnection()) {
+			// オプション指定により、truncateするのではなく、データが存在する場合警告して終了するようにする
+			Statement stmt = conn.createStatement();
+			stmt.executeUpdate("truncate table contracts");
+
+			PreparedStatement ps = conn.prepareStatement("insert into contracts("
+					+ "phone_number,"
+					+ "start_date,"
+					+ "end_date,"
+					+ "charge_rule"
+					+ ") values(?, ?, ?, ?)");
+			int batchSize = 0;
+			for(long n = 0; n < numberOfRecords; n++) {
+				Duration d = getDuration(n);
+				String rule = "dummy";
+				ps.setString(1, getPhoneNumber(n));
+				ps.setDate(2, d.start);
+				ps.setDate(3, d.end);
+				ps.setString(4, rule);
+				ps.addBatch();
+				if (++batchSize == SQL_BATCH_EXEC_SIZE) {
+					execBatch(ps);
+					conn.commit();
+				}
+			}
+			execBatch(ps);
+		}
+	}
 
 
+
+	private void execBatch(PreparedStatement ps) throws SQLException {
+		int rets[] = ps.executeBatch();
+		for(int ret: rets) {
+			if (ret < 0 && ret != PreparedStatement.SUCCESS_NO_INFO ) {
+				throw new SQLException("Fail to batch exexecute");
+			}
+		}
+		ps.getConnection().commit();
+		ps.clearBatch();
+	}
 
 
 	/**
@@ -148,7 +199,7 @@ public class ContractsGenerator {
 			throw new RuntimeException("Out of phone number range: " + n);
 		}
 		// TODO 電話番号が連番にならないようにする
-		long blockSize = duplicatePhoneNumberRatio + expirationDateRate + noExpirationDateRate;
+		long blockSize = duplicatePhoneNumberRatio * 2 + expirationDateRate + noExpirationDateRate;
 		long noDupSize = expirationDateRate + noExpirationDateRate;
 		long posInBlock = n % blockSize;
 		long phoneNumber = n;

@@ -2,32 +2,15 @@ package com.example.nedo.app;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.example.nedo.db.DBUtils;
+import com.example.nedo.AbstractDbTestCase;
 
-class CreateTableTest {
-	private static Connection conn;
-	private static Statement stmt;
-
-	@BeforeAll
-	static void setUpBeforeClass() throws Exception {
-		conn = DBUtils.getConnection();
-		conn.setAutoCommit(true);
-		stmt = conn.createStatement();
-	}
-
-	@AfterAll
-	static void tearDownAfterClass() throws Exception {
-		conn.close();
-	}
+class CreateTableTest extends AbstractDbTestCase {
 
 	@Test
 	void test() throws SQLException {

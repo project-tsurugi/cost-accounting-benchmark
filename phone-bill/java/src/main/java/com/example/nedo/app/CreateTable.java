@@ -16,13 +16,14 @@ public class CreateTable implements ExecutableCommand{
 
 	@Override
 	public void execute(String[] args) throws SQLException {
-		Connection conn = DBUtils.getConnection();
-		Statement stmt = conn.createStatement();
-
-		dropTables(stmt);
-		createHistoryTable(stmt);
-		createContractsTable(stmt);
-		createBillingTable(stmt);
+		try (		Connection conn = DBUtils.getConnection()) {
+			conn.setAutoCommit(true);
+			Statement stmt = conn.createStatement();
+			dropTables(stmt);
+			createHistoryTable(stmt);
+			createContractsTable(stmt);
+			createBillingTable(stmt);
+		}
 	}
 
 	void createHistoryTable(Statement stmt) throws SQLException {
@@ -46,11 +47,10 @@ public class CreateTable implements ExecutableCommand{
 		String create_table = "create table contracts ("
 				+ "phone_number varchar(15) not null," 		// 電話番号
 				+ "start_date date not null," 				// 契約開始日
-				+ "end_date _date," 							// 契約終了日
-				+ "charge_rulee varchar(255) not null,"		// 料金計算ルール
+				+ "end_date date,"					// 契約終了日
+				+ "charge_rule varchar(255) not null,"		// 料金計算ルール
 				+ "primary key(phone_number, start_date)"
 				+ ")";
-		System.out.println(create_table);
 		stmt.execute(create_table);
 	}
 

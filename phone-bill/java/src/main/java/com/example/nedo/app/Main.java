@@ -1,19 +1,15 @@
 package com.example.nedo.app;
 
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class Main {
-	private static final Map<String, ExecutableCommand> COMMANDS_MAP = new HashMap<>();
+	private static final Map<String, ExecutableCommand> COMMAND_MAP = new HashMap<>();
 	static {
-		COMMANDS_MAP.put("CreateTable", new CreateTable());
+		COMMAND_MAP.put("CreateTable", new CreateTable());
+		COMMAND_MAP.put("CreateTestData", new CreateTestData());
 	}
-
-	private static final Set<String> COMMANDS = new HashSet<String>(Arrays.asList("CreateTable", "CreateTestData"));
 
 	public static void main(String[] args) throws SQLException {
 		if (args.length == 0) {
@@ -22,7 +18,7 @@ public class Main {
 			System.exit(1);
 		}
 		String cmd = args[0];
-		ExecutableCommand executableCommand = COMMANDS_MAP.get(cmd);
+		ExecutableCommand executableCommand = COMMAND_MAP.get(cmd);
 		if (executableCommand == null) {
 			System.err.println("Command '" + cmd + "' is not supprted. Please specify one of the following commands.");
 			usage();
@@ -33,7 +29,7 @@ public class Main {
 
 
 	private static void usage() {
-		for(String cmd: COMMANDS) {
+		for(String cmd: COMMAND_MAP.keySet()) {
 			System.err.println("  " + cmd);
 		}
 	}
