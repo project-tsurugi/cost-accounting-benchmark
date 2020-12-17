@@ -19,25 +19,25 @@ import org.junit.jupiter.api.Test;
 import com.example.nedo.AbstractDbTestCase;
 import com.example.nedo.app.CreateTable;
 import com.example.nedo.db.DBUtils;
-import com.example.nedo.testdata.ContractsGenerator.Duration;
+import com.example.nedo.testdata.TestDataGenerator.Duration;
 
 /**
  * @author umega
  *
  */
-class ContractsGeneratorTest extends AbstractDbTestCase {
+class TestDataGeneratorTest extends AbstractDbTestCase {
 
 	/**
-	 * generate()のテスト
+	 * generateContract()のテスト
 	 */
 	@Test
-	void testGenerate() throws SQLException {
+	void testGenerateContract() throws SQLException {
 		new CreateTable().execute(new String[0]);
 
 		Date start =DBUtils.toDate("2010-11-11");
 		Date end = DBUtils.toDate("2020-12-21");
-		ContractsGenerator generator = new ContractsGenerator(0, 10000, 2, 5, 11, start, end );
-		generator.generate();
+		TestDataGenerator generator = new TestDataGenerator(0, 10000, 0, 2, 5, 11, start, end );
+		generator.generateContract();
 
 		String sql;
 
@@ -89,7 +89,7 @@ class ContractsGeneratorTest extends AbstractDbTestCase {
 
 	void testInitDurationLisSubt(int duplicatePhoneNumberRatio, int expirationDateRate, int noExpirationDateRate
 		, Date start, Date end) {
-		ContractsGenerator generator = new ContractsGenerator(0, 0, duplicatePhoneNumberRatio, expirationDateRate,
+		TestDataGenerator generator = new TestDataGenerator(0, 0, 0, duplicatePhoneNumberRatio, expirationDateRate,
 				noExpirationDateRate, start, end);
 		List<Duration> list = generator.getDurationList();
 		// listの要素数が duplicatePhoneNumberRatio * 2 + expirationDateRate + noExpirationDateRateであること
@@ -127,13 +127,65 @@ class ContractsGeneratorTest extends AbstractDbTestCase {
 
 
 
+	/**
+	 * getCommonDuration()のテスト
+	 */
+	@Test
+	void testGetCommonDuration() {
+		// 共通の期間がないケース(期間が連続していない)
+		assertNull(testGetCommonDurationSub("2020-01-01", "2020-01-03", "2020-01-05", "2020-01-07"));
+		assertNull(testGetCommonDurationSub("2020-02-01", "2020-02-03", "2020-01-05", "2020-01-07"));
+		// 共通の期間がないケース(期間が連続している)
+		assertNull(testGetCommonDurationSub("2020-01-01", "2020-01-03", "2020-01-04", "2020-01-07"));
+		assertNull(testGetCommonDurationSub("2020-01-08", "2020-02-03", "2020-01-05", "2020-01-07"));
+		// 1日だけ共通の期間があるケース
+		assertEquals(toDuration("2020-01-03", "2020-01-03"),
+				testGetCommonDurationSub("2020-01-01", "2020-01-03", "2020-01-03", "2020-01-07"));
+		assertEquals(toDuration("2020-01-07", "2020-01-07"),
+				testGetCommonDurationSub("2020-01-07", "2020-02-03", "2020-01-05", "2020-01-07"));
+		// 複数の共通の期間があるケース
+		// 1日だけ共通の期間があるケース
+		assertEquals(toDuration("2020-01-03", "2020-01-05"),
+				testGetCommonDurationSub("2020-01-01", "2020-01-05", "2020-01-03", "2020-01-07"));
+		assertEquals(toDuration("2020-01-07", "2020-01-09"),
+				testGetCommonDurationSub("2020-01-07", "2020-02-03", "2020-01-05", "2020-01-09"));
+
+		// 一方が他方の期間を完全に含むケース(開始、終了のどちらも一致しない)
+		assertEquals(toDuration("2020-01-03", "2020-01-05"),
+				testGetCommonDurationSub("2020-01-01", "2020-02-05", "2020-01-03", "2020-01-05"));
+		assertEquals(toDuration("2020-01-07", "2020-02-03"),
+				testGetCommonDurationSub("2020-01-07", "2020-02-03", "2020-01-05", "2020-02-09"));
+		// 一方が他方の期間を完全に含むケース(開始、終了のどちかが一致)
+		assertEquals(toDuration("2020-01-03", "2020-01-05"),
+				testGetCommonDurationSub("2020-01-01", "2020-01-05", "2020-01-03", "2020-01-05"));
+		assertEquals(toDuration("2020-01-07", "2020-02-03"),
+				testGetCommonDurationSub("2020-01-07", "2020-02-03", "2020-01-05", "2020-02-03"));
+		assertEquals(toDuration("2020-01-03", "2020-01-05"),
+				testGetCommonDurationSub("2020-01-03", "2020-02-05", "2020-01-03", "2020-01-05"));
+		assertEquals(toDuration("2020-01-07", "2020-02-03"),
+				testGetCommonDurationSub("2020-01-07", "2020-02-03", "2020-01-07", "2020-02-09"));
+		// 期間が完全に一致するケース
+		assertEquals(toDuration("2020-01-07", "2020-02-03"),
+				testGetCommonDurationSub("2020-01-07", "2020-02-03", "2020-01-07", "2020-02-03"));
+
+
+	}
+
+	private Duration testGetCommonDurationSub(String d1s, String d1e, String d2s, String d2e) {
+		return TestDataGenerator.getCommonDuration(toDuration(d1s, d1e), toDuration(d2s, d2e));
+	}
+
+	private Duration toDuration(String start, String end) {
+		return new Duration(DBUtils.toDate(start), DBUtils.toDate(end));
+	}
+
 
 	/**
 	 * getPhoneNumber()のテスト
 	 */
 	@Test
 	void testGetPhoneNumber() {
-		ContractsGenerator generator = new ContractsGenerator(0, 0, 2, 1, 3,
+		TestDataGenerator generator = new TestDataGenerator(0, 0, 0, 2, 1, 3,
 				 DBUtils.toDate("2000-01-01"), DBUtils.toDate("2000-01-01"));
 		assertEquals("00000000000", generator.getPhoneNumber(0));
 		assertEquals("00000000001", generator.getPhoneNumber(1));
@@ -171,7 +223,7 @@ class ContractsGeneratorTest extends AbstractDbTestCase {
 	 */
 	@Test
 	void testGetDuration() {
-		ContractsGenerator generator = new ContractsGenerator(12, 0, 2, 3, 4,
+		TestDataGenerator generator = new TestDataGenerator(12, 0, 0, 2, 3, 4,
 				DBUtils.toDate("2000-01-01"), DBUtils.toDate("2000-12-01"));
 		List<Duration> list = generator.getDurationList();
 		for (int i = 0; i < 20; i++) {
@@ -187,7 +239,7 @@ class ContractsGeneratorTest extends AbstractDbTestCase {
 	 */
 	@Test
 	void testNextDate() {
-		ContractsGenerator generator = new ContractsGenerator(0, 0, 0, 0,
+		TestDataGenerator generator = new TestDataGenerator(0, 0, 0, 0, 0,
 				0, DBUtils.toDate("2000-01-01"), DBUtils.toDate("2000-01-01"));
 		assertEquals(DBUtils.toDate("2020-11-11"), generator.nextDate(DBUtils.toDate("2020-11-10")));
 	}
@@ -199,7 +251,7 @@ class ContractsGeneratorTest extends AbstractDbTestCase {
 		Set<Date> expected = Collections.singleton(DBUtils.toDate("2020-11-11"));
 		Set<Date> actual = new TreeSet<>();
 
-		ContractsGenerator generator = new ContractsGenerator(0, 0, 0, 0, 0, start, end);
+		TestDataGenerator generator = new TestDataGenerator(0, 0, 0, 0, 0, 0, start, end);
 		for(int i = 0; i < 100; i++) {
 			actual.add(generator.getDate(start, end));
 		}
@@ -216,7 +268,7 @@ class ContractsGeneratorTest extends AbstractDbTestCase {
 				DBUtils.toDate("2020-11-13")));
 		Set<Date> actual = new TreeSet<>();
 
-		ContractsGenerator generator = new ContractsGenerator(0, 0, 0, 0, 0, start, end);
+		TestDataGenerator generator = new TestDataGenerator(0, 0, 0, 0, 0, 0, start, end);
 		for(int i = 0; i < 100; i++) {
 			actual.add(generator.getDate(start, end));
 		}
@@ -237,7 +289,7 @@ class ContractsGeneratorTest extends AbstractDbTestCase {
 				DBUtils.toDate("2020-11-17")));
 		Set<Date> actual = new TreeSet<>();
 
-		ContractsGenerator generator = new ContractsGenerator(0, 0, 0, 0, 0, start, end);
+		TestDataGenerator generator = new TestDataGenerator(0, 0, 0, 0, 0, 0, start, end);
 		for(int i = 0; i < 100; i++) {
 			actual.add(generator.getDate(start, end));
 		}
