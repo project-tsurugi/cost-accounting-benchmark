@@ -43,9 +43,11 @@ public class BenchBatch {
 
 		List<Integer> factoryList = new ArrayList<>();
 		if (args.length >= 2) {
-			String[] ss = args[1].split(",");
-			for (String s : ss) {
-				factoryList.add(Integer.parseInt(s.trim()));
+			if (!args[1].trim().equalsIgnoreCase("all")) {
+				String[] ss = args[1].split(",");
+				for (String s : ss) {
+					factoryList.add(Integer.parseInt(s.trim()));
+				}
 			}
 		}
 
