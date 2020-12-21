@@ -29,9 +29,9 @@ import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 public class InitialData03ItemMaster extends InitialData {
 
 	public static void main(String[] args) throws Exception {
-		int productSize = 72_000;
-		int workSize = 198_000;
-		int materialSize = 75_000;
+		int productSize = BenchConst.initItemProductSize();
+		int workSize = BenchConst.initItemWorkSize();
+		int materialSize = BenchConst.initItemMaterialSize();
 
 		LocalDate batchDate = DEFAULT_BATCH_DATE;
 		new InitialData03ItemMaster(productSize, workSize, materialSize, batchDate).main();

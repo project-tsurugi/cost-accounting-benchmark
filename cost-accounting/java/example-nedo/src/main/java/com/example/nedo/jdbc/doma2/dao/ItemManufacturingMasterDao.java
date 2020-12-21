@@ -33,7 +33,7 @@ public interface ItemManufacturingMasterDao {
 	int insert(ItemManufacturingMaster entity);
 
 	@Select
-	@Sql("select * from " + TABLE_NAME + " where " + COND_DATE)
+	@Sql("select * from " + TABLE_NAME + " where " + COND_DATE + " order by im_f_id, im_i_id")
 	List<ItemManufacturingMaster> selectAll(LocalDate date);
 
 	@Select

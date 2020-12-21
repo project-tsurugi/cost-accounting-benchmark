@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.Properties;
 
 public class BenchConst {
@@ -43,6 +44,27 @@ public class BenchConst {
 
 	public static int DECIMAL_SCALE = 20;
 
+	// initial data
+	public static LocalDate initBatchDate() {
+		return getPropertyDate("init.batch.date");
+	}
+
+	public static int initFactorySize() {
+		return getPropertyInt("init.factory.size");
+	}
+
+	public static int initItemProductSize() {
+		return getPropertyInt("init.item.product.size");
+	}
+
+	public static int initItemWorkSize() {
+		return getPropertyInt("init.item.work.size");
+	}
+
+	public static int initItemMaterialSize() {
+		return getPropertyInt("init.item.material.size");
+	}
+
 	private static Properties properties;
 
 	private static Properties getProperties() {
@@ -70,5 +92,24 @@ public class BenchConst {
 			throw new RuntimeException("not found key'" + key + "' in property-file");
 		}
 		return s;
+	}
+
+	private static int getPropertyInt(String key) {
+		try {
+			String s = getProperty(key).trim();
+			s = s.replaceAll("_", "");
+			return Integer.parseInt(s);
+		} catch (NumberFormatException e) {
+			throw new RuntimeException("not integer key'" + key + "' in property-file", e);
+		}
+	}
+
+	private static LocalDate getPropertyDate(String key) {
+		try {
+			String s = getProperty(key).trim();
+			return LocalDate.parse(s);
+		} catch (NumberFormatException e) {
+			throw new RuntimeException("not date key'" + key + "' in property-file", e);
+		}
 	}
 }

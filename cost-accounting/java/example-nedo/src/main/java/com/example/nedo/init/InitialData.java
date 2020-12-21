@@ -6,10 +6,11 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import com.example.nedo.BenchConst;
 import com.example.nedo.jdbc.doma2.entity.HasDateRange;
 
 public class InitialData {
-	public static final LocalDate DEFAULT_BATCH_DATE = LocalDate.of(2020, 9, 15);
+	public static final LocalDate DEFAULT_BATCH_DATE = BenchConst.initBatchDate();
 
 	protected final LocalDate batchDate;
 

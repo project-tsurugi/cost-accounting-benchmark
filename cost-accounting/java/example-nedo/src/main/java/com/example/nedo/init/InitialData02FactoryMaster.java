@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.seasar.doma.jdbc.tx.TransactionManager;
 
+import com.example.nedo.BenchConst;
 import com.example.nedo.jdbc.doma2.config.AppConfig;
 import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
 import com.example.nedo.jdbc.doma2.dao.FactoryMasterDaoImpl;
@@ -12,7 +13,8 @@ import com.example.nedo.jdbc.doma2.entity.FactoryMaster;
 public class InitialData02FactoryMaster extends InitialData {
 
 	public static void main(String[] args) throws Exception {
-		new InitialData02FactoryMaster().main(60);
+		int factorySize = BenchConst.initFactorySize();
+		new InitialData02FactoryMaster().main(factorySize);
 	}
 
 	public InitialData02FactoryMaster() {

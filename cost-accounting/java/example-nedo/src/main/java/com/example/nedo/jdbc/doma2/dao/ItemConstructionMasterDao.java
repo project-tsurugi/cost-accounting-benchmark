@@ -32,7 +32,7 @@ public interface ItemConstructionMasterDao {
 	int insert(ItemConstructionMaster entity);
 
 	@Select
-	@Sql("select * from " + TABLE_NAME + " where " + COND_DATE)
+	@Sql("select * from " + TABLE_NAME + " where " + COND_DATE + " order by ic_parent_i_id, ic_i_id")
 	List<ItemConstructionMaster> selectAll(LocalDate date);
 
 	@Select
