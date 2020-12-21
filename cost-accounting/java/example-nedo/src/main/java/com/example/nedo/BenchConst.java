@@ -42,6 +42,10 @@ public class BenchConst {
 	public static final String PACKAGE_DOMAIN = "com.example.nedo.jdbc.doma2.domain";
 	public static final String PACKAGE_ENTITY = "com.example.nedo.jdbc.doma2.entity";
 
+	public static int batchExecuteType() {
+		return getPropertyInt("batch.execute.type");
+	}
+
 	public static int DECIMAL_SCALE = 20;
 
 	// initial data

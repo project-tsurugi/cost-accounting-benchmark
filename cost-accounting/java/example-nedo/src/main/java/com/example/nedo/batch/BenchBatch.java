@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 
 import org.seasar.doma.jdbc.tx.TransactionManager;
 
+import com.example.nedo.BenchConst;
 import com.example.nedo.init.BenchRandom;
 import com.example.nedo.init.InitialData;
 import com.example.nedo.jdbc.doma2.config.AppConfig;
@@ -72,7 +73,8 @@ public class BenchBatch {
 		System.out.println("factory=" + factoryList);
 		System.out.println("commitRatio=" + commitRatio);
 
-		switch (2) {
+		int type = BenchConst.batchExecuteType();
+		switch (type) {
 		case 1:
 			executeSequential(batchDate, factoryList);
 			break;
@@ -102,7 +104,7 @@ public class BenchBatch {
 
 	protected void logEnd() {
 		LocalDateTime endTime = LocalDateTime.now();
-		System.out.println("end " + startTime.until(endTime, ChronoUnit.MILLIS));
+		System.out.println("end " + startTime.until(endTime, ChronoUnit.MILLIS) + "[ms]");
 	}
 
 	private List<Integer> getAllFactory() {
