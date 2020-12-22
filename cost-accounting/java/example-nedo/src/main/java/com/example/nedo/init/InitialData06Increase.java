@@ -1,6 +1,5 @@
 package com.example.nedo.init;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -25,7 +24,7 @@ public class InitialData06Increase extends InitialData {
 		super(batchDate);
 	}
 
-	private void main() throws IOException {
+	private void main() {
 		logStart();
 
 		increaseMaster();

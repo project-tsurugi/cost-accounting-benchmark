@@ -29,7 +29,7 @@ public class InitialData {
 
 	protected void logEnd() {
 		LocalDateTime endTime = LocalDateTime.now();
-		System.out.println("end " + startTime.until(endTime, ChronoUnit.SECONDS));
+		System.out.println("end " + startTime.until(endTime, ChronoUnit.SECONDS) + "[s]");
 	}
 
 	protected void initializeStartEndDate(HasDateRange entity) {

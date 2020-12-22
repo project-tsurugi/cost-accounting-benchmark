@@ -1,7 +1,5 @@
 package com.example.nedo.init;
 
-import java.io.IOException;
-
 import org.seasar.doma.jdbc.tx.TransactionManager;
 
 import com.example.nedo.BenchConst;
@@ -21,7 +19,7 @@ public class InitialData02FactoryMaster extends InitialData {
 		super(null);
 	}
 
-	private void main(int size) throws IOException {
+	private void main(int size) {
 		logStart();
 
 		generateFactoryMaster(size);

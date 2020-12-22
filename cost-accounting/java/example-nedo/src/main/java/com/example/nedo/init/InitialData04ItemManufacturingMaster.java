@@ -1,6 +1,5 @@
 package com.example.nedo.init;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -17,10 +16,10 @@ import org.seasar.doma.jdbc.tx.TransactionManager;
 import com.example.nedo.jdbc.doma2.config.AppConfig;
 import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
 import com.example.nedo.jdbc.doma2.dao.FactoryMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
 import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDaoImpl;
+import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.domain.ItemType;
 import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
 
@@ -38,7 +37,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 		super(batchDate);
 	}
 
-	private void main() throws IOException {
+	private void main() {
 		logStart();
 
 		initializeField();

@@ -1,6 +1,5 @@
 package com.example.nedo.init;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -38,7 +37,7 @@ public class InitialData05CostMaster extends InitialData {
 		super(batchDate);
 	}
 
-	private void main() throws IOException {
+	private void main() {
 		logStart();
 
 		initializeField();

@@ -1,6 +1,5 @@
 package com.example.nedo.init;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -41,15 +40,11 @@ public class InitialData03ItemMaster extends InitialData {
 	private final int workSize;
 	private final int materialSize;
 
-	private static final int TREE_SIZE = 10;
-
 	public InitialData03ItemMaster(int productSize, int workSize, int materialSize, LocalDate batchDate) {
 		super(batchDate);
 		this.productSize = productSize;
 		this.workSize = workSize;
 		this.materialSize = materialSize;
-
-		assert workSize % TREE_SIZE == 0;
 	}
 
 	public InitialData03ItemMaster(LocalDate batchDate) {
@@ -71,7 +66,7 @@ public class InitialData03ItemMaster extends InitialData {
 		return getProductStartId() + productSize;
 	}
 
-	private void main() throws IOException {
+	private void main() {
 		logStart();
 
 		generateItemMaster();
@@ -240,11 +235,15 @@ public class InitialData03ItemMaster extends InitialData {
 			ItemConstructionMasterDao icDao) {
 		AtomicInteger iId = new AtomicInteger(startId);
 
-		assert size % TREE_SIZE == 0;
-		for (int i = 0; i < size / TREE_SIZE; i++) {
+		int count = 0;
+		while (count < size) {
 			// 木の要素数を決定する
-			int seed = startId + i;
+			int seed = startId + count;
 			int treeSize = 10 + random.prandom(seed, -4, 4);
+			if (count + treeSize > size) {
+				treeSize = size - count;
+			}
+			count += treeSize;
 
 			// ルート要素を作成する
 			Node root = new Node(new ItemMaster());
