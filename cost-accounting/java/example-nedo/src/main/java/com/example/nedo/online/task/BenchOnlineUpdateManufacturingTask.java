@@ -45,7 +45,7 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
 
 		ItemManufacturingMaster entity = itemManufacturingMasterDao.selectByIdForUpdate(factoryId, productId, date);
 		if (entity == null) {
-			InitialData04ItemManufacturingMaster initialData = new InitialData04ItemManufacturingMaster(date);
+			InitialData04ItemManufacturingMaster initialData = new InitialData04ItemManufacturingMaster(1, date);
 			entity = initialData.newItemManufacturingMaster(factoryId, productId);
 			entity.setEffectiveDate(date);
 			{

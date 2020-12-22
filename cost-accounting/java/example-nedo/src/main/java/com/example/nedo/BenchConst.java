@@ -69,6 +69,10 @@ public class BenchConst {
 		return getPropertyInt("init.item.material.size");
 	}
 
+	public static int initItemManufacturingSize() {
+		return getPropertyInt("init.item.manufacturing.size");
+	}
+
 	private static Properties properties;
 
 	private static Properties getProperties() {

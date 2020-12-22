@@ -108,7 +108,7 @@ public class BenchOnlineInsertItemTask extends BenchOnlineTask {
 	}
 
 	protected void executeMain2(ItemMaster item) {
-		InitialData04ItemManufacturingMaster initialData = new InitialData04ItemManufacturingMaster(date);
+		InitialData04ItemManufacturingMaster initialData = new InitialData04ItemManufacturingMaster(1, date);
 
 		ItemManufacturingMaster entity = initialData.newItemManufacturingMaster(factoryId, item.getIId());
 		itemManufacturingMasterDao.insert(entity);
