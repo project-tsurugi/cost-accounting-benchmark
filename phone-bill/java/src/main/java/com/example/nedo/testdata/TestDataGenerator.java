@@ -33,6 +33,9 @@ public class TestDataGenerator {
 	 */
 	private static final long A_DAY_IN_MILLISECONDS = 24 * 3600 * 1000;
 
+	/**
+	 * 契約期間のパターンを記録するリスト
+	 */
 	private List<Duration> durationList = new ArrayList<>();
 
 
@@ -87,7 +90,7 @@ public class TestDataGenerator {
 	 */
 	public void generateContract() throws SQLException {
 		try (Connection conn = DBUtils.getConnection()) {
-			// オプション指定により、truncateするのではなく、データが存在する場合警告して終了するようにする
+			// TODO オプション指定により、truncateするのではなく、データが存在する場合警告して終了するようにする
 			Statement stmt = conn.createStatement();
 			stmt.executeUpdate("truncate table contracts");
 
@@ -98,6 +101,7 @@ public class TestDataGenerator {
 					+ "charge_rule"
 					+ ") values(?, ?, ?, ?)");
 			int batchSize = 0;
+
 			for(long n = 0; n < numberOfContractsRecords; n++) {
 				Duration d = getDuration(n);
 				String rule = "dummy";
@@ -154,14 +158,16 @@ public class TestDataGenerator {
 	 * @throws SQLException
 	 */
 	public void generateHistory(Date minDate, Date maxDate) throws SQLException {
+		isValidDurationList(durationList, minDate, maxDate);
+
 		Duration targetDuration = new Duration(minDate, maxDate);
 
 		try (Connection conn = DBUtils.getConnection()) {
-			// オプション指定により、truncateするのではなく、データが存在する場合警告して終了するようにする
+			// TODO オプション指定により、truncateするのではなく、データが存在する場合警告して終了するようにする
 			Statement stmt = conn.createStatement();
 			stmt.executeUpdate("truncate table history");
 
-			PreparedStatement ps = conn.prepareStatement("insert into contracts("
+			PreparedStatement ps = conn.prepareStatement("insert into history("
 					+ "caller_phone_number,"
 					+ "recipient_phone_number,"
 					+ "payment_categorty,"
@@ -173,18 +179,17 @@ public class TestDataGenerator {
 			int batchSize = 0;
 			// numberOfHistoryRecords だけレコードを生成する
 			for(long n = 0; n < numberOfHistoryRecords; n++) {
-				Duration d = getDuration(n);
-
-
-				String rule = "dummy";
-				ps.setString(1, getPhoneNumber(n));
-				ps.setDate(2, d.start);
-				ps.setDate(3, d.end);
-				ps.setString(4, rule);
+				HistoryRecord record = createHistoryRecord(targetDuration);
+				ps.setString(1, record.caller_phone_number);
+				ps.setString(2, record.recipient_phone_number);
+				ps.setString(3, record.payment_categorty);
+				ps.setTimestamp(4, record.start_time);
+				ps.setInt(5, record.time_secs);
+				ps.setInt(6, record.charge);
+				ps.setBoolean(7, record.df);
 				ps.addBatch();
 				if (++batchSize == SQL_BATCH_EXEC_SIZE) {
 					execBatch(ps);
-					conn.commit();
 				}
 			}
 			execBatch(ps);
@@ -192,50 +197,149 @@ public class TestDataGenerator {
 	}
 
 
+	/**
+	 * minDate～maxDateの間の全ての日付に対して、当該日付を含むdurationがlistに二つ以上あることを確認する
+	 *
+	 * @param list
+	 * @param minDate
+	 * @param maxDate
+	 */
+	static boolean isValidDurationList(List<Duration> list, Date minDate, Date maxDate) {
+		if (minDate.getTime() > maxDate.getTime()) {
+			return false;
+		}
+		for(Date date = minDate; date.getTime() <= maxDate.getTime(); date = nextDate(date)) {
+			int c = 0;
+			for (Duration duration: list) {
+				long start = duration.start.getTime();
+				long end = duration.end == null ? Long.MAX_VALUE : duration.end.getTime();
+				if (start <= date.getTime() && date.getTime() <= end) {
+					c++;
+					if (c >= 2) {
+						break;
+					}
+				}
+			}
+			if (c < 2) {
+				System.err.println("Duration List not contains date: " + date);
+				return false;
+			}
+		}
+		return true;
+	}
+
+
+
+
 	private HistoryRecord createHistoryRecord(Duration targetDuration) {
 		 HistoryRecord record = new HistoryRecord();
-		 // 発信者電話番号の生成
-		long caller = random.nextLong() % numberOfContractsRecords;
+		// 通話開始時刻
+		long startTime = getRandomLong(targetDuration.start.getTime(), targetDuration.end.getTime());
+		record.start_time = new Timestamp(startTime);
 
-		// 受信者電話番号の生成
-		long recipient = random.nextLong() % (numberOfContractsRecords);
-		long loopCount = 0;
-		for(;;) { 			// 通話可能な受信者が見つかるまでループ
-			loopCount++;
-		}
+		 // 電話番号の生成
+		long caller = selectContract(startTime, -1,getRandomLong(0, numberOfContractsRecords));
+		long recipient = selectContract(startTime, caller,getRandomLong(0, numberOfContractsRecords));
+		record.caller_phone_number = getPhoneNumber(caller);
+		record.recipient_phone_number = getPhoneNumber(recipient);
 
-		// 通話開始時刻の生成
+
+		// 料金区分(発信者負担、受信社負担)
+		// TODO 割合を指定可能にする
+		record.payment_categorty = random.nextInt(2) == 0 ? "C" : "R";
+
+
+		// 通話時間
+		// TODO 分布関数を指定可能にする
+		record.time_secs = random.nextInt(3600)+1;
+
+		return record;
 	}
 
+
 	/**
-	 * 契約の有効期間とtargetDurationに共通の期間が存在する電話番号を
-	 * サーチする
+	 * 指定の通話開始時刻が契約範囲に含まれる選択する。
+	 * <br>
+	 * 発信者電話番号、受信者電話番号の順にこのメソッドを使用して電話番号を選択する。
+	 * 発信者電話番号の選択時には、exceptPhoneNumberに-1を指定する。受信者電話番号の
+	 * 選択時には、exceptPhoneNumberに発信者電話番号を指定することにより、受信者電話番号と
+	 * 発信者電話番号が等しくなるのを避ける。
 	 *
-	 * @param startPos サーチ開始位置
-	 * @param targetDuration
-	 * @return 見つかった電話番号
+	 *
+	 * @param startTime 通話開始時刻
+	 * @param exceptPhoneNumber 選択しない電話番号。
+	 * @param startPos 0以上numberOfContractsRecords以下のランダムな値を指定する
+	 * @return 選択為た電話番号
 	 */
-	private long searchPhoneNumber(long startPos, Duration targetDuration) {
-		int loopCount = 0;
-		for(;;) {
-
+	long selectContract(long startTime, long exceptPhoneNumber, long startPos) {
+		long pos = startPos;
+		int c=0;
+		for (;;) {
+			if (pos != exceptPhoneNumber) {
+				Duration d = getDuration(pos);
+				if (d.end == null) {
+					if (d.start.getTime() <= startTime) {
+						break;
+					}
+				} else {
+					if (d.start.getTime() <= startTime && startTime < d.end.getTime()) {
+						break;
+					}
+				}
+			}
+			pos++;
+			if (pos >= numberOfContractsRecords) {
+				pos = 0;
+			}
+			if (++c >= durationList.size()) {
+				throw new RuntimeException("Not found! start time = " + new java.util.Date(startTime));
+			}
 		}
+		return pos;
 	}
 
 
+
 	/**
-	 * 通話履歴1レコード分の情報を表すクラス
+	 * 通話履歴1レコード分の情報を表すクラス(テストデータ生成時にNULLとなるフィールドを含まない)
 	 *
 	 */
 	static class HistoryRecord {
-		 String caller_phone_number;
-		 String recipient_phone_number;
-		 char payment_categorty;
-		 Timestamp start_time;
-		 long time_secs;
-		 int charge;
-		 boolean df;
+		/**
+		 * 発信者電話番号
+		 */
+		String caller_phone_number;
 
+		/**
+		 * 受信者電話番号
+		 */
+		String recipient_phone_number;
+
+		/**
+		 * 料金区分(発信者負担(C)、受信社負担(R))
+		 */
+
+		String payment_categorty;
+		 /**
+		 * 通話開始時刻
+		 */
+
+		Timestamp start_time;
+		 /**
+		 * 通話時間(秒)
+		 */
+
+		int time_secs;
+
+		/**
+		 * 料金
+		 */
+		int charge = 0;
+
+		/**
+		 * 削除フラグ
+		 */
+		boolean df = false;
 	}
 
 
@@ -283,7 +387,7 @@ public class TestDataGenerator {
 	 * @param date
 	 * @return
 	 */
-	Date nextDate(Date date) {
+	static Date nextDate(Date date) {
 		return new Date(date.getTime() + A_DAY_IN_MILLISECONDS);
 	}
 
@@ -387,5 +491,16 @@ public class TestDataGenerator {
 				return false;
 			return true;
 		}
+	}
+
+	/**
+	 * min以上max未満のランダムなlong値を取得する
+	 *
+	 * @param min
+	 * @param max
+	 * @return
+	 */
+	private long getRandomLong(long min, long max) {
+		return min + (long)(random.nextDouble() * (max - min));
 	}
 }

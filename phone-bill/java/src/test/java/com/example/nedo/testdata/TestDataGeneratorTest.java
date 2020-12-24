@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -26,6 +27,95 @@ import com.example.nedo.testdata.TestDataGenerator.Duration;
  *
  */
 class TestDataGeneratorTest extends AbstractDbTestCase {
+
+	/**
+	 * selectContract()のテスト
+	 */
+	@Test
+	void testSelectContract() {
+		Date start =DBUtils.toDate("2010-01-11");
+		Date end = DBUtils.toDate("2020-12-21");
+		TestDataGenerator generator = new TestDataGenerator(0, 10000, 0, 0, 0, 4, start, end );
+
+		// 契約期間をテスト用の値に書き換える
+		List<Duration> list = generator.getDurationList();
+		assertEquals(4, list.size()); // 要素数が想定通りか確認
+		list.get(0).start = start;
+		list.get(1).start = start;
+		list.get(2).start = start;
+		list.get(3).start = start;
+		list.get(0).end = DBUtils.toDate("2010-02-11");
+		list.get(1).end = DBUtils.toDate("2010-03-11");
+		list.get(2).end = null;
+		list.get(3).end = DBUtils.toDate("2010-04-11");
+
+
+		for(Duration d: list) {
+			System.out.println(""  + d.start +","+ d.end);
+		}
+		// 指定されたstartPosをそのまま返すケース
+		assertEquals(400, generator.selectContract(DBUtils.toDate("2010-01-13").getTime(), -1, 400));
+		assertEquals(401, generator.selectContract(DBUtils.toDate("2010-01-13").getTime(), -1, 401));
+		assertEquals(402, generator.selectContract(DBUtils.toDate("2010-01-13").getTime(), -1, 402));
+		assertEquals(403, generator.selectContract(DBUtils.toDate("2010-01-13").getTime(), -1, 403));
+
+		// 契約期間がマッチするまで探すケース
+		assertEquals(402, generator.selectContract(DBUtils.toDate("2010-03-13").getTime(), -1, 400));
+		assertEquals(402, generator.selectContract(DBUtils.toDate("2010-03-13").getTime(), -1, 401));
+		assertEquals(402, generator.selectContract(DBUtils.toDate("2010-03-13").getTime(), -1, 402));
+		assertEquals(403, generator.selectContract(DBUtils.toDate("2010-03-13").getTime(), -1, 403));
+
+		assertEquals(402, generator.selectContract(DBUtils.toDate("2011-03-13").getTime(), -1, 402));
+		assertEquals(406, generator.selectContract(DBUtils.toDate("2011-03-13").getTime(), -1, 403));
+		assertEquals(406, generator.selectContract(DBUtils.toDate("2011-03-13").getTime(), -1, 404));
+		assertEquals(406, generator.selectContract(DBUtils.toDate("2011-03-13").getTime(), -1, 405));
+
+		// 契約番号が一巡するケース
+		assertEquals(2, generator.selectContract(DBUtils.toDate("2011-03-13").getTime(), -1, 9999));
+
+		// startTimeが不正で、対応する契約が見つからないケース
+		Exception e1 = assertThrows(RuntimeException.class,
+				() -> generator.selectContract(DBUtils.toDate("2001-01-13").getTime(), -1, 400));
+		assertTrue(e1.getMessage().startsWith("Not found!"));
+		Exception e2 = assertThrows(RuntimeException.class,
+				() -> generator.selectContract(DBUtils.toDate("2012-01-11").getTime(), 402, 400));
+		assertTrue(e2.getMessage().startsWith("Not found!"));
+
+	}
+
+	/**
+	 * isValidDurationList()のテスト
+	 */
+	@Test
+	void isValidDurationList() {
+		List<Duration> list = new ArrayList<TestDataGenerator.Duration>();
+		// listの要素が0と1のときは常にfalseが返る
+		assertFalse(isValidDurationListSub(list, "2010-11-11", "2010-11-11"));
+		list.add(toDuration("2010-10-11", "2010-11-25"));
+		assertFalse(isValidDurationListSub(list, "2010-11-11", "2010-11-11"));
+
+		// listの要素が2、開始日、終了日の境界値のテスト
+		list.add(toDuration("2010-11-18", "2010-11-30"));
+		assertTrue(isValidDurationListSub(list, "2010-11-18", "2010-11-25"));
+		assertFalse(isValidDurationListSub(list, "2010-11-18", "2010-11-26"));
+		assertFalse(isValidDurationListSub(list, "2010-11-17", "2010-11-25"));
+
+		// 開始日==終了日のとき、開始日と終了日が逆転しているとき
+		assertTrue(isValidDurationListSub(list, "2010-11-19", "2010-11-19"));
+		assertFalse(isValidDurationListSub(list, "2010-11-28", "2010-11-18"));
+
+		// 終了日がnullのデータがあるケース
+		list.get(1).end = null;
+		assertTrue(isValidDurationListSub(list, "2010-11-18", "2010-11-25"));
+		assertFalse(isValidDurationListSub(list, "2010-11-18", "2010-11-26"));
+		assertFalse(isValidDurationListSub(list, "2010-11-17", "2010-11-25"));
+
+	}
+
+	boolean isValidDurationListSub(List<Duration> list, String start, String end) {
+		return TestDataGenerator.isValidDurationList(list, DBUtils.toDate(start), DBUtils.toDate(end));
+	}
+
 
 	/**
 	 * generateContract()のテスト
@@ -181,6 +271,15 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 
 
 	/**
+	 * checkTargetDuration()のテスト
+	 */
+	void testCheckTargetDuration() {
+		List<Duration> list = new ArrayList<>();
+		list.add(toDuration("2000-01-01", "2010-03-01"));
+	}
+
+
+	/**
 	 * getPhoneNumber()のテスト
 	 */
 	@Test
@@ -244,6 +343,9 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 		assertEquals(DBUtils.toDate("2020-11-11"), generator.nextDate(DBUtils.toDate("2020-11-10")));
 	}
 
+	/**
+	 * getDate()で得られる値が、start ～ endの範囲に収まることのテスト
+	 */
 	@Test
 	void tesGetDate1() {
 		Date start = DBUtils.toDate("2020-11-11");
@@ -258,6 +360,9 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 		assertEquals(expected, actual);
 	}
 
+	/**
+	 * getDate()で得られる値が、start ～ endの範囲に収まることのテスト
+	 */
 	@Test
 	void tesGetDate3() {
 		Date start = DBUtils.toDate("2020-11-11");
@@ -275,6 +380,9 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 		assertEquals(expected, actual);
 	}
 
+	/**
+	 * getDate()で得られる値が、start ～ endの範囲に収まることのテスト
+	 */
 	@Test
 	void tesGetDate7() {
 		Date start = DBUtils.toDate("2020-11-11");

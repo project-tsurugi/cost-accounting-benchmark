@@ -31,7 +31,7 @@ public class CreateTable implements ExecutableCommand{
 				+ "caller_phone_number varchar(15) not null," 		// 発信者電話番号
 				+ "recipient_phone_number varchar(15) not null," 	// 受信者電話番号
 				+ "payment_categorty char(1) not null," 			// 料金区分
-				+ "start_time timestamp not null,"			 		// 料金区分
+				+ "start_time timestamp not null,"			 		// 通話開始時刻
 				+ "time_secs integer," 								// 通話時間(秒)
 				+ "charge integer," 								// 料金
 				+ "df boolean not null default '0'," 				// 論理削除フラグ
