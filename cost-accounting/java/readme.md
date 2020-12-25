@@ -32,6 +32,31 @@ binには実行用シェルとプロパティーファイルがある。
 
 
 
+### プロパティーファイルの内容
+
+- jdbc.url、jdbc.user、jdbc.password
+  - JDBCの設定
+- 初期データ作成関連
+  - doc.dir
+    - measurement.xlsxが置いてある場所
+    - 実行用アーカイブファイルを展開した場所のdocsを指定する。
+  - init.batch.date
+    - データ基準日。
+    - この日付をバッチ実行時にも指定する。（バッチ自体はこのプロパティーを使用しない）
+  - init.factory.size
+    - 生成する工場数（工場マスターのレコード数）
+  - init.item.product.size、init.item.work.size、init.item.material.size
+    - 生成する品目マスターの品目種類毎のレコード数
+      - product…製品（product）
+      - work…中間材（work_in_process）
+      - material…原料（raw_material）
+  - init.item.manufacturing.size
+    - 生成する製造品目マスターのレコード数
+      - バッチ処理はこのテーブルのレコード単位で処理する。
+    - init.item.product.size（製品のレコード数）より小さい必要がある。
+
+
+
 ## 実行方法
 
 以下のクラスを実行する。
