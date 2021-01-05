@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.example.nedo.BenchConst;
 import com.example.nedo.jdbc.doma2.dao.MeasurementMasterDao;
@@ -34,7 +35,7 @@ public class MeasurementUtil {
 	}
 
 	public static BigDecimal convertUnit(BigDecimal value, String srcUnit, String dstUnit) {
-		if (dstUnit.equals(srcUnit)) {
+		if (Objects.equals(srcUnit, dstUnit)) {
 			return value;
 		}
 
@@ -73,7 +74,7 @@ public class MeasurementUtil {
 	}
 
 	public static String getCommonUnit(String unit1, String unit2) {
-		if (unit1.equals(unit2)) {
+		if (Objects.equals(unit1, unit2)) {
 			return unit1;
 		}
 

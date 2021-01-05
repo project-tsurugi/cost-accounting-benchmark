@@ -15,4 +15,4 @@ function call_java() {
   java -cp "$BASEDIR/*:$BASEDIR/lib/*" -Dproperty="$PROPERTY" $@
 }
 
-call_java com.example.nedo.batch.BenchBatch 2020-09-15 "1" 100
+call_java com.example.nedo.batch.BenchBatch 2020-09-15 "all" 100

@@ -16,7 +16,7 @@ public class MeasurementValue {
 	}
 
 	public MeasurementValue add(MeasurementValue value) {
-		if (unit.equals(value.unit)) {
+		if (Objects.equals(unit, value.unit)) {
 			return new MeasurementValue(unit, this.value.add(value.value));
 		}
 
