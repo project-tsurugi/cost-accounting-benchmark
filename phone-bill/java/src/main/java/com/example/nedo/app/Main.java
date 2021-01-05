@@ -9,6 +9,7 @@ public class Main {
 	static {
 		COMMAND_MAP.put("CreateTable", new CreateTable());
 		COMMAND_MAP.put("CreateTestData", new CreateTestData());
+		COMMAND_MAP.put("PhoneBill", new PhoneBill());
 	}
 
 	public static void main(String[] args) throws SQLException {

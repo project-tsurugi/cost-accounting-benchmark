@@ -20,8 +20,8 @@ public class CreateTestData implements ExecutableCommand {
 		Date end = DBUtils.toDate("2020-12-21");
 		long numberOfContractsRecords = (long) 1E3;
 		long numberOfhistoryRecords = (long) 1E4;
-		TestDataGenerator generator = new TestDataGenerator(0, numberOfContractsRecords, numberOfhistoryRecords, 200,
-				500, 1100, start, end);
+		TestDataGenerator generator = new TestDataGenerator(0, numberOfContractsRecords, numberOfhistoryRecords, 10,
+				50, 30, start, end);
 
 		// 契約マスタのテストデータ生成
 		long startTime = System.currentTimeMillis();

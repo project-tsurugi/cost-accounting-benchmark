@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Random;
 
 import com.example.nedo.db.DBUtils;
+import com.example.nedo.db.History;
 
 /**
  * @author umega
@@ -179,14 +180,14 @@ public class TestDataGenerator {
 			int batchSize = 0;
 			// numberOfHistoryRecords だけレコードを生成する
 			for(long n = 0; n < numberOfHistoryRecords; n++) {
-				HistoryRecord record = createHistoryRecord(targetDuration);
-				ps.setString(1, record.caller_phone_number);
-				ps.setString(2, record.recipient_phone_number);
-				ps.setString(3, record.payment_categorty);
-				ps.setTimestamp(4, record.start_time);
-				ps.setInt(5, record.time_secs);
-				ps.setInt(6, record.charge);
-				ps.setBoolean(7, record.df);
+				History h = createHistoryRecord(targetDuration);
+				ps.setString(1, h.caller_phone_number);
+				ps.setString(2, h.recipient_phone_number);
+				ps.setString(3, h.payment_categorty);
+				ps.setTimestamp(4, h.start_time);
+				ps.setInt(5, h.time_secs);
+				ps.setInt(6, h.charge);
+				ps.setBoolean(7, h.df);
 				ps.addBatch();
 				if (++batchSize == SQL_BATCH_EXEC_SIZE) {
 					execBatch(ps);
@@ -231,29 +232,29 @@ public class TestDataGenerator {
 
 
 
-	private HistoryRecord createHistoryRecord(Duration targetDuration) {
-		 HistoryRecord record = new HistoryRecord();
+	private History createHistoryRecord(Duration targetDuration) {
+		 History history = new History();
 		// 通話開始時刻
 		long startTime = getRandomLong(targetDuration.start.getTime(), targetDuration.end.getTime());
-		record.start_time = new Timestamp(startTime);
+		history.start_time = new Timestamp(startTime);
 
 		 // 電話番号の生成
 		long caller = selectContract(startTime, -1,getRandomLong(0, numberOfContractsRecords));
 		long recipient = selectContract(startTime, caller,getRandomLong(0, numberOfContractsRecords));
-		record.caller_phone_number = getPhoneNumber(caller);
-		record.recipient_phone_number = getPhoneNumber(recipient);
+		history.caller_phone_number = getPhoneNumber(caller);
+		history.recipient_phone_number = getPhoneNumber(recipient);
 
 
 		// 料金区分(発信者負担、受信社負担)
 		// TODO 割合を指定可能にする
-		record.payment_categorty = random.nextInt(2) == 0 ? "C" : "R";
+		history.payment_categorty = random.nextInt(2) == 0 ? "C" : "R";
 
 
 		// 通話時間
 		// TODO 分布関数を指定可能にする
-		record.time_secs = random.nextInt(3600)+1;
+		history.time_secs = random.nextInt(3600)+1;
 
-		return record;
+		return history;
 	}
 
 
@@ -300,47 +301,7 @@ public class TestDataGenerator {
 
 
 
-	/**
-	 * 通話履歴1レコード分の情報を表すクラス(テストデータ生成時にNULLとなるフィールドを含まない)
-	 *
-	 */
-	static class HistoryRecord {
-		/**
-		 * 発信者電話番号
-		 */
-		String caller_phone_number;
 
-		/**
-		 * 受信者電話番号
-		 */
-		String recipient_phone_number;
-
-		/**
-		 * 料金区分(発信者負担(C)、受信社負担(R))
-		 */
-
-		String payment_categorty;
-		 /**
-		 * 通話開始時刻
-		 */
-
-		Timestamp start_time;
-		 /**
-		 * 通話時間(秒)
-		 */
-
-		int time_secs;
-
-		/**
-		 * 料金
-		 */
-		int charge = 0;
-
-		/**
-		 * 削除フラグ
-		 */
-		boolean df = false;
-	}
 
 
 	private void execBatch(PreparedStatement ps) throws SQLException {
