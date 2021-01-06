@@ -346,6 +346,7 @@ is
       continue when not node_list.exists(i);
       node := node_list(i);
       for j in i + 1..node_list_size loop
+        continue when not node_list.exists(j);
         if node_list(j).item_id = node.item_id and node_list(j).parent_item_id = node.parent_item_id then
           node.weight       := bb_measurement_value.add(node.weight, node_list(j).weight);
           node.weight_total := bb_measurement_value.add(node.weight_total, node_list(j).weight_total);
