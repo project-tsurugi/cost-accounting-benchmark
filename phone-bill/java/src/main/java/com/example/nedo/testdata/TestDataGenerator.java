@@ -30,11 +30,6 @@ public class TestDataGenerator {
 	private static final long SQL_BATCH_EXEC_SIZE = 3000;
 
 	/**
-	 * ミリ秒で表した1日
-	 */
-	private static final long A_DAY_IN_MILLISECONDS = 24 * 3600 * 1000;
-
-	/**
 	 * 契約期間のパターンを記録するリスト
 	 */
 	private List<Duration> durationList = new ArrayList<>();
@@ -105,7 +100,7 @@ public class TestDataGenerator {
 
 			for(long n = 0; n < numberOfContractsRecords; n++) {
 				Duration d = getDuration(n);
-				String rule = "dummy";
+				String rule = "Simple";
 				ps.setString(1, getPhoneNumber(n));
 				ps.setDate(2, d.start);
 				ps.setDate(3, d.end);
@@ -209,7 +204,7 @@ public class TestDataGenerator {
 		if (minDate.getTime() > maxDate.getTime()) {
 			return false;
 		}
-		for(Date date = minDate; date.getTime() <= maxDate.getTime(); date = nextDate(date)) {
+		for(Date date = minDate; date.getTime() <= maxDate.getTime(); date = DBUtils.nextDate(date)) {
 			int c = 0;
 			for (Duration duration: list) {
 				long start = duration.start.getTime();
@@ -337,19 +332,8 @@ public class TestDataGenerator {
 			Date end = getDate(minDate, maxDate);
 			Date start = getDate(end, maxDate);;
 			durationList.add(new Duration(minDate, end));
-			durationList.add(new Duration(nextDate(start), null));
+			durationList.add(new Duration(DBUtils.nextDate(start), null));
 		}
-	}
-
-
-	/**
-	 * 指定のdateの次の日を返す
-	 *
-	 * @param date
-	 * @return
-	 */
-	static Date nextDate(Date date) {
-		return new Date(date.getTime() + A_DAY_IN_MILLISECONDS);
 	}
 
 
@@ -371,8 +355,8 @@ public class TestDataGenerator {
 	 * @return
 	 */
 	Date getDate(Date min, Date max) {
-		int days = (int) ((max.getTime() - min.getTime()) / A_DAY_IN_MILLISECONDS);
-		long offset = random.nextInt(days + 1) * A_DAY_IN_MILLISECONDS;
+		int days = (int) ((max.getTime() - min.getTime()) / DBUtils.A_DAY_IN_MILLISECONDS);
+		long offset = random.nextInt(days + 1) * DBUtils.A_DAY_IN_MILLISECONDS;
 		return new Date(min.getTime() + offset);
 	}
 

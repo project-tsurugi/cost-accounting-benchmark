@@ -334,16 +334,6 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 	}
 
 	/**
-	 * nextDate()のテスト
-	 */
-	@Test
-	void testNextDate() {
-		TestDataGenerator generator = new TestDataGenerator(0, 0, 0, 0, 0,
-				0, DBUtils.toDate("2000-01-01"), DBUtils.toDate("2000-01-01"));
-		assertEquals(DBUtils.toDate("2020-11-11"), generator.nextDate(DBUtils.toDate("2020-11-10")));
-	}
-
-	/**
 	 * getDate()で得られる値が、start ～ endの範囲に収まることのテスト
 	 */
 	@Test

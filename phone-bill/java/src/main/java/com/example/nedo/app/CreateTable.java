@@ -61,7 +61,7 @@ public class CreateTable implements ExecutableCommand{
 				+ "basic_charge integer," 					// 基本料金
 				+ "metered_charge integer,"					// 従量料金
 				+ "billing_amount integer,"					// 請求金額
-				+ "primary key(phone_number, target_month)"
+				+ "constraint  billing_pkey primary key(phone_number, target_month)"
 				+ ")";
 		stmt.execute(create_table);
 	}

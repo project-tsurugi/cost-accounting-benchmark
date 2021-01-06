@@ -1,7 +1,7 @@
 package com.example.nedo.app.billing;
 
 /**
- * 単純な通話料金計算クラス.
+ * テスト用単純な通話料金計算クラス.
  */
 public class SimpleCallChargeCalculator implements CallChargeCalculator {
 
