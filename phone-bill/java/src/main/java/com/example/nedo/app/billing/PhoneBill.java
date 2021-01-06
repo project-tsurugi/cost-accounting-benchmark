@@ -1,4 +1,4 @@
-package com.example.nedo.app;
+package com.example.nedo.app.billing;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import com.example.nedo.app.ExecutableCommand;
 import com.example.nedo.db.Contract;
 import com.example.nedo.db.DBUtils;
 
@@ -31,6 +32,14 @@ public class PhoneBill implements ExecutableCommand {
 			Contract contract = getContract(contractResultSet);
 			System.out.println(contract);
 		}
+	}
+
+
+
+
+	private void doCalc(Contract contract) {
+		// TODO 自動生成されたメソッド・スタブ
+
 	}
 
 
