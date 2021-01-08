@@ -80,4 +80,9 @@ public class MeasurementMaster implements Cloneable {
             throw new InternalError(e);
         }
     }
+
+    @Override
+    public String toString() {
+        return "MeasurementMaster(m_unit=" + mUnit + ", m_name=" + mName + ", m_type=" + mType + ", m_default_unit=" + mDefaultUnit + ", m_scale=" + mScale + ")";
+    }
 }

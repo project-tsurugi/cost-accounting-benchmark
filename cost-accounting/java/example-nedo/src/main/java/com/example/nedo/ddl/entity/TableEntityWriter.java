@@ -6,6 +6,7 @@ import java.io.UncheckedIOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.poi.ss.usermodel.Row;
 
@@ -39,6 +40,7 @@ public class TableEntityWriter extends WriterWrapper {
 		writeSetterGetter();
 		writeClone();
 		writeDateRange();
+		writeToString();
 		writeln("}");
 	}
 
@@ -245,5 +247,21 @@ public class TableEntityWriter extends WriterWrapper {
 			}
 		}
 		return null;
+	}
+
+	protected void writeToString() throws IOException {
+		writeln();
+		writeln(1, "@Override");
+		writeln(1, "public String toString() {");
+
+		String tableName = table.getClassName();
+		String s = table.getRows().map(row -> {
+			String cname = table.getColumnName(row);
+			String fname = table.getColumnFieldName(row);
+			return cname + "=\" + " + fname;
+		}).collect(Collectors.joining(" + \", ", "\"" + tableName + "(", " + \")\""));
+		writeln(2, "return " + s + ";");
+
+		writeln(1, "}");
 	}
 }

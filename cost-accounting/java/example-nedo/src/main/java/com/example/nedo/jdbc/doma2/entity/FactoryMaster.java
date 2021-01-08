@@ -42,4 +42,9 @@ public class FactoryMaster implements Cloneable {
             throw new InternalError(e);
         }
     }
+
+    @Override
+    public String toString() {
+        return "FactoryMaster(f_id=" + fId + ", f_name=" + fName + ")";
+    }
 }

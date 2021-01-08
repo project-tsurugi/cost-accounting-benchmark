@@ -162,4 +162,9 @@ public class ItemMaster implements Cloneable, HasDateRange {
     public void setExpiredDate(LocalDate value) {
         setIExpiredDate(value);
     }
+
+    @Override
+    public String toString() {
+        return "ItemMaster(i_id=" + iId + ", i_effective_date=" + iEffectiveDate + ", i_expired_date=" + iExpiredDate + ", i_name=" + iName + ", i_type=" + iType + ", i_unit=" + iUnit + ", i_weight_ratio=" + iWeightRatio + ", i_weight_unit=" + iWeightUnit + ", i_price=" + iPrice + ", i_price_unit=" + iPriceUnit + ")";
+    }
 }

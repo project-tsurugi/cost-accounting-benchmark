@@ -80,4 +80,9 @@ public class CostMaster implements Cloneable {
             throw new InternalError(e);
         }
     }
+
+    @Override
+    public String toString() {
+        return "CostMaster(c_f_id=" + cFId + ", c_i_id=" + cIId + ", c_stock_unit=" + cStockUnit + ", c_stock_quantity=" + cStockQuantity + ", c_stock_amount=" + cStockAmount + ")";
+    }
 }

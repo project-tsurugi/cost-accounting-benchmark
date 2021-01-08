@@ -102,4 +102,9 @@ public class ItemManufacturingMaster implements Cloneable, HasDateRange {
     public void setExpiredDate(LocalDate value) {
         setImExpiredDate(value);
     }
+
+    @Override
+    public String toString() {
+        return "ItemManufacturingMaster(im_f_id=" + imFId + ", im_i_id=" + imIId + ", im_effective_date=" + imEffectiveDate + ", im_expired_date=" + imExpiredDate + ", im_manufacturing_quantity=" + imManufacturingQuantity + ")";
+    }
 }
