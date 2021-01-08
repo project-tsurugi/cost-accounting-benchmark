@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -27,7 +28,7 @@ public class TestDataGenerator {
 	/**
 	 * 一度にインサートする行数
 	 */
-	private static final long SQL_BATCH_EXEC_SIZE = 3000;
+	private static final long SQL_BATCH_EXEC_SIZE = 300000;
 
 	/**
 	 * 契約期間のパターンを記録するリスト
@@ -66,7 +67,6 @@ public class TestDataGenerator {
 			new RuntimeException(
 					"maxDate is less than or equal to minDate, minDate =" + minDate + ", maxDate = " + maxDate);
 		}
-
 		this.random = new Random(seed);
 		this.numberOfContractsRecords = numberOfContractsRecords;
 		this.numberOfHistoryRecords = numberOfHistoryRecords;
@@ -108,7 +108,7 @@ public class TestDataGenerator {
 				ps.addBatch();
 				if (++batchSize == SQL_BATCH_EXEC_SIZE) {
 					execBatch(ps);
-					conn.commit();
+					batchSize = 0;
 				}
 			}
 			execBatch(ps);
@@ -154,6 +154,7 @@ public class TestDataGenerator {
 	 * @throws SQLException
 	 */
 	public void generateHistory(Date minDate, Date maxDate) throws SQLException {
+		// TODO 低確率でPK(電話番号と、通話開始時間)の重複が起きるので、重複が起きないアルゴリズムに変更する
 		isValidDurationList(durationList, minDate, maxDate);
 
 		Duration targetDuration = new Duration(minDate, maxDate);
@@ -181,11 +182,16 @@ public class TestDataGenerator {
 				ps.setString(3, h.payment_categorty);
 				ps.setTimestamp(4, h.start_time);
 				ps.setInt(5, h.time_secs);
-				ps.setInt(6, h.charge);
+				if (h.charge == null) {
+					ps.setNull(6, Types.INTEGER);
+				} else {
+					ps.setInt(6, h.charge);
+				}
 				ps.setBoolean(7, h.df);
 				ps.addBatch();
 				if (++batchSize == SQL_BATCH_EXEC_SIZE) {
 					execBatch(ps);
+					batchSize = 0;
 				}
 			}
 			execBatch(ps);

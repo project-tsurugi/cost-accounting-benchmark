@@ -271,15 +271,6 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 
 
 	/**
-	 * checkTargetDuration()のテスト
-	 */
-	void testCheckTargetDuration() {
-		List<Duration> list = new ArrayList<>();
-		list.add(toDuration("2000-01-01", "2010-03-01"));
-	}
-
-
-	/**
 	 * getPhoneNumber()のテスト
 	 */
 	@Test

@@ -26,8 +26,10 @@ public class PhoneBill implements ExecutableCommand {
 	}
 
 	void doCalc(Date start, Date end) throws SQLException {
+		long startTime = System.currentTimeMillis();
 		try (Connection conn = DBUtils.getConnection()) {
 			try {
+				deleteTargetManthRecords(conn, start);
 				try (ResultSet contractResultSet = getContractResultSet(conn, start, end)) {
 					while (contractResultSet.next()) {
 						Contract contract = getContract(contractResultSet);
@@ -37,7 +39,10 @@ public class PhoneBill implements ExecutableCommand {
 						BillingCalculator billingCalculator = new SimpleBillingCalculator();
 						try (ResultSet historyResultSet = getHistoryResultSet(conn, contract, start, end)) {
 							while (historyResultSet.next()) {
-								int time = historyResultSet.getInt(1); // 通話時間を取得
+								int time = historyResultSet.getInt("time_secs"); // 通話時間を取得
+								if (time < 0) {
+									throw new RuntimeException("Negative time: " + time);
+								}
 								int callCharge = callChargeCalculator.calc(time);
 								historyResultSet.updateInt("charge", callCharge);
 								historyResultSet.updateRow();
@@ -50,34 +55,36 @@ public class PhoneBill implements ExecutableCommand {
 				conn.commit();
 			} catch (Exception e) {
 				conn.rollback();
+				throw e;
 			}
 		}
+		long elapsedTime = System.currentTimeMillis() - startTime;
+		String format = "Billings calculated in %,.3f sec ";
+		System.out.println(String.format(format, elapsedTime / 1000d));
+
 	}
 
 	private void updateBilling(Connection conn, Contract contract, BillingCalculator billingCalculator,
 			Date targetMonth) throws SQLException {
 		String sql = "insert into billing(phone_number, target_month, basic_charge, metered_charge, billing_amount)"
-				+ " values(?, ?, ?, ?, ?)"
-				+ " on conflict on constraint billing_pkey"
-				+ " do update set phone_number = ?, target_month = ?, basic_charge = ?, metered_charge = ?, billing_amount = ?";
+				+ " values(?, ?, ?, ?, ?)";
 		try (PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setString(1, contract.phoneNumber);
 			ps.setDate(2, targetMonth);
 			ps.setInt(3, billingCalculator.getBasicCharge());
 			ps.setInt(4, billingCalculator.getMeteredCharge());
 			ps.setInt(5, billingCalculator.getBillingAmount());
-			ps.setString(6, contract.phoneNumber);
-			ps.setDate(7, contract.startDate);
-			ps.setInt(8, billingCalculator.getBasicCharge());
-			ps.setInt(9, billingCalculator.getMeteredCharge());
-			ps.setInt(10, billingCalculator.getBillingAmount());
-			int c = ps.executeUpdate();
-			if (c != 1) {
-				throw new SQLException("Fail to insert or update: update count: " + c);
-			}
+			ps.executeUpdate();
 		}
 	}
 
+	private void deleteTargetManthRecords(Connection conn, Date start) throws SQLException {
+		String sql = "delete from billing where target_month = ?";
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setDate(1, start);
+			ps.executeUpdate();
+		}
+	}
 
 	private Contract getContract(ResultSet rs) throws SQLException {
 		Contract contract = new Contract();
@@ -101,15 +108,14 @@ public class PhoneBill implements ExecutableCommand {
 	 */
 	private ResultSet getHistoryResultSet(Connection conn, Contract contract, Date start, Date end)
 			throws SQLException {
-		String sql = "select caller_phone_number, recipient_phone_number, time_secs"
+		String sql = "select caller_phone_number, start_time, time_secs, charge"
 				+ " from history "
 				+ "where start_time >= ? and start_time < ?"
 				+ " and ((caller_phone_number = ? and payment_categorty = 'C') "
 				+ "  or (recipient_phone_number = ? and payment_categorty = 'R'))"
 				+ " and df = false";
 
-		PreparedStatement ps = conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE,
-				ResultSet.CONCUR_UPDATABLE);
+		PreparedStatement ps = conn.prepareStatement(sql,ResultSet.TYPE_FORWARD_ONLY	, ResultSet.CONCUR_UPDATABLE);
 		ps.setDate(1, start);
 		ps.setDate(2, DBUtils.nextDate(end));
 		ps.setString(3, contract.phoneNumber);
@@ -128,7 +134,8 @@ public class PhoneBill implements ExecutableCommand {
 	 */
 	private ResultSet getContractResultSet(Connection conn, Date start, Date end) throws SQLException {
 		String sql = "select phone_number, start_date, end_date, charge_rule"
-				+ " from contracts where start_date <= ? and ( end_date is null or end_date >= ?)";
+				+ " from contracts where start_date <= ? and ( end_date is null or end_date >= ?)"
+				+ " order by phone_number";
 		PreparedStatement ps = conn.prepareStatement(sql);
 		ps.setDate(1, end);
 		ps.setDate(2, start);

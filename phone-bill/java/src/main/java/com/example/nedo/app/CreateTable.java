@@ -32,7 +32,7 @@ public class CreateTable implements ExecutableCommand{
 				+ "recipient_phone_number varchar(15) not null," 	// 受信者電話番号
 				+ "payment_categorty char(1) not null," 			// 料金区分
 				+ "start_time timestamp not null,"			 		// 通話開始時刻
-				+ "time_secs integer," 								// 通話時間(秒)
+				+ "time_secs integer not null," 								// 通話時間(秒)
 				+ "charge integer," 								// 料金
 				+ "df boolean not null default '0'," 				// 論理削除フラグ
 				+ "primary key(caller_phone_number, start_time)"
@@ -58,9 +58,9 @@ public class CreateTable implements ExecutableCommand{
 		String create_table = "create table billing ("
 				+ "phone_number varchar(15) not null," 		// 電話番号
 				+ "target_month date not null," 			// 対象年月
-				+ "basic_charge integer," 					// 基本料金
-				+ "metered_charge integer,"					// 従量料金
-				+ "billing_amount integer,"					// 請求金額
+				+ "basic_charge integer not null," 					// 基本料金
+				+ "metered_charge integer not null,"					// 従量料金
+				+ "billing_amount integer not null,"					// 請求金額
 				+ "constraint  billing_pkey primary key(phone_number, target_month)"
 				+ ")";
 		stmt.execute(create_table);

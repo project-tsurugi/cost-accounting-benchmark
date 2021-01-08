@@ -16,15 +16,18 @@ import org.junit.jupiter.api.Test;
 import com.example.nedo.app.CreateTable;
 import com.example.nedo.db.Billing;
 import com.example.nedo.db.DBUtils;
+import com.example.nedo.db.History;
 
 class PhoneBillTest {
 	Connection conn;
+	Statement stmt;
 
 	@Test
 	void test() throws SQLException {
 		// 初期化
 		conn = DBUtils.getConnection();
 		conn.setAutoCommit(true);
+		stmt = conn.createStatement();
 		CreateTable.main(new String[0]);
 		PhoneBill phoneBill = new PhoneBill();
 
@@ -46,13 +49,16 @@ class PhoneBillTest {
 
 		// 通話履歴がない状態での料金計算
 		phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
-		List<Billing> list = getBillings();
-		assertEquals(5, list.size());
-		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 0, 3000), list.get(0));
-		assertEquals(toBilling("Phone-0003", "2020-11-01", 3000, 0, 3000), list.get(1));
-		assertEquals(toBilling("Phone-0004", "2020-11-01", 3000, 0, 3000), list.get(2));
-		assertEquals(toBilling("Phone-0005", "2020-11-01", 3000, 0, 3000), list.get(3));
-		assertEquals(toBilling("Phone-0008", "2020-11-01", 3000, 0, 3000), list.get(4));
+		List<Billing> billings = getBillings();
+		assertEquals(5, billings.size());
+		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 0, 3000), billings.get(0));
+		assertEquals(toBilling("Phone-0003", "2020-11-01", 3000, 0, 3000), billings.get(1));
+		assertEquals(toBilling("Phone-0004", "2020-11-01", 3000, 0, 3000), billings.get(2));
+		assertEquals(toBilling("Phone-0005", "2020-11-01", 3000, 0, 3000), billings.get(3));
+		assertEquals(toBilling("Phone-0008", "2020-11-01", 3000, 0, 3000), billings.get(4));
+		List<History> histories = getHistories();
+		assertEquals(0, histories.size());
+
 
 		// 通話履歴ありの場合
 		insertToHistory("Phone-0001", "Phone-0008", "C", "2020-10-31 23:59:59.999", 30, false);		// 計算対象年月外
@@ -60,11 +66,123 @@ class PhoneBillTest {
 		insertToHistory("Phone-0001", "Phone-0008", "C", "2020-11-15 12:12:12.000", 90, true); 	 	// 削除フラグ
 		insertToHistory("Phone-0001", "Phone-0008", "C", "2020-11-30 23:59:59.999", 90, false);  	// 計算対象
 		insertToHistory("Phone-0001", "Phone-0008", "C", "2020-12-01 00:00:00.000", 30, false);  	// 計算対象年月外
-		insertToHistory("Phone-0005", "Phone-0001", "C", "2020-11-10 00:00:00.000", 30, false);  	// 計算対象
+		insertToHistory("Phone-0005", "Phone-0001", "C", "2020-11-10 00:00:00.000", 250, false);  	// 計算対象
 		insertToHistory("Phone-0005", "Phone-0008", "R", "2020-11-30 00:00:00.000", 30, false);  	// 計算対象(受信者負担)
 
+		phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
+		billings = getBillings();
+		assertEquals(5, billings.size());
+		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 30, 3000), billings.get(0));
+		assertEquals(toBilling("Phone-0003", "2020-11-01", 3000, 0, 3000), billings.get(1));
+		assertEquals(toBilling("Phone-0004", "2020-11-01", 3000, 0, 3000), billings.get(2));
+		assertEquals(toBilling("Phone-0005", "2020-11-01", 3000, 50, 3000), billings.get(3));
+		assertEquals(toBilling("Phone-0008", "2020-11-01", 3000, 10, 3000), billings.get(4));
+		histories = getHistories();
+		assertEquals(7, histories.size());
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-10-31 23:59:59.999", 30, null, false), histories.get(0));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-11-01 00:00:00.000", 30, 10, false), histories.get(1));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-11-15 12:12:12.000", 90, null, true), histories.get(2));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-11-30 23:59:59.999", 90, 20, false), histories.get(3));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-12-01 00:00:00.000", 30, null, false), histories.get(4));
+		assertEquals(toHistory("Phone-0005", "Phone-0001", "C", "2020-11-10 00:00:00.000", 250, 50, false), histories.get(5));
+		assertEquals(toHistory("Phone-0005", "Phone-0008", "R", "2020-11-30 00:00:00.000", 30, 10, false), histories.get(6));
 
 
+		// Exception 発生時にrollbackされることの確認
+        // Phone-0001が先に処理されテーブルが更新されるが、Phone-005の処理でExceptionが発生し、処理全体がロールバックされる
+		insertToHistory("Phone-0001", "Phone-0008", "C", "2020-11-01 00:30:00.000", 30, false);  	// 計算対象
+		insertToHistory("Phone-0005", "Phone-0001", "C", "2020-11-10 01:00:00.000", -1, false);  	// 通話時間が負数なのでExceptionがスローされる
+		assertThrows(RuntimeException.class, () -> phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30")));
+		billings = getBillings();
+		assertEquals(5, billings.size());
+		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 30, 3000), billings.get(0));
+		assertEquals(toBilling("Phone-0003", "2020-11-01", 3000, 0, 3000), billings.get(1));
+		assertEquals(toBilling("Phone-0004", "2020-11-01", 3000, 0, 3000), billings.get(2));
+		assertEquals(toBilling("Phone-0005", "2020-11-01", 3000, 50, 3000), billings.get(3));
+		assertEquals(toBilling("Phone-0008", "2020-11-01", 3000, 10, 3000), billings.get(4));
+		// 通話履歴も更新されていないことを確認
+		histories = getHistories();
+		assertEquals(9, histories.size());
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-10-31 23:59:59.999", 30, null, false), histories.get(0));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-11-01 00:00:00.000", 30, 10, false), histories.get(1));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-11-01 00:30:00.000", 30, null, false), histories.get(2));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-11-15 12:12:12.000", 90, null, true), histories.get(3));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-11-30 23:59:59.999", 90, 20, false), histories.get(4));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-12-01 00:00:00.000", 30, null, false), histories.get(5));
+		assertEquals(toHistory("Phone-0005", "Phone-0001", "C", "2020-11-10 00:00:00.000", 250, 50, false), histories.get(6));
+		assertEquals(toHistory("Phone-0005", "Phone-0001", "C", "2020-11-10 01:00:00.000", -1, null, false), histories.get(7));
+		assertEquals(toHistory("Phone-0005", "Phone-0008", "R", "2020-11-30 00:00:00.000", 30, 10, false), histories.get(8));
+
+
+		// Exceptionの原因となるレコードを削除して再実行
+		String sql = "delete from history where caller_phone_number = 'Phone-0005' and start_time = '2020-11-10 01:00:00'";
+		stmt.execute(sql);
+		phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
+		billings = getBillings();
+		assertEquals(5, billings.size());
+		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 40, 3000), billings.get(0));
+		assertEquals(toBilling("Phone-0003", "2020-11-01", 3000, 0, 3000), billings.get(1));
+		assertEquals(toBilling("Phone-0004", "2020-11-01", 3000, 0, 3000), billings.get(2));
+		assertEquals(toBilling("Phone-0005", "2020-11-01", 3000, 50, 3000), billings.get(3));
+		assertEquals(toBilling("Phone-0008", "2020-11-01", 3000, 10, 3000), billings.get(4));
+		histories = getHistories();
+		assertEquals(8, histories.size());
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-10-31 23:59:59.999", 30, null, false), histories.get(0));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-11-01 00:00:00.000", 30, 10, false), histories.get(1));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-11-01 00:30:00.000", 30, 10, false), histories.get(2));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-11-15 12:12:12.000", 90, null, true), histories.get(3));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-11-30 23:59:59.999", 90, 20, false), histories.get(4));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-12-01 00:00:00.000", 30, null, false), histories.get(5));
+		assertEquals(toHistory("Phone-0005", "Phone-0001", "C", "2020-11-10 00:00:00.000", 250, 50, false), histories.get(6));
+		assertEquals(toHistory("Phone-0005", "Phone-0008", "R", "2020-11-30 00:00:00.000", 30, 10, false), histories.get(7));
+
+
+
+		// 論理削除フラグを立てたレコードが計算対象外になることの確認
+		sql = "update history set df = true where caller_phone_number = 'Phone-0001' and start_time = '2020-11-30 23:59:59.999'";
+		stmt.execute(sql);
+		phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
+		billings = getBillings();
+		assertEquals(5, billings.size());
+		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 20, 3000), billings.get(0));
+		assertEquals(toBilling("Phone-0003", "2020-11-01", 3000, 0, 3000), billings.get(1));
+		assertEquals(toBilling("Phone-0004", "2020-11-01", 3000, 0, 3000), billings.get(2));
+		assertEquals(toBilling("Phone-0005", "2020-11-01", 3000, 50, 3000), billings.get(3));
+		assertEquals(toBilling("Phone-0008", "2020-11-01", 3000, 10, 3000), billings.get(4));
+		histories = getHistories();
+		assertEquals(8, histories.size());
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-10-31 23:59:59.999", 30, null, false), histories.get(0));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-11-01 00:00:00.000", 30, 10, false), histories.get(1));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-11-01 00:30:00.000", 30, 10, false), histories.get(2));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-11-15 12:12:12.000", 90, null, true), histories.get(3));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-11-30 23:59:59.999", 90, 20, true), histories.get(4));
+		assertEquals(toHistory("Phone-0001", "Phone-0008", "C", "2020-12-01 00:00:00.000", 30, null, false), histories.get(5));
+		assertEquals(toHistory("Phone-0005", "Phone-0001", "C", "2020-11-10 00:00:00.000", 250, 50, false), histories.get(6));
+		assertEquals(toHistory("Phone-0005", "Phone-0008", "R", "2020-11-30 00:00:00.000", 30, 10, false), histories.get(7));
+	}
+
+
+	private List<History> getHistories() throws SQLException {
+		List<History> list = new ArrayList<History>();
+		String sql = "select caller_phone_number, recipient_phone_number,"
+				+ " payment_categorty, start_time,time_secs,charge, df"
+				+ " from history order by caller_phone_number, start_time";
+		ResultSet rs = stmt.executeQuery(sql);
+		while (rs.next()) {
+			History history = new History();
+			history.caller_phone_number= rs.getString(1);
+			history.recipient_phone_number= rs.getString(2);
+			history.payment_categorty= rs.getString(3);
+			history.start_time= rs.getTimestamp(4);
+			history.time_secs= rs.getInt(5);
+			history.charge= rs.getInt(6);
+			if (rs.wasNull()) {
+				history.charge = null;
+			}
+			history.df= rs.getBoolean(7);
+			list.add(history);
+		}
+		return list;
 	}
 
 
@@ -72,21 +190,19 @@ class PhoneBillTest {
 		List<Billing> list = new ArrayList<Billing>();
 		String sql = "select phone_number, target_month, basic_charge, metered_charge, billing_amount"
 				+ " from billing order by phone_number, target_month";
-		try (Connection conn = DBUtils.getConnection()) {
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			while (rs.next()) {
-				Billing billing = new Billing();
-				billing.phoneNumber = rs.getString(1);
-				billing.targetMonth = rs.getDate(2);
-				billing.basicCharge = rs.getInt(3);
-				billing.meteredCharge = rs.getInt(4);
-				billing.billingAmount = rs.getInt(5);
-				list.add(billing);
-			}
+		ResultSet rs = stmt.executeQuery(sql);
+		while (rs.next()) {
+			Billing billing = new Billing();
+			billing.phoneNumber = rs.getString(1);
+			billing.targetMonth = rs.getDate(2);
+			billing.basicCharge = rs.getInt(3);
+			billing.meteredCharge = rs.getInt(4);
+			billing.billingAmount = rs.getInt(5);
+			list.add(billing);
 		}
 		return list;
 	}
+
 
 	private Billing toBilling(String phoneNumber, String targetMonth, int basicCharge, int meteredCharge,
 			int billingAmount) {
@@ -97,6 +213,19 @@ class PhoneBillTest {
 		billing.meteredCharge = meteredCharge;
 		billing.billingAmount = billingAmount;
 		return billing;
+	}
+
+	private History toHistory(String caller_phone_number, String recipient_phone_number, String payment_categorty,
+			String start_time, int time_secs, Integer charge, boolean df) {
+		History history = new History();
+			history.caller_phone_number = caller_phone_number;
+			history.recipient_phone_number = recipient_phone_number;
+			history.payment_categorty = payment_categorty;
+			history.start_time = DBUtils.toTimestamp(start_time);
+			history.time_secs = time_secs;
+			history.charge = charge;
+			history.df = df;
+		return history;
 	}
 
 
@@ -137,7 +266,7 @@ class PhoneBillTest {
 	 * @param df 論理削除フラグ
 	 * @throws SQLException
 	 */
-	private void insertToHistory(String caller_phone_number, String recipient_phone_number, String payment_categorty, String start_time, int time_secs, boolean df)
+	private void insertToHistory(String caller_phone_number, String recipient_phone_number, String payment_categorty, String start_time, Integer time_secs, boolean df)
 			throws SQLException {
 		String sql = "insert into history(caller_phone_number, recipient_phone_number, payment_categorty, start_time, time_secs, charge, df) values(?, ?, ?, ?, ?, ?, ?)";
 		try (PreparedStatement ps = conn.prepareStatement(sql)) {

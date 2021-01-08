@@ -17,9 +17,9 @@ public class CreateTestData implements ExecutableCommand {
 	public void execute(String[] args) throws SQLException {
 		// TODO 引数で、各種パラメータを指定可能にする
 		Date start =DBUtils.toDate("2010-11-11");
-		Date end = DBUtils.toDate("2020-12-21");
-		long numberOfContractsRecords = (long) 1E3;
-		long numberOfhistoryRecords = (long) 1E4;
+		Date end = DBUtils.toDate("2021-03-01");
+		long numberOfContractsRecords = (long) 1E4;
+		long numberOfhistoryRecords = (long) 1E7;
 		TestDataGenerator generator = new TestDataGenerator(0, numberOfContractsRecords, numberOfhistoryRecords, 10,
 				50, 30, start, end);
 
@@ -32,7 +32,7 @@ public class CreateTestData implements ExecutableCommand {
 
 		// 通話履歴のテストデータを作成
 		startTime = System.currentTimeMillis();
-		generator.generateHistory(DBUtils.toDate("2020-01-01"), DBUtils.toDate("2020-11-30"));
+		generator.generateHistory(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2021-01-10"));
 		elapsedTime = System.currentTimeMillis() - startTime;
 		format = "%,d records generated to history table in %,.3f sec ";
 		System.out.println(String.format(format, numberOfhistoryRecords, elapsedTime / 1000d));
