@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.seasar.doma.jdbc.tx.TransactionManager;
@@ -47,7 +48,14 @@ public class BenchBatch {
 			if (!args[1].trim().equalsIgnoreCase("all")) {
 				String[] ss = args[1].split(",");
 				for (String s : ss) {
-					factoryList.add(Integer.parseInt(s.trim()));
+					int n = s.indexOf('-');
+					if (n >= 0) {
+						int start = Integer.parseInt(s.substring(0, n).trim());
+						int end = Integer.parseInt(s.substring(n + 1).trim());
+						IntStream.rangeClosed(start, end).forEach(id -> factoryList.add(id));
+					} else {
+						factoryList.add(Integer.parseInt(s.trim()));
+					}
 				}
 			}
 		}
@@ -70,7 +78,7 @@ public class BenchBatch {
 		this.commitRatio = commitRatio;
 
 		System.out.println("batchDate=" + batchDate);
-		System.out.println("factory=" + factoryList);
+		System.out.println("factory=" + StringUtil.toString(factoryList));
 		System.out.println("commitRatio=" + commitRatio);
 
 		int type = BenchConst.batchExecuteType();

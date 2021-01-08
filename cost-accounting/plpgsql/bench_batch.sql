@@ -31,11 +31,29 @@ create type bb_bom_node as
 create or replace function bb_get_factory_list(factories text) returns int[]
 language plpgsql
 as $$
+declare
+  i int;
+  s text;
+  n int;
+  r int[];
 begin
   if factories is null or length(factories) = 0 then
     return array(select f_id from factory_master order by f_id);
   else
-    return string_to_array(factories, ',');
+    i := 0;
+    foreach s in array string_to_array(factories, ',') loop
+      n := strpos(s, '-');
+      if n > 0 then
+        for j in substring(s for n - 1)..substring(s from n + 1) loop
+          i := i + 1;
+          r[i] := j;
+        end loop;
+      else
+        i := i + 1;
+        r[i] := s;
+      end if;
+    end loop;
+    return r;
   end if;
 end
 $$;
@@ -413,6 +431,56 @@ begin
 end
 $$;
 
+create or replace function bb_list_to_string(list int[]) returns text
+language plpgsql
+as $$
+declare
+  s text;
+  block_end   int;
+  block_count int;
+  comma text;
+  list_size int;
+  n int;
+  EMPTY constant int := -1;
+begin
+  s := '[';
+
+  block_end := 0;
+  block_count := 0;
+  comma := '';
+  list_size := array_length(list, 1);
+  for i in 1..list_size + 1 loop
+    n := EMPTY;
+    if i <= list_size then
+      n := list[i];
+      if i > 1 and n = list[i - 1] + 1 then
+        block_end := n;
+        block_count := block_count + 1;
+        continue;
+      end if;
+    end if;
+
+    if block_end > 0 then
+      if block_count > 2 then
+        s := s || '-';
+      else
+        s := s || ', ';
+      end if;
+      s := s || block_end;
+      block_end := 0;
+    end if;
+
+    if n <> EMPTY then
+      s := s || comma || n;
+      comma := ', ';
+      block_count := 1;
+    end if;
+  end loop;
+
+  return s || ']';
+end
+$$;
+
 create or replace procedure bench_batch(
   batch_date date,
   factories text = '',
@@ -429,7 +497,7 @@ begin
   raise info 'batch_date = %', batch_date;
 
   factory_list := bb_get_factory_list(factories);
-  raise info 'factory_list = %', factory_list;
+  raise info 'factory_list = %', bb_list_to_string(factory_list);
 
   raise info 'commit_ratio = %', commit_ratio;
 

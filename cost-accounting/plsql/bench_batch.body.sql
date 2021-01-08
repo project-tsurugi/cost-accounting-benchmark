@@ -43,7 +43,9 @@ is
     id_list bb_factory_id_list;
 
     start_pos pls_integer;
-    s varchar2(1);
+    c varchar2(1);
+    s varchar2(128);
+    n pls_integer;
   begin
     id_list := bb_factory_id_list();
 
@@ -55,11 +57,20 @@ is
     else
       start_pos := 1;
       for i in 1..length(factories) + 1 loop
-        s := substr(factories, i, 1);
-        if s = ',' or s is null then
+        c := substr(factories, i, 1);
+        if c = ',' or c is null then
           if i - start_pos >= 1 then
-            id_list.extend();
-            id_list(id_list.last) := substr(factories, start_pos, i - start_pos);
+            s := substr(factories, start_pos, i - start_pos);
+            n := instr(s, '-');
+            if n > 0 then
+              for j in to_number(substr(s, 1, n - 1))..to_number(substr(s, n + 1)) loop
+                id_list.extend();
+                id_list(id_list.last) := j;
+              end loop;
+            else
+              id_list.extend();
+              id_list(id_list.last) := s;
+            end if;
           end if;
           start_pos := i + 1;
         end if;
@@ -412,6 +423,53 @@ is
     return result;
   end;
 
+  function bb_list_to_string(list bb_factory_id_list) return varchar2
+  is
+    s varchar2(128);
+    block_end   pls_integer;
+    block_count pls_integer;
+    comma varchar2(2);
+    list_size pls_integer;
+    n pls_integer;
+    EMPTY constant pls_integer := -1;
+  begin
+    s := '[';
+
+    block_end := 0;
+    block_count := 0;
+    comma := '';
+    list_size := list.count;
+    for i in 1..list_size + 1 loop
+      n := EMPTY;
+      if i <= list_size then
+        n := list(i);
+        if i > 1 and n = list(i - 1) + 1 then
+          block_end := n;
+          block_count := block_count + 1;
+          continue;
+        end if;
+      end if;
+
+      if block_end > 0 then
+        if block_count > 2 then
+          s := s || '-';
+        else
+          s := s || ', ';
+        end if;
+        s := s || block_end;
+        block_end := 0;
+      end if;
+
+      if n <> EMPTY then
+        s := s || comma || n;
+        comma := ', ';
+        block_count := 1;
+      end if;
+    end loop;
+
+    return s || ']';
+  end;
+
   procedure bench_batch(
     batch_date date,
     factories varchar2 := '',
@@ -425,11 +483,7 @@ is
     dbms_output.put_line('batch_date = ' || batch_date);
 
     factory_list := bb_get_factory_list(factories);
-    dbms_output.put('factory_list =');
-    for i in 1..factory_list.count loop
-      dbms_output.put(' ' || factory_list(i));
-    end loop;
-    dbms_output.put_line('');
+    dbms_output.put_line('factory_list = ' || bb_list_to_string(factory_list));
 
     dbms_output.put_line('commit_ratio = ' || commit_ratio);
 
