@@ -41,11 +41,8 @@ public class MeasurementUtil {
 
 		MeasurementMaster src = getMeasurementMaster(srcUnit);
 		MeasurementMaster dst = getMeasurementMaster(dstUnit);
-		if (src == null || dst == null) {
-			return value;
-		}
-		if (!dst.getMType().equals(src.getMType())) {
-			throw new RuntimeException("src=" + src.getMUnit() + " dst=" + dst.getMUnit());
+		if (!equalsMType(src, dst)) {
+			throw new RuntimeException("src=" + src + " dst=" + dst);
 		}
 
 		BigDecimal s = value.multiply(src.getMScale());
@@ -80,13 +77,22 @@ public class MeasurementUtil {
 
 		MeasurementMaster entity1 = getMeasurementMaster(unit1);
 		MeasurementMaster entity2 = getMeasurementMaster(unit2);
-		assert entity1.getMType().equals(entity2.getMType());
+		if (!equalsMType(entity1, entity2)) {
+			throw new RuntimeException("entity1=" + entity1 + " entity2=" + entity2);
+		}
 
 		if (entity1.getMScale().compareTo(entity2.getMScale()) <= 0) {
 			return unit1;
 		} else {
 			return unit2;
 		}
+	}
+
+	private static boolean equalsMType(MeasurementMaster entity1, MeasurementMaster entity2) {
+		if (entity1 == null || entity2 == null) {
+			return entity1 == null && entity2 == null;
+		}
+		return Objects.equals(entity1.getMType(), entity2.getMType());
 	}
 
 	public static class ValuePair {

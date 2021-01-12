@@ -29,16 +29,16 @@ import com.example.nedo.jdbc.doma2.dao.CostMasterDao;
 import com.example.nedo.jdbc.doma2.dao.CostMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDao;
 import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
 import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDaoImpl;
+import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.dao.ResultTableDao;
 import com.example.nedo.jdbc.doma2.dao.ResultTableDaoImpl;
 import com.example.nedo.jdbc.doma2.entity.CostMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
+import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 import com.example.nedo.jdbc.doma2.entity.ResultTable;
 
 public class BenchBatchItemTask {
@@ -168,11 +168,17 @@ public class BenchBatchItemTask {
 		}
 
 		public void debugDump() {
+			System.out.println("node.itemId=" + this.itemId);
+			System.out.println("node.manufactEntity=" + this.manufactEntity);
+			System.out.println("node.constructEntity=" + this.constructEntity);
+			System.out.println("node.itemEntity=" + this.itemEntity);
+			System.out.println("node.standardQuantity=" + this.standardQuantity);
+			System.out.println("node.requiredQuantity=" + this.requiredQuantity);
 			System.out.println(itemId + "->"
 					+ childList.stream().map(node -> Integer.toString(node.itemId)).collect(Collectors.joining(",")));
-			for (BomNode child : childList) {
-				child.debugDump();
-			}
+//			for (BomNode child : childList) {
+//				child.debugDump();
+//			}
 		}
 	}
 
@@ -222,7 +228,18 @@ public class BenchBatchItemTask {
 		return itemMasterDao.selectById(itemId, batchDate);
 	}
 
-	protected void calculateWeight(BomNode node) {
+	private void calculateWeight(BomNode node) {
+		try {
+			calculateWeight1(node);
+		} catch (RuntimeException e) {
+			node.debugDump();
+			e.printStackTrace();
+			throw e;
+		}
+		calculateWeight2(node);
+	}
+
+	protected void calculateWeight1(BomNode node) {
 		ItemConstructionMaster entity = node.constructEntity;
 		if (entity == null || entity.getIcMaterialQuantity() == null) {
 			node.weight = new MeasurementValue("mg", BigDecimal.ZERO);
@@ -237,7 +254,9 @@ public class BenchBatchItemTask {
 						quantity.multiply(itemEntity.getIWeightRatio()));
 			}
 		}
+	}
 
+	protected void calculateWeight2(BomNode node) {
 		MeasurementValue weightTotal = node.weight;
 		for (BomNode child : node.childList) {
 			calculateWeight(child);
@@ -248,9 +267,20 @@ public class BenchBatchItemTask {
 		node.weightTotal = weightTotal;
 	}
 
+	protected void calculateWeightRatio(BomNode node, MeasurementValue rootWeightTotal) {
+		try {
+			calculateWeightRatio1(node, rootWeightTotal);
+		} catch (RuntimeException e) {
+			node.debugDump();
+			e.printStackTrace();
+			throw e;
+		}
+		calculateWeightRatio2(node, rootWeightTotal);
+	}
+
 	private static final BigDecimal D_100 = BigDecimal.valueOf(100);
 
-	protected void calculateWeightRatio(BomNode node, MeasurementValue rootWeightTotal) {
+	protected void calculateWeightRatio1(BomNode node, MeasurementValue rootWeightTotal) {
 		if (node.weightTotal.value.compareTo(BigDecimal.ZERO) == 0) {
 			node.weightRatio = BigDecimal.ZERO;
 		} else {
@@ -258,10 +288,24 @@ public class BenchBatchItemTask {
 					node.weightTotal.value.multiply(D_100));
 			node.weightRatio = weightTotal.divide(rootWeightTotal, RoundingMode.DOWN);
 		}
+	}
 
+	protected void calculateWeightRatio2(BomNode node, MeasurementValue rootWeightTotal) {
 		for (BomNode child : node.childList) {
 			calculateWeightRatio(child, rootWeightTotal);
 		}
+	}
+
+	private void calculateRequiredQuantity(BomNode node, Ratio parentRatio, BigDecimal manufacturingQuantity) {
+		Ratio ratio;
+		try {
+			ratio = calculateRequiredQuantity1(node, parentRatio, manufacturingQuantity);
+		} catch (RuntimeException e) {
+			node.debugDump();
+			e.printStackTrace();
+			throw e;
+		}
+		calculateRequiredQuantity2(node, ratio, manufacturingQuantity);
 	}
 
 	protected static class Ratio {
@@ -287,9 +331,9 @@ public class BenchBatchItemTask {
 	}
 
 	// TODO delete DEBUG_ID
-	int DEBUG_ID = 146894;
+	int DEBUG_ID = -1;
 
-	protected void calculateRequiredQuantity(BomNode node, Ratio parentRatio, BigDecimal manufacturingQuantity) {
+	protected Ratio calculateRequiredQuantity1(BomNode node, Ratio parentRatio, BigDecimal manufacturingQuantity) {
 		ItemConstructionMaster construct = node.constructEntity;
 
 		if (node.itemId == DEBUG_ID) {
@@ -341,12 +385,27 @@ public class BenchBatchItemTask {
 					node.requiredQuantity);
 		}
 
+		return ratio;
+	}
+
+	protected void calculateRequiredQuantity2(BomNode node, Ratio ratio, BigDecimal manufacturingQuantity) {
 		for (BomNode child : node.childList) {
 			calculateRequiredQuantity(child, ratio, manufacturingQuantity);
 		}
 	}
 
-	protected void calculateCost(BomNode node, int factoryId, BigDecimal manufacturingQuantity) {
+	private void calculateCost(BomNode node, int factoryId, BigDecimal manufacturingQuantity) {
+		try {
+			calculateCost1(node, factoryId, manufacturingQuantity);
+		} catch (RuntimeException e) {
+			node.debugDump();
+			e.printStackTrace();
+			throw e;
+		}
+		calculateCost2(node, factoryId, manufacturingQuantity);
+	}
+
+	protected void calculateCost1(BomNode node, int factoryId, BigDecimal manufacturingQuantity) {
 		if (node.itemId == DEBUG_ID) {
 			System.out.printf("debug---calculateCost---itemId=%s, manufacturingQuantity=%s\n", node.itemId,
 					manufacturingQuantity);
@@ -386,7 +445,9 @@ public class BenchBatchItemTask {
 			System.out.printf("debug---totalCost=%s\n", node.totalUnitCost);
 			System.out.printf("debug---cost=%s\n", node.unitCost);
 		}
+	}
 
+	protected void calculateCost2(BomNode node, int factoryId, BigDecimal manufacturingQuantity) {
 		BigDecimal totalManufacturingCost = node.totalUnitCost;
 		for (BomNode child : node.childList) {
 			calculateCost(child, factoryId, manufacturingQuantity);
