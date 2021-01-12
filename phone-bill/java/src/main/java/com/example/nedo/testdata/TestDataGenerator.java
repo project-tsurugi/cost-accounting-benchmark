@@ -8,8 +8,10 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import com.example.nedo.db.DBUtils;
 import com.example.nedo.db.History;
@@ -19,6 +21,10 @@ import com.example.nedo.db.History;
  *
  */
 public class TestDataGenerator {
+	/**
+	 * 同じ発信時刻のデータを作らないための作成済みのHistoryDataの発信時刻を記録するSet
+	 */
+	private Set<Long> startTimeSet;
 
 	/**
 	 * 11桁の電話番号をLONG値で表したときの最大値
@@ -38,8 +44,8 @@ public class TestDataGenerator {
 
 
 	private Random random;
-	private long numberOfContractsRecords;
-	private long numberOfHistoryRecords;
+	private int numberOfContractsRecords;
+	private int numberOfHistoryRecords;
 	private int duplicatePhoneNumberRatio;
 	private int expirationDateRate;
 	private int noExpirationDateRate;
@@ -60,7 +66,7 @@ public class TestDataGenerator {
 	 * @param minDate 契約開始日の最小値
 	 * @param maxDate 契約終了日の最大値
 	 */
-	public TestDataGenerator(long seed, long numberOfContractsRecords, long numberOfHistoryRecords,
+	public TestDataGenerator(long seed, int numberOfContractsRecords, int numberOfHistoryRecords,
 			int duplicatePhoneNumberRatio,
 			int expirationDateRate, int noExpirationDateRate, Date minDate, Date maxDate) {
 		if (minDate.getTime() >= maxDate.getTime()) {
@@ -75,6 +81,7 @@ public class TestDataGenerator {
 		this.noExpirationDateRate = noExpirationDateRate;
 		this.minDate = minDate;
 		this.maxDate = maxDate;
+		this.startTimeSet = new HashSet<Long>(numberOfHistoryRecords);
 		initDurationList();
 	}
 
@@ -155,7 +162,9 @@ public class TestDataGenerator {
 	 */
 	public void generateHistory(Date minDate, Date maxDate) throws SQLException {
 		// TODO 低確率でPK(電話番号と、通話開始時間)の重複が起きるので、重複が起きないアルゴリズムに変更する
-		isValidDurationList(durationList, minDate, maxDate);
+		if (!isValidDurationList(durationList, minDate, maxDate)) {
+			throw new RuntimeException("Invalid duration list.");
+		}
 
 		Duration targetDuration = new Duration(minDate, maxDate);
 
@@ -236,7 +245,11 @@ public class TestDataGenerator {
 	private History createHistoryRecord(Duration targetDuration) {
 		 History history = new History();
 		// 通話開始時刻
-		long startTime = getRandomLong(targetDuration.start.getTime(), targetDuration.end.getTime());
+		 long startTime;
+		do {
+			startTime = getRandomLong(targetDuration.start.getTime(), targetDuration.end.getTime());
+		} while (startTimeSet.contains(startTime));
+		startTimeSet.add(startTime);
 		history.start_time = new Timestamp(startTime);
 
 		 // 電話番号の生成
@@ -307,8 +320,8 @@ public class TestDataGenerator {
 
 	private void execBatch(PreparedStatement ps) throws SQLException {
 		int rets[] = ps.executeBatch();
-		for(int ret: rets) {
-			if (ret < 0 && ret != PreparedStatement.SUCCESS_NO_INFO ) {
+		for (int ret : rets) {
+			if (ret < 0 && ret != PreparedStatement.SUCCESS_NO_INFO) {
 				throw new SQLException("Fail to batch exexecute");
 			}
 		}
