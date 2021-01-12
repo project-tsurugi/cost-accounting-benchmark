@@ -7,7 +7,7 @@
 ````
 
 Eclipse上で、Doma2のDAOのsqlファイルが見つからなくてコンパイルエラーになるかもしれない。
-その場合、src/main/resourcesのビルドパス（出力先）を修正する。
+その場合、src/main/resourcesのビルドパス（出力先）を修正する。（bin/mainをbin/defaultにする）
 
 
 
