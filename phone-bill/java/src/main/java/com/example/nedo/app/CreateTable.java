@@ -1,5 +1,6 @@
 package com.example.nedo.app;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -7,16 +8,18 @@ import java.sql.Statement;
 import com.example.nedo.db.DBUtils;
 
 public class CreateTable implements ExecutableCommand{
+	Config config;
 
-	public static void main(String[] args) throws SQLException {
+	public static void main(String[] args) throws SQLException, IOException {
 		CreateTable createTable = new CreateTable();
 		createTable.execute(args);
 	}
 
 
 	@Override
-	public void execute(String[] args) throws SQLException {
-		try (		Connection conn = DBUtils.getConnection()) {
+	public void execute(String[] args) throws SQLException, IOException {
+		Config config = Config.getConfig(args);
+		try (Connection conn = DBUtils.getConnection(config)) {
 			conn.setAutoCommit(true);
 			Statement stmt = conn.createStatement();
 			dropTables(stmt);
@@ -77,8 +80,4 @@ public class CreateTable implements ExecutableCommand{
 		// 月額利用料金
 		stmt.execute("drop table if exists billing");
 	}
-
-
-
-
 }

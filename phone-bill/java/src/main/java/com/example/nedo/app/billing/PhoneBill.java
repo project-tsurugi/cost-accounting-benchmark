@@ -1,39 +1,72 @@
 package com.example.nedo.app.billing;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Calendar;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.example.nedo.app.Config;
 import com.example.nedo.app.ExecutableCommand;
 import com.example.nedo.db.Contract;
 import com.example.nedo.db.DBUtils;
+import com.example.nedo.db.Duration;
 
 public class PhoneBill implements ExecutableCommand {
-	public static void main(String[] args) throws SQLException {
+    private static final Logger LOG = LoggerFactory.getLogger(PhoneBill.class);
+
+
+	public static void main(String[] args) throws SQLException, IOException {
 		PhoneBill phoneBill = new PhoneBill();
 		phoneBill.execute(args);
 	}
 
 	@Override
-	public void execute(String[] args) throws SQLException {
-		// TODO 引数パラメータの処理を追加
-		Date start = DBUtils.toDate("2020-12-01");
-		Date end = DBUtils.toDate("2021-01-01");
-		doCalc(start, end);
-
+	public void execute(String[] args) throws SQLException, IOException {
+		Config config = Config.getConfig(args);
+		Duration d = toDuration(config.targetMonth);
+		doCalc(config, d.start, d.end);
 	}
 
-	void doCalc(Date start, Date end) throws SQLException {
+	/**
+	 * 指定の日付の一日から翌月の一日までのDurationを作成する
+	 *
+	 * @param date
+	 * @return
+	 */
+	static Duration toDuration(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.DAY_OF_MONTH, 1);
+		Date start = new Date(calendar.getTimeInMillis());
+		calendar.add(Calendar.MONTH, 1);
+		Date end = new Date(calendar.getTimeInMillis());
+		return new Duration(start, end);
+	}
+
+
+	/**
+	 * 料金計算のメイン処理
+	 *
+	 * @param config
+	 * @param start
+	 * @param end
+	 * @throws SQLException
+	 */
+	void doCalc(Config config, Date start, Date end) throws SQLException {
 		long startTime = System.currentTimeMillis();
-		try (Connection conn = DBUtils.getConnection()) {
+		try (Connection conn = DBUtils.getConnection(config)) {
 			try {
 				deleteTargetManthRecords(conn, start);
 				try (ResultSet contractResultSet = getContractResultSet(conn, start, end)) {
 					while (contractResultSet.next()) {
 						Contract contract = getContract(contractResultSet);
-						System.out.println(contract);
+						LOG.debug(contract.toString());
 						// TODO 契約内容に合致した、CallChargeCalculator, BillingCalculatorを生成するようにする。
 						CallChargeCalculator callChargeCalculator = new SimpleCallChargeCalculator();
 						BillingCalculator billingCalculator = new SimpleBillingCalculator();
@@ -60,7 +93,7 @@ public class PhoneBill implements ExecutableCommand {
 		}
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		String format = "Billings calculated in %,.3f sec ";
-		System.out.println(String.format(format, elapsedTime / 1000d));
+		LOG.info(String.format(format, elapsedTime / 1000d));
 
 	}
 

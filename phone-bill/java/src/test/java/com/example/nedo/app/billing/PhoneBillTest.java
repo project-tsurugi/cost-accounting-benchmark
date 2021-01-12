@@ -2,6 +2,7 @@ package com.example.nedo.app.billing;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,9 +14,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import com.example.nedo.app.Config;
 import com.example.nedo.app.CreateTable;
 import com.example.nedo.db.Billing;
 import com.example.nedo.db.DBUtils;
+import com.example.nedo.db.Duration;
 import com.example.nedo.db.History;
 
 class PhoneBillTest {
@@ -23,16 +26,17 @@ class PhoneBillTest {
 	Statement stmt;
 
 	@Test
-	void test() throws SQLException {
+	void test() throws SQLException, IOException {
 		// 初期化
-		conn = DBUtils.getConnection();
+		Config config = Config.getConfig();
+		conn = DBUtils.getConnection(config);
 		conn.setAutoCommit(true);
 		stmt = conn.createStatement();
 		CreateTable.main(new String[0]);
 		PhoneBill phoneBill = new PhoneBill();
 
 		// データが存在しない状態での料金計算
-		phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
+		phoneBill.doCalc(config, DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
 		assertEquals(0, getBillings().size());
 
 		// 契約マスタにテストデータをセット
@@ -48,7 +52,7 @@ class PhoneBillTest {
 
 
 		// 通話履歴がない状態での料金計算
-		phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
+		phoneBill.doCalc(config, DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
 		List<Billing> billings = getBillings();
 		assertEquals(5, billings.size());
 		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 0, 3000), billings.get(0));
@@ -69,7 +73,7 @@ class PhoneBillTest {
 		insertToHistory("Phone-0005", "Phone-0001", "C", "2020-11-10 00:00:00.000", 250, false);  	// 計算対象
 		insertToHistory("Phone-0005", "Phone-0008", "R", "2020-11-30 00:00:00.000", 30, false);  	// 計算対象(受信者負担)
 
-		phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
+		phoneBill.doCalc(config, DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
 		billings = getBillings();
 		assertEquals(5, billings.size());
 		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 30, 3000), billings.get(0));
@@ -92,7 +96,7 @@ class PhoneBillTest {
         // Phone-0001が先に処理されテーブルが更新されるが、Phone-005の処理でExceptionが発生し、処理全体がロールバックされる
 		insertToHistory("Phone-0001", "Phone-0008", "C", "2020-11-01 00:30:00.000", 30, false);  	// 計算対象
 		insertToHistory("Phone-0005", "Phone-0001", "C", "2020-11-10 01:00:00.000", -1, false);  	// 通話時間が負数なのでExceptionがスローされる
-		assertThrows(RuntimeException.class, () -> phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30")));
+		assertThrows(RuntimeException.class, () -> phoneBill.doCalc(config, DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30")));
 		billings = getBillings();
 		assertEquals(5, billings.size());
 		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 30, 3000), billings.get(0));
@@ -117,7 +121,7 @@ class PhoneBillTest {
 		// Exceptionの原因となるレコードを削除して再実行
 		String sql = "delete from history where caller_phone_number = 'Phone-0005' and start_time = '2020-11-10 01:00:00'";
 		stmt.execute(sql);
-		phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
+		phoneBill.doCalc(config, DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
 		billings = getBillings();
 		assertEquals(5, billings.size());
 		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 40, 3000), billings.get(0));
@@ -141,7 +145,7 @@ class PhoneBillTest {
 		// 論理削除フラグを立てたレコードが計算対象外になることの確認
 		sql = "update history set df = true where caller_phone_number = 'Phone-0001' and start_time = '2020-11-30 23:59:59.999'";
 		stmt.execute(sql);
-		phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
+		phoneBill.doCalc(config, DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
 		billings = getBillings();
 		assertEquals(5, billings.size());
 		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 20, 3000), billings.get(0));
@@ -280,6 +284,28 @@ class PhoneBillTest {
 			int c = ps.executeUpdate();
 			assertEquals(1, c);
 		}
+	}
+
+
+	/**
+	 * toDuration()のテスト
+	 */
+	@Test
+	void testToDuration() {
+		Duration d;
+
+		d = PhoneBill.toDuration(DBUtils.toDate("2020-12-01"));
+		assertEquals(DBUtils.toDate("2020-12-01"), d.start);
+		assertEquals(DBUtils.toDate("2021-01-01"), d.end);
+
+		d = PhoneBill.toDuration(DBUtils.toDate("2020-12-31"));
+		assertEquals(DBUtils.toDate("2020-12-01"), d.start);
+		assertEquals(DBUtils.toDate("2021-01-01"), d.end);
+
+		d = PhoneBill.toDuration(DBUtils.toDate("2021-01-01"));
+		assertEquals(DBUtils.toDate("2021-01-01"), d.start);
+		assertEquals(DBUtils.toDate("2021-02-01"), d.end);
+
 	}
 }
 

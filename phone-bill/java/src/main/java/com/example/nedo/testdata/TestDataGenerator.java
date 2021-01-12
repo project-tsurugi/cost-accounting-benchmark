@@ -8,10 +8,14 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
+import com.example.nedo.app.Config;
 import com.example.nedo.db.DBUtils;
+import com.example.nedo.db.Duration;
 import com.example.nedo.db.History;
 
 /**
@@ -19,6 +23,12 @@ import com.example.nedo.db.History;
  *
  */
 public class TestDataGenerator {
+	private Config config;
+
+	/**
+	 * 同じ発信時刻のデータを作らないための作成済みのHistoryDataの発信時刻を記録するSet
+	 */
+	private Set<Long> startTimeSet;
 
 	/**
 	 * 11桁の電話番号をLONG値で表したときの最大値
@@ -35,17 +45,7 @@ public class TestDataGenerator {
 	 */
 	private List<Duration> durationList = new ArrayList<>();
 
-
-
 	private Random random;
-	private long numberOfContractsRecords;
-	private long numberOfHistoryRecords;
-	private int duplicatePhoneNumberRatio;
-	private int expirationDateRate;
-	private int noExpirationDateRate;
-	private Date minDate;
-	private Date maxDate;
-
 
 	/**
 	 * テストデータ生成のためのパラメータを指定してContractsGeneratorのインスタンスを生成する.
@@ -60,24 +60,16 @@ public class TestDataGenerator {
 	 * @param minDate 契約開始日の最小値
 	 * @param maxDate 契約終了日の最大値
 	 */
-	public TestDataGenerator(long seed, long numberOfContractsRecords, long numberOfHistoryRecords,
-			int duplicatePhoneNumberRatio,
-			int expirationDateRate, int noExpirationDateRate, Date minDate, Date maxDate) {
-		if (minDate.getTime() >= maxDate.getTime()) {
-			new RuntimeException(
-					"maxDate is less than or equal to minDate, minDate =" + minDate + ", maxDate = " + maxDate);
+	public TestDataGenerator(Config config) {
+		this.config = config;
+		if (config.minDate.getTime() >= config.maxDate.getTime()) {
+			new RuntimeException("maxDate is less than or equal to minDate, minDate =" + config.minDate + ", maxDate = "
+					+ config.maxDate);
 		}
-		this.random = new Random(seed);
-		this.numberOfContractsRecords = numberOfContractsRecords;
-		this.numberOfHistoryRecords = numberOfHistoryRecords;
-		this.duplicatePhoneNumberRatio = duplicatePhoneNumberRatio;
-		this.expirationDateRate =expirationDateRate;
-		this.noExpirationDateRate = noExpirationDateRate;
-		this.minDate = minDate;
-		this.maxDate = maxDate;
+		this.random = new Random(config.randomSeed);
+		this.startTimeSet = new HashSet<Long>(config.numberOfHistoryRecords);
 		initDurationList();
 	}
-
 
 	/**
 	 * 契約マスタのテストデータを生成する
@@ -85,7 +77,7 @@ public class TestDataGenerator {
 	 * @throws SQLException
 	 */
 	public void generateContract() throws SQLException {
-		try (Connection conn = DBUtils.getConnection()) {
+		try (Connection conn = DBUtils.getConnection(config)) {
 			// TODO オプション指定により、truncateするのではなく、データが存在する場合警告して終了するようにする
 			Statement stmt = conn.createStatement();
 			stmt.executeUpdate("truncate table contracts");
@@ -98,7 +90,7 @@ public class TestDataGenerator {
 					+ ") values(?, ?, ?, ?)");
 			int batchSize = 0;
 
-			for(long n = 0; n < numberOfContractsRecords; n++) {
+			for (long n = 0; n < config.numberOfContractsRecords; n++) {
 				Duration d = getDuration(n);
 				String rule = "Simple";
 				ps.setString(1, getPhoneNumber(n));
@@ -145,7 +137,6 @@ public class TestDataGenerator {
 		}
 	}
 
-
 	/**
 	 * 通話履歴のテストデータを作成する
 	 *
@@ -154,12 +145,13 @@ public class TestDataGenerator {
 	 * @throws SQLException
 	 */
 	public void generateHistory(Date minDate, Date maxDate) throws SQLException {
-		// TODO 低確率でPK(電話番号と、通話開始時間)の重複が起きるので、重複が起きないアルゴリズムに変更する
-		isValidDurationList(durationList, minDate, maxDate);
+		if (!isValidDurationList(durationList, minDate, maxDate)) {
+			throw new RuntimeException("Invalid duration list.");
+		}
 
 		Duration targetDuration = new Duration(minDate, maxDate);
 
-		try (Connection conn = DBUtils.getConnection()) {
+		try (Connection conn = DBUtils.getConnection(config)) {
 			// TODO オプション指定により、truncateするのではなく、データが存在する場合警告して終了するようにする
 			Statement stmt = conn.createStatement();
 			stmt.executeUpdate("truncate table history");
@@ -175,7 +167,7 @@ public class TestDataGenerator {
 					+ ") values(?, ?, ?, ?, ?, ?, ? )");
 			int batchSize = 0;
 			// numberOfHistoryRecords だけレコードを生成する
-			for(long n = 0; n < numberOfHistoryRecords; n++) {
+			for (long n = 0; n < config.numberOfHistoryRecords; n++) {
 				History h = createHistoryRecord(targetDuration);
 				ps.setString(1, h.caller_phone_number);
 				ps.setString(2, h.recipient_phone_number);
@@ -198,7 +190,6 @@ public class TestDataGenerator {
 		}
 	}
 
-
 	/**
 	 * minDate～maxDateの間の全ての日付に対して、当該日付を含むdurationがlistに二つ以上あることを確認する
 	 *
@@ -210,9 +201,9 @@ public class TestDataGenerator {
 		if (minDate.getTime() > maxDate.getTime()) {
 			return false;
 		}
-		for(Date date = minDate; date.getTime() <= maxDate.getTime(); date = DBUtils.nextDate(date)) {
+		for (Date date = minDate; date.getTime() <= maxDate.getTime(); date = DBUtils.nextDate(date)) {
 			int c = 0;
-			for (Duration duration: list) {
+			for (Duration duration : list) {
 				long start = duration.start.getTime();
 				long end = duration.end == null ? Long.MAX_VALUE : duration.end.getTime();
 				if (start <= date.getTime() && date.getTime() <= end) {
@@ -230,34 +221,32 @@ public class TestDataGenerator {
 		return true;
 	}
 
-
-
-
 	private History createHistoryRecord(Duration targetDuration) {
-		 History history = new History();
+		History history = new History();
 		// 通話開始時刻
-		long startTime = getRandomLong(targetDuration.start.getTime(), targetDuration.end.getTime());
+		long startTime;
+		do {
+			startTime = getRandomLong(targetDuration.start.getTime(), targetDuration.end.getTime());
+		} while (startTimeSet.contains(startTime));
+		startTimeSet.add(startTime);
 		history.start_time = new Timestamp(startTime);
 
-		 // 電話番号の生成
-		long caller = selectContract(startTime, -1,getRandomLong(0, numberOfContractsRecords));
-		long recipient = selectContract(startTime, caller,getRandomLong(0, numberOfContractsRecords));
+		// 電話番号の生成
+		long caller = selectContract(startTime, -1, getRandomLong(0, config.numberOfContractsRecords));
+		long recipient = selectContract(startTime, caller, getRandomLong(0, config.numberOfContractsRecords));
 		history.caller_phone_number = getPhoneNumber(caller);
 		history.recipient_phone_number = getPhoneNumber(recipient);
-
 
 		// 料金区分(発信者負担、受信社負担)
 		// TODO 割合を指定可能にする
 		history.payment_categorty = random.nextInt(2) == 0 ? "C" : "R";
 
-
 		// 通話時間
 		// TODO 分布関数を指定可能にする
-		history.time_secs = random.nextInt(3600)+1;
+		history.time_secs = random.nextInt(3600) + 1;
 
 		return history;
 	}
-
 
 	/**
 	 * 指定の通話開始時刻が契約範囲に含まれる選択する。
@@ -275,7 +264,7 @@ public class TestDataGenerator {
 	 */
 	long selectContract(long startTime, long exceptPhoneNumber, long startPos) {
 		long pos = startPos;
-		int c=0;
+		int c = 0;
 		for (;;) {
 			if (pos != exceptPhoneNumber) {
 				Duration d = getDuration(pos);
@@ -290,7 +279,7 @@ public class TestDataGenerator {
 				}
 			}
 			pos++;
-			if (pos >= numberOfContractsRecords) {
+			if (pos >= config.numberOfContractsRecords) {
 				pos = 0;
 			}
 			if (++c >= durationList.size()) {
@@ -300,15 +289,10 @@ public class TestDataGenerator {
 		return pos;
 	}
 
-
-
-
-
-
 	private void execBatch(PreparedStatement ps) throws SQLException {
 		int rets[] = ps.executeBatch();
-		for(int ret: rets) {
-			if (ret < 0 && ret != PreparedStatement.SUCCESS_NO_INFO ) {
+		for (int ret : rets) {
+			if (ret < 0 && ret != PreparedStatement.SUCCESS_NO_INFO) {
 				throw new SQLException("Fail to batch exexecute");
 			}
 		}
@@ -316,32 +300,31 @@ public class TestDataGenerator {
 		ps.clearBatch();
 	}
 
-
 	/**
 	 * 契約日のパターンのリストを作成する
 	 */
 	private void initDurationList() {
 		// TODO: もっとバリエーションが欲しい
 		// 契約終了日がないduration
-		for(int i = 0; i <noExpirationDateRate; i++) {
-			Date start = getDate(minDate, maxDate);
+		for (int i = 0; i < config.noExpirationDateRate; i++) {
+			Date start = getDate(config.minDate, config.maxDate);
 			durationList.add(new Duration(start, null));
 		}
 		// 契約終了日があるduration
-		for(int i = 0; i <expirationDateRate; i++) {
-			Date start = getDate(minDate, maxDate);
-			Date end = getDate(start, maxDate);
+		for (int i = 0; i < config.expirationDateRate; i++) {
+			Date start = getDate(config.minDate, config.maxDate);
+			Date end = getDate(start, config.maxDate);
 			durationList.add(new Duration(start, end));
 		}
 		// 同一電話番号の契約が複数あるパターン用のduration
-		for(int i = 0; i <duplicatePhoneNumberRatio; i++) {
-			Date end = getDate(minDate, maxDate);
-			Date start = getDate(end, maxDate);;
-			durationList.add(new Duration(minDate, end));
+		for (int i = 0; i < config.duplicatePhoneNumberRatio; i++) {
+			Date end = getDate(config.minDate, config.maxDate);
+			Date start = getDate(end, config.maxDate);
+			;
+			durationList.add(new Duration(config.minDate, end));
 			durationList.add(new Duration(DBUtils.nextDate(start), null));
 		}
 	}
-
 
 	/**
 	 * durationListを取得する(UT用)
@@ -351,7 +334,6 @@ public class TestDataGenerator {
 	List<Duration> getDurationList() {
 		return durationList;
 	}
-
 
 	/**
 	 * min～maxの範囲のランダムな日付を取得する
@@ -366,30 +348,27 @@ public class TestDataGenerator {
 		return new Date(min.getTime() + offset);
 	}
 
-
-
 	/**
 	 * n番目の電話番号(11桁)を返す
 	 *
 	 * @param n
 	 * @return
 	 */
-	String getPhoneNumber(long  n) {
+	String getPhoneNumber(long n) {
 		if (n < 0 || MAX_PHNE_NUMBER <= n) {
 			throw new RuntimeException("Out of phone number range: " + n);
 		}
 		// TODO 電話番号が連番にならないようにする
-		long blockSize = duplicatePhoneNumberRatio * 2 + expirationDateRate + noExpirationDateRate;
-		long noDupSize = expirationDateRate + noExpirationDateRate;
+		long blockSize = config.duplicatePhoneNumberRatio * 2 + config.expirationDateRate + config.noExpirationDateRate;
+		long noDupSize = config.expirationDateRate + config.noExpirationDateRate;
 		long posInBlock = n % blockSize;
 		long phoneNumber = n;
 		if (posInBlock >= noDupSize && posInBlock % 2 == 0) {
 			phoneNumber = n + 1;
 		}
 		String format = "%011d";
-		return  String.format(format, phoneNumber);
+		return String.format(format, phoneNumber);
 	}
-
 
 	/**
 	 * n番目のレコードのDurationを返す
@@ -397,51 +376,8 @@ public class TestDataGenerator {
 	 * @param n
 	 * @return
 	 */
-	Duration getDuration(long  n) {
-		return  durationList.get((int) (n % durationList.size()));
-	}
-
-
-	/**
-	 * 期間を表すクラス
-	 *
-	 */
-	public static class Duration {
-		Date start;
-		Date end;
-		public Duration(Date start, Date end) {
-			this.start = start;
-			this.end = end;
-		}
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((end == null) ? 0 : end.hashCode());
-			result = prime * result + ((start == null) ? 0 : start.hashCode());
-			return result;
-		}
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			Duration other = (Duration) obj;
-			if (end == null) {
-				if (other.end != null)
-					return false;
-			} else if (!end.equals(other.end))
-				return false;
-			if (start == null) {
-				if (other.start != null)
-					return false;
-			} else if (!start.equals(other.start))
-				return false;
-			return true;
-		}
+	Duration getDuration(long n) {
+		return durationList.get((int) (n % durationList.size()));
 	}
 
 	/**
@@ -452,6 +388,6 @@ public class TestDataGenerator {
 	 * @return
 	 */
 	private long getRandomLong(long min, long max) {
-		return min + (long)(random.nextDouble() * (max - min));
+		return min + (long) (random.nextDouble() * (max - min));
 	}
 }

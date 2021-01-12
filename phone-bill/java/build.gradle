@@ -46,5 +46,5 @@ dependencies {
   testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.0.0") // for IDE
 
   compile "commons-cli:commons-cli:1.4"
-
+  compile "ch.qos.logback:logback-classic:1.2.3"
 }

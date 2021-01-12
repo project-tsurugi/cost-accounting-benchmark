@@ -9,6 +9,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
+import com.example.nedo.app.Config;
+
 public class DBUtils {
 	/**
 	 * ミリ秒で表した1日
@@ -18,14 +20,10 @@ public class DBUtils {
 	private static  DateFormat DF_DATE = new SimpleDateFormat("yyyy-MM-dd");
 	private static  DateFormat DF_TIMESTAMP = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
-	public static Connection getConnection() {
-		// TODO Configで指定可能にする
-        String url = "jdbc:postgresql://127.0.0.1/umegane";
-        String user = "umegane";
-        String password = "umegane";
+	public static Connection getConnection(Config config) {
         Connection conn;
 		try {
-			conn = DriverManager.getConnection(url, user, password);
+			conn = DriverManager.getConnection(config.url, config.user, config.password);
 			conn.setAutoCommit(false);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);

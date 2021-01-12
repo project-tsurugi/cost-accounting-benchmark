@@ -2,6 +2,7 @@ package com.example.nedo.app;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -13,7 +14,7 @@ import com.example.nedo.AbstractDbTestCase;
 class CreateTableTest extends AbstractDbTestCase {
 
 	@Test
-	void test() throws SQLException {
+	void test() throws SQLException, IOException {
 		CreateTable createTable = new CreateTable();
 		createTable.dropTables(stmt);
 		// テーブルが存在しないことを確認
@@ -31,9 +32,9 @@ class CreateTableTest extends AbstractDbTestCase {
 	}
 
 	@Test
-	void testExecute() throws SQLException {
+	void testExecute() throws SQLException, IOException {
 		CreateTable createTable = new CreateTable();
-		createTable.execute(null);
+		createTable.execute(new String[0]);
 
 		// テーブルが作成されることを確認
 		assertTrue(exists("billing"));

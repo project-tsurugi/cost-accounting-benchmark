@@ -2,19 +2,24 @@ package com.example.nedo.db;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.junit.jupiter.api.Test;
 
+import com.example.nedo.app.Config;
+
 class DBUtilsTest {
 	/**
 	 * getConnection()のテスト
 	 * @throws SQLException
+	 * @throws IOException
 	 */
 	@Test
-	void testGetConnection() throws SQLException {
-		Connection conn = DBUtils.getConnection();
+	void testGetConnection() throws SQLException, IOException {
+		Config config = Config.getConfig(new String[0]);
+		Connection conn = DBUtils.getConnection(config);
 		assertTrue(conn.isValid(1));
 	}
 

@@ -6,6 +6,7 @@ import java.sql.Statement;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
+import com.example.nedo.app.Config;
 import com.example.nedo.db.DBUtils;
 
 /**
@@ -18,7 +19,7 @@ public abstract class AbstractDbTestCase {
 
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
-		conn = DBUtils.getConnection();
+		conn = DBUtils.getConnection(Config.getConfig());
 		conn.setAutoCommit(true);
 		stmt = conn.createStatement();
 	}

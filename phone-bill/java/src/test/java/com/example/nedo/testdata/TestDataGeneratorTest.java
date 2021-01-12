@@ -5,6 +5,7 @@ package com.example.nedo.testdata;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,9 +19,10 @@ import java.util.TreeSet;
 import org.junit.jupiter.api.Test;
 
 import com.example.nedo.AbstractDbTestCase;
+import com.example.nedo.app.Config;
 import com.example.nedo.app.CreateTable;
 import com.example.nedo.db.DBUtils;
-import com.example.nedo.testdata.TestDataGenerator.Duration;
+import com.example.nedo.db.Duration;
 
 /**
  * @author umega
@@ -30,20 +32,25 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 
 	/**
 	 * selectContract()のテスト
+	 * @throws IOException
 	 */
 	@Test
-	void testSelectContract() {
-		Date start =DBUtils.toDate("2010-01-11");
-		Date end = DBUtils.toDate("2020-12-21");
-		TestDataGenerator generator = new TestDataGenerator(0, 10000, 0, 0, 0, 4, start, end );
+	void testSelectContract() throws IOException {
+		Config config = Config.getConfig();
+		config.expirationDateRate =4;
+		config.noExpirationDateRate = 0;
+		config.duplicatePhoneNumberRatio = 0;
+		config.minDate = DBUtils.toDate("2010-01-11");
+		config.maxDate = DBUtils.toDate("2020-12-21");
+		TestDataGenerator generator = new TestDataGenerator(config);
 
 		// 契約期間をテスト用の値に書き換える
 		List<Duration> list = generator.getDurationList();
 		assertEquals(4, list.size()); // 要素数が想定通りか確認
-		list.get(0).start = start;
-		list.get(1).start = start;
-		list.get(2).start = start;
-		list.get(3).start = start;
+		list.get(0).start = config.minDate;
+		list.get(1).start = config.minDate;
+		list.get(2).start = config.minDate;
+		list.get(3).start = config.minDate;
 		list.get(0).end = DBUtils.toDate("2010-02-11");
 		list.get(1).end = DBUtils.toDate("2010-03-11");
 		list.get(2).end = null;
@@ -88,7 +95,7 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 	 */
 	@Test
 	void isValidDurationList() {
-		List<Duration> list = new ArrayList<TestDataGenerator.Duration>();
+		List<Duration> list = new ArrayList<Duration>();
 		// listの要素が0と1のときは常にfalseが返る
 		assertFalse(isValidDurationListSub(list, "2010-11-11", "2010-11-11"));
 		list.add(toDuration("2010-10-11", "2010-11-25"));
@@ -119,14 +126,24 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 
 	/**
 	 * generateContract()のテスト
+	 * @throws IOException
 	 */
 	@Test
-	void testGenerateContract() throws SQLException {
+	void testGenerateContract() throws SQLException, IOException {
 		new CreateTable().execute(new String[0]);
 
-		Date start =DBUtils.toDate("2010-11-11");
-		Date end = DBUtils.toDate("2020-12-21");
-		TestDataGenerator generator = new TestDataGenerator(0, 10000, 0, 2, 5, 11, start, end );
+		Config config = Config.getConfig();
+		config.minDate = DBUtils.toDate("2010-01-11");
+		config.maxDate = DBUtils.toDate("2020-12-21");
+		config.numberOfContractsRecords = 10000;
+		config.expirationDateRate =5;
+		config.noExpirationDateRate = 11;
+		config.duplicatePhoneNumberRatio = 2;
+
+//		Date start =DBUtils.toDate("2010-11-11");
+//		Date end = DBUtils.toDate("2020-12-21");
+//		TestDataGenerator generator = new TestDataGenerator(0, 10000, 0, 2, 5, 11, start, end );
+		TestDataGenerator generator = new TestDataGenerator(config);
 		generator.generateContract();
 
 		String sql;
@@ -158,9 +175,10 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 
 	/**
 	 * initDurationList()のテスト
+	 * @throws IOException
 	 */
 	@Test
-	void testInitDurationList() {
+	void testInitDurationList() throws IOException {
 		// 通常ケース
 		testInitDurationLisSubt(1, 3, 7, DBUtils.toDate("2010-11-11"), DBUtils.toDate("2020-01-01"));
 		testInitDurationLisSubt(13, 5, 2, DBUtils.toDate("2010-11-11"), DBUtils.toDate("2020-01-01"));
@@ -178,9 +196,16 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 	}
 
 	void testInitDurationLisSubt(int duplicatePhoneNumberRatio, int expirationDateRate, int noExpirationDateRate
-		, Date start, Date end) {
-		TestDataGenerator generator = new TestDataGenerator(0, 0, 0, duplicatePhoneNumberRatio, expirationDateRate,
-				noExpirationDateRate, start, end);
+		, Date start, Date end) throws IOException {
+		Config config = Config.getConfig();
+		config.duplicatePhoneNumberRatio = duplicatePhoneNumberRatio;
+		config.expirationDateRate = expirationDateRate;
+		config.noExpirationDateRate = noExpirationDateRate;
+		config.minDate = start;
+		config.maxDate = end;
+
+
+		TestDataGenerator generator = new TestDataGenerator(config);
 		List<Duration> list = generator.getDurationList();
 		// listの要素数が duplicatePhoneNumberRatio * 2 + expirationDateRate + noExpirationDateRateであること
 		assertEquals(duplicatePhoneNumberRatio * 2 + expirationDateRate + noExpirationDateRate, list.size());
@@ -272,11 +297,17 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 
 	/**
 	 * getPhoneNumber()のテスト
+	 * @throws IOException
 	 */
 	@Test
-	void testGetPhoneNumber() {
-		TestDataGenerator generator = new TestDataGenerator(0, 0, 0, 2, 1, 3,
-				 DBUtils.toDate("2000-01-01"), DBUtils.toDate("2000-01-01"));
+	void testGetPhoneNumber() throws IOException {
+		Config config = Config.getConfig();
+		config.duplicatePhoneNumberRatio = 2;
+		config.expirationDateRate = 3;
+		config.noExpirationDateRate = 1;
+
+
+		TestDataGenerator generator = new TestDataGenerator(config);
 		assertEquals("00000000000", generator.getPhoneNumber(0));
 		assertEquals("00000000001", generator.getPhoneNumber(1));
 		assertEquals("00000000002", generator.getPhoneNumber(2));
@@ -310,11 +341,16 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 
 	/**
 	 * getPhoneNumber()のテスト
+	 * @throws IOException
 	 */
 	@Test
-	void testGetDuration() {
-		TestDataGenerator generator = new TestDataGenerator(12, 0, 0, 2, 3, 4,
-				DBUtils.toDate("2000-01-01"), DBUtils.toDate("2000-12-01"));
+	void testGetDuration() throws IOException {
+		Config config = Config.getConfig();
+		config.duplicatePhoneNumberRatio = 2;
+		config.expirationDateRate = 3;
+		config.noExpirationDateRate = 4;
+
+		TestDataGenerator generator = new TestDataGenerator(config);
 		List<Duration> list = generator.getDurationList();
 		for (int i = 0; i < 20; i++) {
 			Duration expected = list.get(i % (2 * 2 + 3 + 4));
@@ -326,15 +362,19 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 
 	/**
 	 * getDate()で得られる値が、start ～ endの範囲に収まることのテスト
+	 * @throws IOException
 	 */
 	@Test
-	void tesGetDate1() {
+	void tesGetDate1() throws IOException {
 		Date start = DBUtils.toDate("2020-11-11");
 		Date end = DBUtils.toDate("2020-11-11");
 		Set<Date> expected = Collections.singleton(DBUtils.toDate("2020-11-11"));
 		Set<Date> actual = new TreeSet<>();
+		Config config = Config.getConfig();
+		config.minDate = start;
+		config.maxDate = end;
 
-		TestDataGenerator generator = new TestDataGenerator(0, 0, 0, 0, 0, 0, start, end);
+		TestDataGenerator generator = new TestDataGenerator(config);
 		for(int i = 0; i < 100; i++) {
 			actual.add(generator.getDate(start, end));
 		}
@@ -343,9 +383,10 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 
 	/**
 	 * getDate()で得られる値が、start ～ endの範囲に収まることのテスト
+	 * @throws IOException
 	 */
 	@Test
-	void tesGetDate3() {
+	void tesGetDate3() throws IOException {
 		Date start = DBUtils.toDate("2020-11-11");
 		Date end = DBUtils.toDate("2020-11-13");
 		Set<Date> expected = new TreeSet<>(Arrays.asList(
@@ -354,7 +395,10 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 				DBUtils.toDate("2020-11-13")));
 		Set<Date> actual = new TreeSet<>();
 
-		TestDataGenerator generator = new TestDataGenerator(0, 0, 0, 0, 0, 0, start, end);
+		Config config = Config.getConfig();
+		config.minDate = start;
+		config.maxDate = end;
+		TestDataGenerator generator = new TestDataGenerator(config);
 		for(int i = 0; i < 100; i++) {
 			actual.add(generator.getDate(start, end));
 		}
@@ -363,9 +407,10 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 
 	/**
 	 * getDate()で得られる値が、start ～ endの範囲に収まることのテスト
+	 * @throws IOException
 	 */
 	@Test
-	void tesGetDate7() {
+	void tesGetDate7() throws IOException {
 		Date start = DBUtils.toDate("2020-11-11");
 		Date end = DBUtils.toDate("2020-11-17");
 		Set<Date> expected = new TreeSet<>(Arrays.asList(
@@ -378,7 +423,10 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 				DBUtils.toDate("2020-11-17")));
 		Set<Date> actual = new TreeSet<>();
 
-		TestDataGenerator generator = new TestDataGenerator(0, 0, 0, 0, 0, 0, start, end);
+		Config config = Config.getConfig();
+		config.minDate = start;
+		config.maxDate = end;
+		TestDataGenerator generator = new TestDataGenerator(config);
 		for(int i = 0; i < 100; i++) {
 			actual.add(generator.getDate(start, end));
 		}
