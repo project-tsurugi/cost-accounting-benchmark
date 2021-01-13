@@ -50,7 +50,8 @@ public class InitialData06Increase extends InitialData {
 			ItemConstructionMaster src = getRandomAndRemove(list);
 
 			ItemConstructionMaster entity = src.clone();
-			if (random(0, 1) == 0) {
+			int seed = entity.getIcParentIId() + entity.getIcIId();
+			if (random.prandom(seed + i, 0, 1) == 0) {
 				initializePrevStartEndDate(src, entity);
 			} else {
 				initializeNextStartEndDate(src, entity);
@@ -69,7 +70,8 @@ public class InitialData06Increase extends InitialData {
 			ItemManufacturingMaster src = getRandomAndRemove(list);
 
 			ItemManufacturingMaster entity = src.clone();
-			if (random(0, 1) == 0) {
+			int seed = entity.getImFId() + entity.getImIId();
+			if (random.prandom(seed + i, 0, 1) == 0) {
 				initializePrevStartEndDate(src, entity);
 			} else {
 				initializeNextStartEndDate(src, entity);

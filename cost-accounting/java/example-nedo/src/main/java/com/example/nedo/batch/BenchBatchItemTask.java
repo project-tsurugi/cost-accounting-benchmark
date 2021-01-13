@@ -79,12 +79,18 @@ public class BenchBatchItemTask {
 
 		calculateCost(node, factoryId, manufacturingQuantity);
 
-		switch (2) {
+		switch (4) {
 		case 1:
 			insertResult(node, factoryId, productId, manufact.getImManufacturingQuantity());
 			break;
 		case 2:
 			insertResultBatch(node, factoryId, productId, manufact.getImManufacturingQuantity());
+			break;
+		case 3:
+			insertResult2(node, factoryId, productId, manufact.getImManufacturingQuantity());
+			break;
+		case 4:
+			insertResultBatch2(node, factoryId, productId, manufact.getImManufacturingQuantity());
 			break;
 		}
 	}
@@ -443,6 +449,41 @@ public class BenchBatchItemTask {
 		}
 	}
 
+	protected void insertResult2(BomNode node, int factoryId, int productId, BigInteger manufacturingQuantity) {
+		Map<Object, BomNode> map = new HashMap<>();
+		aggregateBomNode(map, node);
+		for (BomNode n : map.values()) {
+			ResultTable entity = createResult(n, factoryId, productId, manufacturingQuantity);
+			resultTableDao.insert(entity);
+		}
+	}
+
+	protected void insertResultBatch2(BomNode node, int factoryId, int productId, BigInteger manufacturingQuantity) {
+		Map<Object, BomNode> map = new HashMap<>();
+		aggregateBomNode(map, node);
+		List<ResultTable> list = new ArrayList<>(map.size());
+		for (BomNode n : map.values()) {
+			ResultTable entity = createResult(n, factoryId, productId, manufacturingQuantity);
+			list.add(entity);
+		}
+		resultTableDao.insertBatch(list);
+	}
+
+	private void aggregateBomNode(Map<Object, BomNode> map, BomNode node) {
+		int parentId = (node.constructEntity != null) ? node.constructEntity.getIcParentIId() : 0;
+		List<Integer> key = Arrays.asList(parentId, node.itemId);
+		BomNode before = map.get(key);
+		if (before == null) {
+			map.put(key, node);
+		} else {
+			addNode(before, node);
+		}
+
+		for (BomNode child : node.childList) {
+			aggregateBomNode(map, child);
+		}
+	}
+
 	protected ResultTable createResult(BomNode node, int factoryId, int productId, BigInteger manufacturingQuantity) {
 		ResultTable entity = new ResultTable();
 
@@ -504,6 +545,20 @@ public class BenchBatchItemTask {
 		entity.setRTotalUnitCost(entity.getRTotalUnitCost().add(right.getRTotalUnitCost()));
 		entity.setRManufacturingCost(entity.getRManufacturingCost().add(right.getRManufacturingCost()));
 		entity.setRTotalManufacturingCost(entity.getRTotalManufacturingCost().add(right.getRTotalManufacturingCost()));
+	}
+
+	private void addNode(BomNode node, BomNode right) {
+		node.weight = node.weight.add(right.weight);
+		node.weightTotal = node.weightTotal.add(right.weightTotal);
+		node.weightRatio = node.weightRatio.add(right.weightRatio);
+
+		node.standardQuantity = node.standardQuantity.add(right.standardQuantity);
+		node.requiredQuantity = node.requiredQuantity.add(right.requiredQuantity);
+
+		node.unitCost = node.unitCost.add(right.unitCost);
+		node.totalUnitCost = node.totalUnitCost.add(right.totalUnitCost);
+		node.manufacturingCost = node.manufacturingCost.add(right.manufacturingCost);
+		node.totalManufacturingCost = node.totalManufacturingCost.add(right.totalManufacturingCost);
 	}
 
 	// for test
