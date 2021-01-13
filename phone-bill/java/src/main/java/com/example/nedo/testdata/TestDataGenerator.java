@@ -145,6 +145,7 @@ public class TestDataGenerator {
 	 * @throws SQLException
 	 */
 	public void generateHistory(Date minDate, Date maxDate) throws SQLException {
+		// TODO 低確率でPK(電話番号と、通話開始時間)の重複が起きるので、重複が起きないアルゴリズムに変更する
 		if (!isValidDurationList(durationList, minDate, maxDate)) {
 			throw new RuntimeException("Invalid duration list.");
 		}
