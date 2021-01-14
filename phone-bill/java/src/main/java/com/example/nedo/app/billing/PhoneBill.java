@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -71,8 +72,9 @@ public class PhoneBill implements ExecutableCommand {
 	 * @throws Exception
 	 */
 	void doCalc(Config config, Date start, Date end) throws SQLException {
+		String batchExecId = UUID.randomUUID().toString();
 		int threadCount = 10; // TODO Configで指定可能にする
-		boolean sharedConnection = true; // TODO Configで指定可能にする
+		boolean sharedConnection = false; // TODO Configで指定可能にする
 
 		long startTime = System.currentTimeMillis();
 		try (Connection conn = DBUtils.getConnection(config)) {
@@ -84,20 +86,16 @@ public class PhoneBill implements ExecutableCommand {
 			Set<Future<Exception>> futures = new HashSet<>(threadCount);
 			for(int i =0; i < threadCount; i++) {
 				if (sharedConnection) {
-					futures.add( service.submit(new CalculationTask(queue, conn)));
+					futures.add( service.submit(new CalculationTask(queue, conn, batchExecId)));
 				} else {
 					Connection newConnection = DBUtils.getConnection(config);
 					connections.add(newConnection);
-					futures.add( service.submit(new CalculationTask(queue, newConnection)));
+					futures.add( service.submit(new CalculationTask(queue, newConnection, batchExecId)));
 				}
 			}
 
 			// Billingテーブルの計算対象月のレコードを削除する
 			deleteTargetManthRecords(conn, start);
-			if (!sharedConnection) {
-				conn.commit(); // コネクションを共有しない場合、各スレッドのBillingテーブルへの書き込みで
-				               // デッドロックが起きないようにここでコミットする。
-			}
 			// 計算対象の契約を取りだし、キューに入れる
 			try (ResultSet contractResultSet = getContractResultSet(conn, start, end)) {
 				while (contractResultSet.next()) {

@@ -59,12 +59,13 @@ public class CreateTable implements ExecutableCommand{
 
 	void createBillingTable(Statement stmt) throws SQLException {
 		String create_table = "create table billing ("
-				+ "phone_number varchar(15) not null," 		// 電話番号
-				+ "target_month date not null," 			// 対象年月
-				+ "basic_charge integer not null," 					// 基本料金
+				+ "phone_number varchar(15) not null," 					// 電話番号
+				+ "target_month date not null," 						// 対象年月
+				+ "basic_charge integer not null," 						// 基本料金
 				+ "metered_charge integer not null,"					// 従量料金
 				+ "billing_amount integer not null,"					// 請求金額
-				+ "constraint  billing_pkey primary key(phone_number, target_month)"
+				+ "batch_exec_id varchar(36) not null,"					// バッチ実行ID
+				+ "constraint  billing_pkey primary key(target_month, phone_number, batch_exec_id)"
 				+ ")";
 		stmt.execute(create_table);
 	}

@@ -21,6 +21,8 @@ import com.example.nedo.db.DBUtils;
 public class CalculationTask implements Callable<Exception> {
     private static final Logger LOG = LoggerFactory.getLogger(CalculationTask.class);
 
+    private String batchExecId;
+
 
 	/**
 	 * 計算対象が格納されているQueue
@@ -40,9 +42,10 @@ public class CalculationTask implements Callable<Exception> {
 	 * @param queue
 	 * @param conn
 	 */
-	public CalculationTask(BlockingQueue<CalculationTarget> queue, Connection conn) {
+	public CalculationTask(BlockingQueue<CalculationTarget> queue, Connection conn, String batchExecId) {
 		this.queue = queue;
 		this.conn = conn;
+		this.batchExecId = batchExecId;
 	}
 
 
@@ -135,14 +138,16 @@ public class CalculationTask implements Callable<Exception> {
 	 */
 	private void updateBilling(Connection conn, Contract contract, BillingCalculator billingCalculator,
 			Date targetMonth) throws SQLException {
-		String sql = "insert into billing(phone_number, target_month, basic_charge, metered_charge, billing_amount)"
-				+ " values(?, ?, ?, ?, ?)";
+		String sql = "insert into billing("
+				+ "phone_number, target_month, basic_charge, metered_charge, billing_amount, batch_exec_id)"
+				+ " values(?, ?, ?, ?, ?, ?)";
 		try (PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setString(1, contract.phoneNumber);
 			ps.setDate(2, targetMonth);
 			ps.setInt(3, billingCalculator.getBasicCharge());
 			ps.setInt(4, billingCalculator.getMeteredCharge());
 			ps.setInt(5, billingCalculator.getBillingAmount());
+			ps.setString(6, batchExecId);
 			ps.executeUpdate();
 		}
 	}
