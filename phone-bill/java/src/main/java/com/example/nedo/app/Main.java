@@ -1,5 +1,6 @@
 package com.example.nedo.app;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +28,7 @@ public class Main {
 			usage();
 			System.exit(1);
 		}
-		executableCommand.execute(args);
+		executableCommand.execute(Arrays.copyOfRange(args, 1, args.length));
 	}
 
 
