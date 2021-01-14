@@ -73,8 +73,8 @@ public class InitialData {
 		return random.prandom(seed, start, end);
 	}
 
-	protected BigDecimal random(BigDecimal start, BigDecimal end) {
-		return random.random(start, end);
+	protected BigDecimal random(int seed, BigDecimal start, BigDecimal end) {
+		return random.prandom(seed, start, end);
 	}
 
 	public <T> T getRandomAndRemove(int seed, List<T> list) {

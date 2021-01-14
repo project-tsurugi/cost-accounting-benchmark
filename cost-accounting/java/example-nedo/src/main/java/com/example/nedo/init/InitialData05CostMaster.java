@@ -5,9 +5,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.seasar.doma.jdbc.tx.TransactionManager;
@@ -31,7 +29,6 @@ public class InitialData05CostMaster extends InitialData {
 	}
 
 	private final Set<Integer> factoryIdSet = new TreeSet<>();
-	private final Map<Integer, ItemMaster> materialSet = new TreeMap<>();
 
 	public InitialData05CostMaster(LocalDate batchDate) {
 		super(batchDate);
@@ -57,26 +54,42 @@ public class InitialData05CostMaster extends InitialData {
 				factoryIdSet.addAll(list);
 			});
 		}
-		{
-			ItemMasterDao dao = new ItemMasterDaoImpl();
-			tm.required(() -> {
-				List<ItemMaster> list = dao.selectByType(batchDate, ItemType.RAW_MATERIAL);
-
-				materialSet.clear();
-				list.forEach(entity -> materialSet.put(entity.getIId(), entity));
-			});
-		}
 	}
 
 	private void generateCostMaster() {
 		CostMasterDao dao = new CostMasterDaoImpl();
 
 		TransactionManager tm = AppConfig.singleton().getTransactionManager();
-
 		tm.required(() -> {
 			dao.deleteAll();
-			insertCostMaster(dao);
 		});
+
+		InitialData03ItemMaster itemMasterData = InitialData03ItemMaster.getDefaultInstance();
+		int materialStartId = itemMasterData.getMaterialStartId();
+		int materialEndId = itemMasterData.getMaterialEndId();
+		new CostMasterTask(materialStartId, materialEndId, new ItemMasterDaoImpl(), dao).fork().join();
+	}
+
+	@SuppressWarnings("serial")
+	private class CostMasterTask extends DaoSplitTask {
+		private final ItemMasterDao itemDao;
+		private final CostMasterDao dao;
+
+		public CostMasterTask(int startId, int endId, ItemMasterDao itemDao, CostMasterDao dao) {
+			super(startId, endId);
+			this.itemDao = itemDao;
+			this.dao = dao;
+		}
+
+		@Override
+		protected DaoSplitTask createTask(int startId, int endId) {
+			return new CostMasterTask(startId, endId, itemDao, dao);
+		}
+
+		@Override
+		protected void execute(int iId) {
+			insertCostMaster(iId, itemDao, dao);
+		}
 	}
 
 	private static final BigDecimal Q_START = new BigDecimal("1.0");
@@ -86,50 +99,53 @@ public class InitialData05CostMaster extends InitialData {
 	private static final BigDecimal A_END = new BigDecimal("1.10");
 	private static final BigDecimal A_MIN = new BigDecimal("0.01");
 
-	private void insertCostMaster(CostMasterDao dao) {
+	private void insertCostMaster(int materialId, ItemMasterDao itemDao, CostMasterDao dao) {
+		ItemMaster materialEntity = itemDao.selectById(materialId, batchDate);
+		if (materialEntity.getIType() != ItemType.RAW_MATERIAL) {
+			throw new AssertionError(materialEntity);
+		}
+
+		int seed = materialEntity.getIId();
+
+		List<Integer> factoryIds = new ArrayList<>(factoryIdSet);
+		int size = factoryIdSet.size() / 2; // 50%
 		Set<Integer> factorySet = new HashSet<>();
-		for (ItemMaster materialEntity : materialSet.values()) {
-			factorySet.clear();
-			List<Integer> factoryIds = new ArrayList<>(factoryIdSet);
-			int size = factoryIdSet.size() / 2; // 50%
-			int seed = materialEntity.getIId();
-			while (factorySet.size() < size) {
-				int factoryId = getRandomAndRemove(seed++, factoryIds);
-				factorySet.add(factoryId);
+		while (factorySet.size() < size) {
+			int factoryId = getRandomAndRemove(seed++, factoryIds);
+			factorySet.add(factoryId);
+		}
+
+		for (Integer factoryId : factorySet) {
+			CostMaster entity = new CostMaster();
+			entity.setCFId(factoryId);
+			entity.setCIId(materialEntity.getIId());
+
+			switch (MeasurementUtil.toDefaultUnit(materialEntity.getIUnit())) {
+			case "g":
+				entity.setCStockUnit("kg");
+				break;
+			case "mL":
+				entity.setCStockUnit("L");
+				break;
+			case "count":
+				entity.setCStockUnit("count");
+				break;
+			default:
+				throw new RuntimeException(materialEntity.getIUnit());
 			}
 
-			for (Integer factoryId : factorySet) {
-				CostMaster entity = new CostMaster();
-				entity.setCFId(factoryId);
-				entity.setCIId(materialEntity.getIId());
+			entity.setCStockQuantity(random(seed++, Q_START, Q_END).multiply(Q_MULT));
 
-				switch (MeasurementUtil.toDefaultUnit(materialEntity.getIUnit())) {
-				case "g":
-					entity.setCStockUnit("kg");
-					break;
-				case "mL":
-					entity.setCStockUnit("L");
-					break;
-				case "count":
-					entity.setCStockUnit("count");
-					break;
-				default:
-					throw new RuntimeException(materialEntity.getIUnit());
-				}
-
-				entity.setCStockQuantity(random(Q_START, Q_END).multiply(Q_MULT));
-
-				BigDecimal price = materialEntity.getIPrice();
-				BigDecimal stock = MeasurementUtil.convertUnit(entity.getCStockQuantity(), entity.getCStockUnit(),
-						materialEntity.getIPriceUnit());
-				BigDecimal amount = price.multiply(random(A_START, A_END).multiply(stock));
-				if (amount.compareTo(A_MIN) < 0) {
-					amount = A_MIN;
-				}
-				entity.setCStockAmount(amount);
-
-				dao.insert(entity);
+			BigDecimal price = materialEntity.getIPrice();
+			BigDecimal stock = MeasurementUtil.convertUnit(entity.getCStockQuantity(), entity.getCStockUnit(),
+					materialEntity.getIPriceUnit());
+			BigDecimal amount = price.multiply(random(seed++, A_START, A_END).multiply(stock));
+			if (amount.compareTo(A_MIN) < 0) {
+				amount = A_MIN;
 			}
+			entity.setCStockAmount(amount);
+
+			dao.insert(entity);
 		}
 	}
 }

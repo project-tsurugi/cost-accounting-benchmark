@@ -111,43 +111,7 @@ public class InitialData03ItemMaster extends InitialData {
 		new ItemConstructionMasterProductTask(getProductEndId(), getProductEndId(), icDao).fork().join();
 	}
 
-	private static final int TASK_THRESHOLD = 10000;
-
-	private abstract class SplitTask extends RecursiveTask<Void> {
-		private final int startId;
-		private final int endId;
-
-		public SplitTask(int startId, int endId) {
-			this.startId = startId;
-			this.endId = endId;
-		}
-
-		@Override
-		protected final Void compute() {
-			int size = endId - startId;
-			if (size > TASK_THRESHOLD) {
-				int middleId = startId + size / 2;
-				ForkJoinTask<Void> task1 = createTask(startId, middleId).fork();
-				ForkJoinTask<Void> task2 = createTask(middleId, endId).fork();
-				task1.join();
-				task2.join();
-			} else {
-				TransactionManager tm = AppConfig.singleton().getTransactionManager();
-				tm.required(() -> {
-					for (int iId = startId; iId < endId; iId++) {
-						execute(iId);
-					}
-				});
-			}
-			return null;
-		}
-
-		protected abstract SplitTask createTask(int startId, int endId);
-
-		protected abstract void execute(int iId);
-	}
-
-	private abstract class ItemMasterTask extends SplitTask {
+	private abstract class ItemMasterTask extends DaoSplitTask {
 		protected final ItemMasterDao dao;
 
 		public ItemMasterTask(int startId, int endId, ItemMasterDao dao) {
@@ -262,14 +226,15 @@ public class InitialData03ItemMaster extends InitialData {
 	private static final BigDecimal SCALE3 = BigDecimal.valueOf(1000);
 
 	private void randomtItemMasterMaterial(ItemMaster entity) {
-		String unit = MATERIAL_UNIT[random.nextInt(MATERIAL_UNIT.length)];
+		int seed = entity.getIId();
+		String unit = MATERIAL_UNIT[random.prandom(seed, MATERIAL_UNIT.length)];
 		entity.setIUnit(unit);
 
 		switch (unit) {
 		case "mL":
 		case "cL":
 		case "dL":
-			entity.setIWeightRatio(BigDecimal.ONE.add(random(W_START, W_END)));
+			entity.setIWeightRatio(BigDecimal.ONE.add(random(++seed, W_START, W_END)));
 			switch (unit) {
 			case "mL":
 				entity.setIWeightUnit("g");
@@ -281,7 +246,7 @@ public class InitialData03ItemMaster extends InitialData {
 				entity.setIWeightUnit("hg");
 				break;
 			}
-			entity.setIPrice(random(PRICE_START, PRICE_END));
+			entity.setIPrice(random(++seed, PRICE_START, PRICE_END));
 			entity.setIPriceUnit("L");
 			break;
 		case "mg":
@@ -290,18 +255,20 @@ public class InitialData03ItemMaster extends InitialData {
 		case "g":
 			entity.setIWeightRatio(BigDecimal.ONE);
 			entity.setIWeightUnit(unit);
-			entity.setIPrice(random(PRICE_START, PRICE_END));
+			entity.setIPrice(random(++seed, PRICE_START, PRICE_END));
 			entity.setIPriceUnit("kg");
 			break;
 		default:
-			entity.setIWeightRatio(random(C_START, C_END));
+			entity.setIWeightRatio(random(++seed, C_START, C_END));
 			entity.setIWeightUnit("g");
-			entity.setIPrice(random(PRICE_START, PRICE_END).divide(SCALE3, BenchConst.DECIMAL_SCALE, RoundingMode.DOWN)
-					.multiply(entity.getIWeightRatio()));
+			entity.setIPrice(random(++seed, PRICE_START, PRICE_END)
+					.divide(SCALE3, BenchConst.DECIMAL_SCALE, RoundingMode.DOWN).multiply(entity.getIWeightRatio()));
 			entity.setIPriceUnit(unit);
 			break;
 		}
 	}
+
+	private static final int TASK_THRESHOLD = DaoSplitTask.TASK_THRESHOLD;
 
 	private void forkItemMasterWorkInProcess(int startId, int endId, ItemMasterDao dao,
 			ItemConstructionMasterDao icDao) {
@@ -486,7 +453,7 @@ public class InitialData03ItemMaster extends InitialData {
 
 		// 重量を割り当てる
 		{
-			BigDecimal weight = random(WEIGHT_START, WEIGHT_END);
+			BigDecimal weight = random(++seed, WEIGHT_START, WEIGHT_END);
 			root.setWeight(weight);
 		}
 
@@ -519,7 +486,7 @@ public class InitialData03ItemMaster extends InitialData {
 	}
 
 	// 製品品目の品目構成マスター
-	private class ItemConstructionMasterProductTask extends SplitTask {
+	private class ItemConstructionMasterProductTask extends DaoSplitTask {
 		protected final ItemConstructionMasterDao icDao;
 
 		public ItemConstructionMasterProductTask(int startId, int endId, ItemConstructionMasterDao icDao) {
