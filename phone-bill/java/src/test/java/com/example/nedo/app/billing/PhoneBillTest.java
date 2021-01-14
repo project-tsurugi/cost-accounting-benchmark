@@ -92,10 +92,10 @@ class PhoneBillTest {
 
 
 		// Exception 発生時にrollbackされることの確認
+		// TODO sharedConnectionが有効化無効化によって、rollback時の動作が異なるので、sharedconnectionの有と無の時のテストケースを作成する
         // Phone-0001が先に処理されテーブルが更新されるが、Phone-005の処理でExceptionが発生し、処理全体がロールバックされる
 		insertToHistory("Phone-0001", "Phone-0008", "C", "2020-11-01 00:30:00.000", 30, false);  	// 計算対象
 		insertToHistory("Phone-0005", "Phone-0001", "C", "2020-11-10 01:00:00.000", -1, false);  	// 通話時間が負数なのでExceptionがスローされる
-//		assertThrows(RuntimeException.class, () -> phoneBill.doCalc(config, DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30")));
 		phoneBill.doCalc(config, DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
 		billings = getBillings();
 		assertEquals(5, billings.size());

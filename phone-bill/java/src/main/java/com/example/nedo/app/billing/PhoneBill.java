@@ -5,9 +5,11 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
@@ -69,18 +71,34 @@ public class PhoneBill implements ExecutableCommand {
 	 * @throws Exception
 	 */
 	void doCalc(Config config, Date start, Date end) throws SQLException {
-		int threadCount = 1; // TODO Configで指定可能にする
+		int threadCount = 10; // TODO Configで指定可能にする
+		boolean sharedConnection = true; // TODO Configで指定可能にする
 
 		long startTime = System.currentTimeMillis();
 		try (Connection conn = DBUtils.getConnection(config)) {
+			List<Connection> connections = new ArrayList<Connection>(threadCount);
+			connections.add(conn);
+			// 契約毎の計算を行うスレッドを生成する
 			ExecutorService service = Executors.newFixedThreadPool(threadCount);
 			BlockingQueue<CalculationTarget> queue = new LinkedBlockingDeque<CalculationTarget>();
 			Set<Future<Exception>> futures = new HashSet<>(threadCount);
 			for(int i =0; i < threadCount; i++) {
-				futures.add( service.submit(new CalculationTask(queue, conn)));
+				if (sharedConnection) {
+					futures.add( service.submit(new CalculationTask(queue, conn)));
+				} else {
+					Connection newConnection = DBUtils.getConnection(config);
+					connections.add(newConnection);
+					futures.add( service.submit(new CalculationTask(queue, newConnection)));
+				}
 			}
 
+			// Billingテーブルの計算対象月のレコードを削除する
 			deleteTargetManthRecords(conn, start);
+			if (!sharedConnection) {
+				conn.commit(); // コネクションを共有しない場合、各スレッドのBillingテーブルへの書き込みで
+				               // デッドロックが起きないようにここでコミットする。
+			}
+			// 計算対象の契約を取りだし、キューに入れる
 			try (ResultSet contractResultSet = getContractResultSet(conn, start, end)) {
 				while (contractResultSet.next()) {
 					Contract contract = getContract(contractResultSet);
@@ -93,18 +111,26 @@ public class PhoneBill implements ExecutableCommand {
 					putToQueue(queue, target);;
 				}
 			}
+
+			// EndOfTaskをキューに入れる
 			for (int i =0; i < threadCount; i++) {
 				putToQueue(queue, CalculationTarget.getEndOfTask());
 			}
 			service.shutdown();
-			cleanup(conn, futures);
+			cleanup(futures, connections);
 		}
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		String format = "Billings calculated in %,.3f sec ";
 		LOG.info(String.format(format, elapsedTime / 1000d));
 	}
 
-	private void cleanup(Connection conn, Set<Future<Exception>> futures) throws SQLException {
+	/**
+	 * @param conn
+	 * @param futures
+	 * @param connections
+	 * @throws SQLException
+	 */
+	private void cleanup(Set<Future<Exception>> futures, List<Connection> connections) throws SQLException {
 		// TODO 適切なログを出力する
 		boolean needRollback = false;
 		while (!futures.isEmpty()) {
@@ -141,9 +167,13 @@ public class PhoneBill implements ExecutableCommand {
 			}
 		}
 		if (needRollback) {
-			conn.rollback();
+			for (Connection c: connections) {
+				c.rollback();
+			}
 		} else {
-			conn.commit();
+			for (Connection c: connections) {
+				c.commit();
+			}
 		}
 	}
 
