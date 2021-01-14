@@ -1,12 +1,22 @@
 package com.example.nedo.app.billing;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,13 +31,13 @@ public class PhoneBill implements ExecutableCommand {
     private static final Logger LOG = LoggerFactory.getLogger(PhoneBill.class);
 
 
-	public static void main(String[] args) throws SQLException, IOException {
+	public static void main(String[] args) throws Exception {
 		PhoneBill phoneBill = new PhoneBill();
 		phoneBill.execute(args);
 	}
 
 	@Override
-	public void execute(String[] args) throws SQLException, IOException {
+	public void execute(String[] args) throws Exception {
 		Config config = Config.getConfig(args);
 		Duration d = toDuration(config.targetMonth);
 		doCalc(config, d.start, d.end);
@@ -56,60 +66,87 @@ public class PhoneBill implements ExecutableCommand {
 	 * @param config
 	 * @param start
 	 * @param end
-	 * @throws SQLException
+	 * @throws Exception
 	 */
 	void doCalc(Config config, Date start, Date end) throws SQLException {
+		int threadCount = 1; // TODO Configで指定可能にする
+
 		long startTime = System.currentTimeMillis();
 		try (Connection conn = DBUtils.getConnection(config)) {
-			try {
-				deleteTargetManthRecords(conn, start);
-				try (ResultSet contractResultSet = getContractResultSet(conn, start, end)) {
-					while (contractResultSet.next()) {
-						Contract contract = getContract(contractResultSet);
-						LOG.debug(contract.toString());
-						// TODO 契約内容に合致した、CallChargeCalculator, BillingCalculatorを生成するようにする。
-						CallChargeCalculator callChargeCalculator = new SimpleCallChargeCalculator();
-						BillingCalculator billingCalculator = new SimpleBillingCalculator();
-						try (ResultSet historyResultSet = getHistoryResultSet(conn, contract, start, end)) {
-							while (historyResultSet.next()) {
-								int time = historyResultSet.getInt("time_secs"); // 通話時間を取得
-								if (time < 0) {
-									throw new RuntimeException("Negative time: " + time);
-								}
-								int callCharge = callChargeCalculator.calc(time);
-								historyResultSet.updateInt("charge", callCharge);
-								historyResultSet.updateRow();
-								billingCalculator.addCallCharge(callCharge);
-							}
-						}
-						updateBilling(conn, contract, billingCalculator, start);
-					}
-				}
-				conn.commit();
-			} catch (Exception e) {
-				conn.rollback();
-				throw e;
+			ExecutorService service = Executors.newFixedThreadPool(threadCount);
+			BlockingQueue<CalculationTarget> queue = new LinkedBlockingDeque<CalculationTarget>();
+			Set<Future<Exception>> futures = new HashSet<>(threadCount);
+			for(int i =0; i < threadCount; i++) {
+				futures.add( service.submit(new CalculationTask(queue, conn)));
 			}
+
+			deleteTargetManthRecords(conn, start);
+			try (ResultSet contractResultSet = getContractResultSet(conn, start, end)) {
+				while (contractResultSet.next()) {
+					Contract contract = getContract(contractResultSet);
+					LOG.debug(contract.toString());
+					// TODO 契約内容に合致した、CallChargeCalculator, BillingCalculatorを生成するようにする。
+					CallChargeCalculator callChargeCalculator = new SimpleCallChargeCalculator();
+					BillingCalculator billingCalculator = new SimpleBillingCalculator();
+					CalculationTarget target = new CalculationTarget(contract, billingCalculator,
+							callChargeCalculator, start, end, false);
+					putToQueue(queue, target);;
+				}
+			}
+			for (int i =0; i < threadCount; i++) {
+				putToQueue(queue, CalculationTarget.getEndOfTask());
+			}
+			service.shutdown();
+			cleanup(conn, futures);
 		}
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		String format = "Billings calculated in %,.3f sec ";
 		LOG.info(String.format(format, elapsedTime / 1000d));
-
 	}
 
-	private void updateBilling(Connection conn, Contract contract, BillingCalculator billingCalculator,
-			Date targetMonth) throws SQLException {
-		String sql = "insert into billing(phone_number, target_month, basic_charge, metered_charge, billing_amount)"
-				+ " values(?, ?, ?, ?, ?)";
-		try (PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setString(1, contract.phoneNumber);
-			ps.setDate(2, targetMonth);
-			ps.setInt(3, billingCalculator.getBasicCharge());
-			ps.setInt(4, billingCalculator.getMeteredCharge());
-			ps.setInt(5, billingCalculator.getBillingAmount());
-			ps.executeUpdate();
+	private void cleanup(Connection conn, Set<Future<Exception>> futures) throws SQLException {
+		// TODO 適切なログを出力する
+		boolean needRollback = false;
+		while (!futures.isEmpty()) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				LOG.debug("InterruptedException caught and waiting service shutdown.", e);
+			}
+			Iterator<Future<Exception>> it = futures.iterator();
+			while (it.hasNext()) {
+				Exception e = null;
+				{
+					Future<Exception> future = it.next();
+					if (future.isDone()) {
+						it.remove();
+						try {
+							e = future.get(0, TimeUnit.SECONDS);
+						} catch (InterruptedException e1) {
+							continue;
+						} catch (ExecutionException e1) {
+							e = e1;
+						} catch (TimeoutException e1) {
+							continue;
+						}
+					}
+				}
+				if (e != null) {
+					LOG.error("Exception cought", e);
+					needRollback = true;
+					for(Future<Exception> future: futures) {
+						future.cancel(true);
+					}
+				}
+			}
+		}
+		if (needRollback) {
+			conn.rollback();
+		} else {
+			conn.commit();
 		}
 	}
+
 
 	private void deleteTargetManthRecords(Connection conn, Date start) throws SQLException {
 		String sql = "delete from billing where target_month = ?";
@@ -118,6 +155,24 @@ public class PhoneBill implements ExecutableCommand {
 			ps.executeUpdate();
 		}
 	}
+
+	/**
+	 * queueにtargetを追加する。InterruptedException発生時は成功するまでリトライする。
+	 *
+	 * @param queue
+	 * @param target
+	 */
+	private void putToQueue(BlockingQueue<CalculationTarget> queue, CalculationTarget target) {
+		for(;;) {
+			try {
+				queue.put(target);
+				break;
+			} catch (InterruptedException e) {
+				LOG.debug("InterruptedException caught and continue puting calculation_target", e);
+			}
+		}
+	}
+
 
 	private Contract getContract(ResultSet rs) throws SQLException {
 		Contract contract = new Contract();
@@ -130,32 +185,6 @@ public class PhoneBill implements ExecutableCommand {
 
 
 
-	/**
-	 * historyテーブルから指定のcontractの料金計算対象のレコードを操作するためのResultSetを取り出す
-	 *
-	 * @param contract 検索対象の契約
-	 * @param start 検索対象期間の開始日
-	 * @param end 検索対象期間の最終日
-	 * @return
-	 * @throws SQLException
-	 */
-	private ResultSet getHistoryResultSet(Connection conn, Contract contract, Date start, Date end)
-			throws SQLException {
-		String sql = "select caller_phone_number, start_time, time_secs, charge"
-				+ " from history "
-				+ "where start_time >= ? and start_time < ?"
-				+ " and ((caller_phone_number = ? and payment_categorty = 'C') "
-				+ "  or (recipient_phone_number = ? and payment_categorty = 'R'))"
-				+ " and df = false";
-
-		PreparedStatement ps = conn.prepareStatement(sql,ResultSet.TYPE_FORWARD_ONLY	, ResultSet.CONCUR_UPDATABLE);
-		ps.setDate(1, start);
-		ps.setDate(2, DBUtils.nextDate(end));
-		ps.setString(3, contract.phoneNumber);
-		ps.setString(4, contract.phoneNumber);
-		ResultSet rs = ps.executeQuery();
-		return rs;
-	}
 
 	/**
 	 * 契約期間がstart～endと被るcontractテーブルのレコードのResultSetを取得する

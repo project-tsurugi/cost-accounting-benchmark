@@ -1,7 +1,5 @@
 package com.example.nedo.app;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,7 +14,7 @@ public class Main {
 		COMMAND_MAP.put("PhoneBill", new PhoneBill());
 	}
 
-	public static void main(String[] args) throws SQLException, IOException {
+	public static void main(String[] args) throws Exception {
 		if (args.length == 0) {
 			System.err.println("No argument is specified. Please specify one of the following arguments.");
 			usage();
