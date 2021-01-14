@@ -228,7 +228,7 @@ public class BenchBatchItemTask {
 		return itemMasterDao.selectById(itemId, batchDate);
 	}
 
-	private void calculateWeight(BomNode node) {
+	void calculateWeight(BomNode node) {
 		try {
 			calculateWeight1(node);
 		} catch (RuntimeException e) {
@@ -296,7 +296,7 @@ public class BenchBatchItemTask {
 		}
 	}
 
-	private void calculateRequiredQuantity(BomNode node, Ratio parentRatio, BigDecimal manufacturingQuantity) {
+	void calculateRequiredQuantity(BomNode node, Ratio parentRatio, BigDecimal manufacturingQuantity) {
 		Ratio ratio;
 		try {
 			ratio = calculateRequiredQuantity1(node, parentRatio, manufacturingQuantity);
@@ -394,7 +394,7 @@ public class BenchBatchItemTask {
 		}
 	}
 
-	private void calculateCost(BomNode node, int factoryId, BigDecimal manufacturingQuantity) {
+	void calculateCost(BomNode node, int factoryId, BigDecimal manufacturingQuantity) {
 		try {
 			calculateCost1(node, factoryId, manufacturingQuantity);
 		} catch (RuntimeException e) {

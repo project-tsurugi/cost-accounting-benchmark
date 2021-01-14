@@ -49,11 +49,11 @@ public class InitialData06Increase extends InitialData {
 			ItemConstructionMaster src = getRandomAndRemove(i, list);
 
 			ItemConstructionMaster entity = src.clone();
-			int seed = entity.getIcParentIId() + entity.getIcIId();
-			if (random.prandom(seed + i, 0, 1) == 0) {
-				initializePrevStartEndDate(src, entity);
+			int seed = entity.getIcParentIId() + entity.getIcIId() + i;
+			if (random.prandom(seed, 0, 1) == 0) {
+				initializePrevStartEndDate(seed + 1, src, entity);
 			} else {
-				initializeNextStartEndDate(src, entity);
+				initializeNextStartEndDate(seed + 1, src, entity);
 			}
 			InitialData03ItemMaster.initializeItemConstructionMasterRandom(random, entity);
 
@@ -69,11 +69,11 @@ public class InitialData06Increase extends InitialData {
 			ItemManufacturingMaster src = getRandomAndRemove(i, list);
 
 			ItemManufacturingMaster entity = src.clone();
-			int seed = entity.getImFId() + entity.getImIId();
-			if (random.prandom(seed + i, 0, 1) == 0) {
-				initializePrevStartEndDate(src, entity);
+			int seed = entity.getImFId() + entity.getImIId() + i;
+			if (random.prandom(seed, 0, 1) == 0) {
+				initializePrevStartEndDate(seed + 1, src, entity);
 			} else {
-				initializeNextStartEndDate(src, entity);
+				initializeNextStartEndDate(seed + 1, src, entity);
 			}
 			InitialData04ItemManufacturingMaster.initializeItemManufacturingMasterRandom(random, entity);
 

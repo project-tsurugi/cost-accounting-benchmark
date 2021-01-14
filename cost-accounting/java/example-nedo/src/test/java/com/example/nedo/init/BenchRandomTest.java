@@ -44,7 +44,7 @@ class BenchRandomTest {
 	@Test
 	void testRandom0() {
 		for (int i = 0; i < 10000; i++) {
-			BigDecimal r = random.random0(D_END);
+			BigDecimal r = random.random0(i, D_END);
 			assertTrue(BigDecimal.ZERO.compareTo(r) <= 0 && r.compareTo(D_END) <= 0, () -> "r=" + r);
 			assertEquals(1, r.scale());
 		}

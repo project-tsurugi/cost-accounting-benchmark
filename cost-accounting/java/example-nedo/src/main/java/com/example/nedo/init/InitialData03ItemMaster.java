@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -21,19 +23,24 @@ import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
 import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.domain.ItemType;
-import com.example.nedo.jdbc.doma2.entity.HasDateRange;
 import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 
+@SuppressWarnings("serial")
 public class InitialData03ItemMaster extends InitialData {
 
 	public static void main(String[] args) throws Exception {
+		InitialData03ItemMaster instance = getDefaultInstance();
+		instance.main();
+	}
+
+	public static InitialData03ItemMaster getDefaultInstance() {
 		int productSize = BenchConst.initItemProductSize();
 		int workSize = BenchConst.initItemWorkSize();
 		int materialSize = BenchConst.initItemMaterialSize();
 
 		LocalDate batchDate = DEFAULT_BATCH_DATE;
-		new InitialData03ItemMaster(productSize, workSize, materialSize, batchDate).main();
+		return new InitialData03ItemMaster(productSize, workSize, materialSize, batchDate);
 	}
 
 	private final int productSize;
@@ -58,12 +65,24 @@ public class InitialData03ItemMaster extends InitialData {
 		return 1;
 	}
 
+	public int getProductEndId() {
+		return getProductStartId() + productSize;
+	}
+
 	public int getWorkStartId() {
-		return getMaterialStartId() + materialSize;
+		return getMaterialEndId();
+	}
+
+	public int getWorkEndId() {
+		return getWorkStartId() + workSize;
 	}
 
 	public int getMaterialStartId() {
-		return getProductStartId() + productSize;
+		return getProductEndId();
+	}
+
+	public int getMaterialEndId() {
+		return getMaterialStartId() + materialSize;
 	}
 
 	private void main() {
@@ -79,28 +98,128 @@ public class InitialData03ItemMaster extends InitialData {
 		ItemConstructionMasterDao icDao = new ItemConstructionMasterDaoImpl();
 
 		TransactionManager tm = AppConfig.singleton().getTransactionManager();
-
 		tm.required(() -> {
 			dao.deleteAll();
 			icDao.deleteAll();
-			insertItemMasterProduct(getProductStartId(), productSize, dao);
-			insertItemMasterMaterial(getMaterialStartId(), materialSize, dao);
-			insertItemMasterWorkInProcess(getWorkStartId(), workSize, dao, icDao);
 		});
+
+		ForkJoinTask<Void> ptask = new ItemMasterProductTask(getProductStartId(), getProductEndId(), dao).fork();
+		ForkJoinTask<Void> mtask = new ItemMasterMaterialTask(getMaterialStartId(), getMaterialEndId(), dao).fork();
+		ptask.join();
+		mtask.join();
+		forkItemMasterWorkInProcess(getWorkStartId(), getWorkEndId(), dao, icDao);
+		new ItemConstructionMasterProductTask(getProductEndId(), getProductEndId(), icDao).fork().join();
 	}
 
-	private void insertItemMasterProduct(int startId, int size, ItemMasterDao dao) {
-		for (int i = 0, iId = startId; i < size; i++, iId++) {
+	private static final int TASK_THRESHOLD = 10000;
+
+	private abstract class SplitTask extends RecursiveTask<Void> {
+		private final int startId;
+		private final int endId;
+
+		public SplitTask(int startId, int endId) {
+			this.startId = startId;
+			this.endId = endId;
+		}
+
+		@Override
+		protected final Void compute() {
+			int size = endId - startId;
+			if (size > TASK_THRESHOLD) {
+				int middleId = startId + size / 2;
+				ForkJoinTask<Void> task1 = createTask(startId, middleId).fork();
+				ForkJoinTask<Void> task2 = createTask(middleId, endId).fork();
+				task1.join();
+				task2.join();
+			} else {
+				TransactionManager tm = AppConfig.singleton().getTransactionManager();
+				tm.required(() -> {
+					for (int iId = startId; iId < endId; iId++) {
+						execute(iId);
+					}
+				});
+			}
+			return null;
+		}
+
+		protected abstract SplitTask createTask(int startId, int endId);
+
+		protected abstract void execute(int iId);
+	}
+
+	private abstract class ItemMasterTask extends SplitTask {
+		protected final ItemMasterDao dao;
+
+		public ItemMasterTask(int startId, int endId, ItemMasterDao dao) {
+			super(startId, endId);
+			this.dao = dao;
+		}
+	}
+
+	private class ItemMasterProductTask extends ItemMasterTask {
+		public ItemMasterProductTask(int startId, int endId, ItemMasterDao dao) {
+			super(startId, endId, dao);
+		}
+
+		@Override
+		protected ItemMasterTask createTask(int startId, int endId) {
+			return new ItemMasterProductTask(startId, endId, dao);
+		}
+
+		@Override
+		protected void execute(int iId) {
 			ItemMaster entity = newItemMasterProduct(iId);
-			initializeStartEndDate(entity);
 			insertItemMaster(dao, entity, null);
 		}
 	}
 
+	private class ItemMasterMaterialTask extends ItemMasterTask {
+		public ItemMasterMaterialTask(int startId, int endId, ItemMasterDao dao) {
+			super(startId, endId, dao);
+		}
+
+		@Override
+		protected ItemMasterTask createTask(int startId, int endId) {
+			return new ItemMasterMaterialTask(startId, endId, dao);
+		}
+
+		@Override
+		protected void execute(int iId) {
+			ItemMaster entity = newItemMasterMaterial(iId);
+			insertItemMaster(dao, entity, InitialData03ItemMaster.this::randomtItemMasterMaterial);
+		}
+	}
+
+	public ItemMaster newItemMaster(int iId) {
+		ItemType type;
+		if (getProductStartId() <= iId && iId < getProductStartId() + productSize) {
+			type = ItemType.PRODUCT;
+		} else if (getWorkStartId() <= iId && iId < getWorkStartId() + workSize) {
+			type = ItemType.WORK_IN_PROCESS;
+		} else if (getMaterialStartId() <= iId && iId < getMaterialStartId() + materialSize) {
+			type = ItemType.RAW_MATERIAL;
+		} else {
+			throw new IllegalArgumentException("iId=" + iId);
+		}
+
+		switch (type) {
+		case PRODUCT:
+			return newItemMasterProduct(iId);
+		case WORK_IN_PROCESS:
+			return newItemMasterWork(iId);
+		case RAW_MATERIAL:
+			return newItemMasterMaterial(iId);
+		default:
+			throw new InternalError("type=" + type);
+		}
+	}
+
 	public ItemMaster newItemMasterProduct(int iId) {
+		// iIdが同じであれば、同じ内容を返すようにする
 		ItemMaster entity = new ItemMaster();
 
 		entity.setIId(iId);
+		initializeStartEndDate(iId, entity);
 		entity.setIName("Bread" + iId);
 		entity.setIType(ItemType.PRODUCT);
 		entity.setIUnit("count");
@@ -108,16 +227,29 @@ public class InitialData03ItemMaster extends InitialData {
 		return entity;
 	}
 
-	private void insertItemMasterMaterial(int startId, int size, ItemMasterDao dao) {
-		for (int i = 0, iId = startId; i < size; i++, iId++) {
-			ItemMaster entity = new ItemMaster();
-			entity.setIId(iId);
-			initializeStartEndDate(entity);
-			entity.setIName("Material" + iId);
-			entity.setIType(ItemType.RAW_MATERIAL);
+	private ItemMaster newItemMasterWork(int iId) {
+		// iIdが同じであれば、同じ内容を返すようにする
+		ItemMaster entity = new ItemMaster();
 
-			insertItemMaster(dao, entity, this::randomtItemMasterMaterial);
-		}
+		entity.setIId(iId);
+		initializeStartEndDate(iId, entity);
+		entity.setIName("Process" + entity.getIId());
+		entity.setIType(ItemType.WORK_IN_PROCESS);
+
+		return entity;
+	}
+
+	private ItemMaster newItemMasterMaterial(int iId) {
+		// iIdが同じであれば、同じ内容を返すようにする
+		ItemMaster entity = new ItemMaster();
+
+		entity.setIId(iId);
+		initializeStartEndDate(iId, entity);
+		entity.setIName("Material" + iId);
+		entity.setIType(ItemType.RAW_MATERIAL);
+		randomtItemMasterMaterial(entity);
+
+		return entity;
 	}
 
 	private static final String[] MATERIAL_UNIT = { "mL", "cL", "dL", "mg", "cg", "dg", "g", "count" };
@@ -171,8 +303,87 @@ public class InitialData03ItemMaster extends InitialData {
 		}
 	}
 
+	private void forkItemMasterWorkInProcess(int startId, int endId, ItemMasterDao dao,
+			ItemConstructionMasterDao icDao) {
+		List<ItemMasterWorkTask> taskList = new ArrayList<>();
+		ItemMasterWorkTask task = new ItemMasterWorkTask(dao, icDao);
+
+		int id = startId;
+		int count = 0;
+		final int size = endId - startId;
+		while (count < size) {
+			// 木の要素数を決定する
+			int treeSize = 10 + random(id, -4, 4);
+			if (count + treeSize > size) {
+				treeSize = size - count;
+			}
+			count += treeSize;
+
+			task.add(id, id + treeSize);
+			if (task.idSize() >= TASK_THRESHOLD) {
+				task.fork();
+				taskList.add(task);
+				task = new ItemMasterWorkTask(dao, icDao);
+			}
+
+			id += treeSize;
+		}
+
+		task.fork();
+		taskList.add(task);
+
+		for (ItemMasterWorkTask t : taskList) {
+			t.join();
+		}
+	}
+
+	private class ItemMasterWorkTask extends RecursiveTask<Void> {
+		private final ItemMasterDao dao;
+		private final ItemConstructionMasterDao icDao;
+
+		private class Range {
+			public final int startId;
+			public final int endId;
+
+			public Range(int startId, int endId) {
+				this.startId = startId;
+				this.endId = endId;
+			}
+		}
+
+		private final List<Range> rangeList = new ArrayList<>();
+		private int idSize = 0;
+
+		public ItemMasterWorkTask(ItemMasterDao dao, ItemConstructionMasterDao icDao) {
+			this.dao = dao;
+			this.icDao = icDao;
+		}
+
+		public void add(int startId, int endId) {
+			rangeList.add(new Range(startId, endId));
+			int size = endId - startId;
+			this.idSize += size;
+		}
+
+		public int idSize() {
+			return idSize;
+		}
+
+		@Override
+		protected Void compute() {
+			TransactionManager tm = AppConfig.singleton().getTransactionManager();
+			tm.required(() -> {
+				for (Range range : rangeList) {
+					insertItemMasterWorkInProcess(range.startId, range.endId, dao, icDao);
+				}
+			});
+			return null;
+		}
+	}
+
 	private class Node {
-		final ItemMaster entity;
+		int itemId;
+		ItemMaster entity;
 
 		Node parent = null;
 		final List<Node> childList = new ArrayList<>();
@@ -189,7 +400,7 @@ public class InitialData03ItemMaster extends InitialData {
 		}
 
 		public void assignId(AtomicInteger iId) {
-			entity.setIId(iId.getAndIncrement());
+			this.itemId = iId.getAndIncrement();
 
 			for (Node child : childList) {
 				child.assignId(iId);
@@ -231,117 +442,116 @@ public class InitialData03ItemMaster extends InitialData {
 	private static final BigDecimal WEIGHT_START = new BigDecimal("20.0000");
 	private static final BigDecimal WEIGHT_END = new BigDecimal("100.0000");
 
-	private void insertItemMasterWorkInProcess(int startId, int size, ItemMasterDao dao,
+	private void insertItemMasterWorkInProcess(int startId, int endId, ItemMasterDao dao,
 			ItemConstructionMasterDao icDao) {
 		AtomicInteger iId = new AtomicInteger(startId);
 
-		int count = 0;
-		while (count < size) {
-			// 木の要素数を決定する
-			int seed = startId + count;
-			int treeSize = 10 + random.prandom(seed, -4, 4);
-			if (count + treeSize > size) {
-				treeSize = size - count;
-			}
-			count += treeSize;
+		final int treeSize = endId - startId;
+		int seed = startId;
 
-			// ルート要素を作成する
-			Node root = new Node(new ItemMaster());
-			List<Node> nodeList = new ArrayList<>();
-			nodeList.add(root);
+		// ルート要素を作成する
+		Node root = new Node(null);
+		List<Node> nodeList = new ArrayList<>();
+		nodeList.add(root);
 
-			// 要素を追加していく
-			while (nodeList.size() < treeSize) {
-				Node node = new Node(new ItemMaster());
+		// 要素を追加していく
+		while (nodeList.size() < treeSize) {
+			Node node = new Node(null);
 
-				Node parent = nodeList.get(random.prandom(++seed, nodeList.size()));
-				parent.addChild(node);
+			Node parent = nodeList.get(random.prandom(++seed, nodeList.size()));
+			parent.addChild(node);
 
-				nodeList.add(node);
-			}
+			nodeList.add(node);
+		}
 
-			// 品目IDを割り当てる
-			root.assignId(iId);
-			for (Node node : nodeList) {
-				ItemMaster entity = node.entity;
-				initializeStartEndDate(entity);
-				entity.setIName("Process" + entity.getIId());
-				entity.setIType(ItemType.WORK_IN_PROCESS);
+		// 品目IDを割り当てる
+		root.assignId(iId);
+		for (Node node : nodeList) {
+			node.entity = newItemMasterWork(node.itemId);
+			dao.insert(node.entity);
+		}
 
-				dao.insert(entity);
+		// 材料を割り当てる
+		for (Node node : nodeList) {
+			if (!node.isLeaf()) {
+				continue;
 			}
 
-			// 材料を割り当てる
-			for (Node node : nodeList) {
-				if (!node.isLeaf()) {
-					continue;
-				}
-
-				int materialSize = random.prandom(++seed, 1, 3);
-				List<ItemMaster> materialList = findRandomMaterial(++seed, materialSize, dao);
-				for (ItemMaster material : materialList) {
-					node.addChild(new Node(material));
-				}
-			}
-
-			// 重量を割り当てる
-			{
-				BigDecimal weight = random(WEIGHT_START, WEIGHT_END);
-				root.setWeight(weight);
-			}
-
-			// 品目構成マスターの生成
-			HasDateRange startEndDate = new ItemConstructionMaster();
-			initializeStartEndDate(startEndDate);
-			for (Node node : root.toNodeList()) {
-				if (node.parent == null) {
-					continue;
-				}
-				ItemMaster item = node.entity;
-
-				ItemConstructionMaster entity = new ItemConstructionMaster();
-				entity.setIcIId(item.getIId());
-				entity.setIcParentIId(node.parent.entity.getIId());
-				entity.setIcEffectiveDate(startEndDate.getEffectiveDate());
-				entity.setIcExpiredDate(startEndDate.getExpiredDate());
-
-				// material
-				if (item.getIType() == ItemType.RAW_MATERIAL) {
-					entity.setIcMaterialUnit(item.getIUnit());
-
-					BigDecimal weight = MeasurementUtil.convertUnit(node.weight, "g", item.getIWeightUnit());
-					entity.setIcMaterialQuantity(
-							weight.divide(item.getIWeightRatio(), BenchConst.DECIMAL_SCALE, RoundingMode.HALF_UP));
-				}
-
-				initializeLossRatio(entity);
-
-				icDao.insert(entity);
+			int materialSize = random(++seed, 1, 3);
+			List<ItemMaster> materialList = findRandomMaterial(++seed, materialSize, dao);
+			for (ItemMaster material : materialList) {
+				node.addChild(new Node(material));
 			}
 		}
 
-		// 製品品目の品目構成マスター
+		// 重量を割り当てる
 		{
-			int workStart = startId;
-			int workEnd = iId.get() - 1;
-			int productId = getProductStartId();
-			for (int i = 0; i < productSize; i++, productId++) {
-				int seed = productId;
-				int s = random.prandom(seed, 1, PRODUCT_TREE_SIZE);
-				Set<Integer> set = new HashSet<>(s);
-				while (set.size() < s) {
-					set.add(random.prandom(++seed, workStart, workEnd));
-				}
+			BigDecimal weight = random(WEIGHT_START, WEIGHT_END);
+			root.setWeight(weight);
+		}
 
-				insertItemConstructionMasterProduct(productId, set, icDao);
+		// 品目構成マスターの生成
+		for (Node node : root.toNodeList()) {
+			if (node.parent == null) {
+				continue;
 			}
+			ItemMaster item = node.entity;
+
+			ItemConstructionMaster entity = new ItemConstructionMaster();
+			entity.setIcIId(item.getIId());
+			entity.setIcParentIId(node.parent.entity.getIId());
+			entity.setIcEffectiveDate(item.getEffectiveDate());
+			entity.setIcExpiredDate(item.getExpiredDate());
+
+			// material
+			if (item.getIType() == ItemType.RAW_MATERIAL) {
+				entity.setIcMaterialUnit(item.getIUnit());
+
+				BigDecimal weight = MeasurementUtil.convertUnit(node.weight, "g", item.getIWeightUnit());
+				entity.setIcMaterialQuantity(
+						weight.divide(item.getIWeightRatio(), BenchConst.DECIMAL_SCALE, RoundingMode.HALF_UP));
+			}
+
+			initializeLossRatio(entity.getIcIId() + entity.getIcParentIId(), entity);
+
+			icDao.insert(entity);
+		}
+	}
+
+	// 製品品目の品目構成マスター
+	private class ItemConstructionMasterProductTask extends SplitTask {
+		protected final ItemConstructionMasterDao icDao;
+
+		public ItemConstructionMasterProductTask(int startId, int endId, ItemConstructionMasterDao icDao) {
+			super(startId, endId);
+			this.icDao = icDao;
+		}
+
+		@Override
+		protected ItemConstructionMasterProductTask createTask(int startId, int endId) {
+			return new ItemConstructionMasterProductTask(startId, endId, icDao);
+		}
+
+		@Override
+		protected void execute(int iId) {
+			final int workStart = getWorkStartId();
+			final int workEnd = getWorkEndId() - 1;
+
+			int seed = iId;
+			int s = random(seed, 1, PRODUCT_TREE_SIZE);
+			Set<Integer> set = new HashSet<>(s);
+			while (set.size() < s) {
+				set.add(random(++seed, workStart, workEnd));
+			}
+
+			insertItemConstructionMasterProduct(iId, set, icDao);
 		}
 	}
 
 	private static final BigDecimal LOSS_END = new BigDecimal("10.00");
 
-	public void initializeLossRatio(ItemConstructionMaster entity) {
-		entity.setIcLossRatio(random.random0(LOSS_END));
+	public void initializeLossRatio(int seed, ItemConstructionMaster entity) {
+		entity.setIcLossRatio(random.random0(seed, LOSS_END));
 	}
 
 	public static final int PRODUCT_TREE_SIZE = 5;
@@ -352,7 +562,7 @@ public class InitialData03ItemMaster extends InitialData {
 			ItemConstructionMaster entity = new ItemConstructionMaster();
 			entity.setIcIId(workId);
 			entity.setIcParentIId(productId);
-			initializeStartEndDate(entity);
+			initializeStartEndDate(workId + productId, entity);
 			initializeItemConstructionMasterRandom(random, entity);
 
 			icDao.insert(entity);
@@ -365,7 +575,7 @@ public class InitialData03ItemMaster extends InitialData {
 
 		Set<Integer> idSet = new TreeSet<>();
 		while (idSet.size() < size) {
-			idSet.add(random.prandom(seed++, materialStartId, materialEndId));
+			idSet.add(random(seed++, materialStartId, materialEndId));
 		}
 
 		return dao.selectByIds(idSet, batchDate);
@@ -378,14 +588,14 @@ public class InitialData03ItemMaster extends InitialData {
 		for (int i = 0; i < 2; i++) { // 3倍に増幅する
 			ItemMaster ent;
 			int seed = entity.getIId() + i;
-			if (random.prandom(seed, 0, 1) == 0) {
+			if (random(seed, 0, 1) == 0) {
 				ItemMaster src = map.firstEntry().getValue();
 				ent = src.clone();
-				initializePrevStartEndDate(src, ent);
+				initializePrevStartEndDate(seed + 1, src, ent);
 			} else {
 				ItemMaster src = map.lastEntry().getValue();
 				ent = src.clone();
-				initializeNextStartEndDate(src, ent);
+				initializeNextStartEndDate(seed + 1, src, ent);
 			}
 
 			map.put(ent.getIEffectiveDate(), ent);
@@ -400,6 +610,7 @@ public class InitialData03ItemMaster extends InitialData {
 	}
 
 	public static void initializeItemConstructionMasterRandom(BenchRandom random, ItemConstructionMaster entity) {
-		entity.setIcLossRatio(random.random0(LOSS_END));
+		int seed = entity.getIcIId();
+		entity.setIcLossRatio(random.random0(seed, LOSS_END));
 	}
 }

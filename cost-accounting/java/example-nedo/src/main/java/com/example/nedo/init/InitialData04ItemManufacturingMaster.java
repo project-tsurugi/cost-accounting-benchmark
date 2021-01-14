@@ -103,7 +103,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 
 		entity.setImFId(factoryId);
 		entity.setImIId(productId);
-		initializeStartEndDate(entity);
+		initializeStartEndDate(factoryId + productId, entity);
 		initializeItemManufacturingMasterRandom(random, entity);
 
 		return entity;

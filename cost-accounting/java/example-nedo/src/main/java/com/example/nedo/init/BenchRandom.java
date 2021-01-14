@@ -50,10 +50,10 @@ public class BenchRandom {
 	/**
 	 * 0に近い乱数
 	 */
-	public BigDecimal random0(BigDecimal end) {
+	public BigDecimal random0(int seed, BigDecimal end) {
 		BigDecimal start = BigDecimal.ZERO;
-		BigDecimal r = random(start, end);
-		BigDecimal s = random(start, end);
+		BigDecimal r = prandom(seed, start, end);
+		BigDecimal s = prandom(seed + 1, start, end);
 		BigDecimal r2 = end.subtract(r);
 		if (s.compareTo(r2) <= 0) {
 			return r;

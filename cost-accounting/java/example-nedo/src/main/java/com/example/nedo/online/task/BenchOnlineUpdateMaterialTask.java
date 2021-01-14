@@ -98,7 +98,7 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 		entity.setIcExpiredDate(item.getIcExpiredDate());
 		entity.setIcMaterialUnit(material.getIUnit());
 		entity.setIcMaterialQuantity(random.random(MQ_START, MQ_END));
-		new InitialData03ItemMaster(date).initializeLossRatio(entity);
+		new InitialData03ItemMaster(date).initializeLossRatio(entity.getIcIId() + entity.getIcParentIId(), entity);
 
 		return entity;
 	}

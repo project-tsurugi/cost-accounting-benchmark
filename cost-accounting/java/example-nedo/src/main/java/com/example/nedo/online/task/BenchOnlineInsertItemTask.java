@@ -92,7 +92,7 @@ public class BenchOnlineInsertItemTask extends BenchOnlineTask {
 
 		ItemMaster entity = initialData.newItemMasterProduct(newId);
 		entity.setEffectiveDate(date);
-		LocalDate endDate = initialData.getRandomExpiredDate(date);
+		LocalDate endDate = initialData.getRandomExpiredDate(newId, date);
 		entity.setExpiredDate(endDate);
 
 		try {

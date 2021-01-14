@@ -32,33 +32,33 @@ public class InitialData {
 		System.out.println("end " + startTime.until(endTime, ChronoUnit.SECONDS) + "[s]");
 	}
 
-	protected void initializeStartEndDate(HasDateRange entity) {
-		LocalDate startDate = batchDate.minusDays(random(0, 700));
+	protected void initializeStartEndDate(int seed, HasDateRange entity) {
+		LocalDate startDate = batchDate.minusDays(random(seed, 0, 700));
 		entity.setEffectiveDate(startDate);
 
-		LocalDate endDate = getRandomExpiredDate(batchDate);
+		LocalDate endDate = getRandomExpiredDate(seed + 1, batchDate);
 		entity.setExpiredDate(endDate);
 	}
 
-	public LocalDate getRandomExpiredDate(LocalDate batchDate) {
-		LocalDate endDate = batchDate.plusDays(random(7, 700));
+	public LocalDate getRandomExpiredDate(int seed, LocalDate batchDate) {
+		LocalDate endDate = batchDate.plusDays(random(seed, 7, 700));
 		return endDate;
 	}
 
-	protected <T extends HasDateRange> void initializePrevStartEndDate(T src, T dst) {
+	protected <T extends HasDateRange> void initializePrevStartEndDate(int seed, T src, T dst) {
 		LocalDate srcStartDate = src.getEffectiveDate();
 
 		LocalDate endDate = srcStartDate.minusDays(1);
 		dst.setExpiredDate(endDate);
-		dst.setEffectiveDate(endDate.minusDays(random(1, 700)));
+		dst.setEffectiveDate(endDate.minusDays(random(seed, 1, 700)));
 	}
 
-	protected <T extends HasDateRange> void initializeNextStartEndDate(T src, T dst) {
+	protected <T extends HasDateRange> void initializeNextStartEndDate(int seed, T src, T dst) {
 		LocalDate srcEndDate = src.getExpiredDate();
 
 		LocalDate startDate = srcEndDate.plusDays(1);
 		dst.setEffectiveDate(startDate);
-		dst.setExpiredDate(startDate.plusDays(random(1, 700)));
+		dst.setExpiredDate(startDate.plusDays(random(seed, 1, 700)));
 	}
 
 	protected void weightToVolume(int weight, BigDecimal weighRatio) {
@@ -69,8 +69,8 @@ public class InitialData {
 
 	// random
 
-	protected int random(int start, int end) {
-		return random.random(start, end);
+	protected int random(int seed, int start, int end) {
+		return random.prandom(seed, start, end);
 	}
 
 	protected BigDecimal random(BigDecimal start, BigDecimal end) {
