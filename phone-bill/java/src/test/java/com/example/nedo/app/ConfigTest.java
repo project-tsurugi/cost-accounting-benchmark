@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +19,6 @@ class ConfigTest {
 	@Test
 	void testDefault() throws IOException {
 		Config config = Config.getConfig();
-		System.out.println(config);
 		checkDefault(config);
 	}
 
@@ -53,11 +51,8 @@ class ConfigTest {
 
 		// toStringのチェック
 		Path path = Paths.get("src/test/config/default.properties");
-		List<String> expecteds = Files.readAllLines(path);
-		String[] actuals = config.toString().split(System.lineSeparator());
-		for(int i = 0; i < expecteds.size(); i++) {
-			assertEquals(expecteds.get(i), actuals[i]);
-		}
+		String expected = new String(Files.readAllBytes(path));
+		assertEquals(expected, config.toString());
 	}
 
 

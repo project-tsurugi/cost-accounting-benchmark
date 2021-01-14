@@ -154,6 +154,11 @@ public class Config {
 		sb.append(String.format(commentFormat, "通話履歴生成に関するパラメータ"));
 		sb.append(String.format(format, "number.of.history.records", numberOfHistoryRecords));
 		sb.append(System.lineSeparator());
+		sb.append(String.format(commentFormat, "JDBCに関するパラメータ"));
+		sb.append(String.format(format, "url", url));
+		sb.append(String.format(format, "user", user));
+		sb.append(String.format(format, "password", password));
+		sb.append(System.lineSeparator());
 		sb.append(String.format(commentFormat, "その他のパラメータ"));
 		sb.append(String.format(format, "random.seed", randomSeed));
 		sb.append(String.format(format, "log.dir", logDir));
