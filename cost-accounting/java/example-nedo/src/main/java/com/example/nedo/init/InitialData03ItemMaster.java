@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -304,21 +303,20 @@ public class InitialData03ItemMaster extends InitialData {
 		}
 	}
 
-	private class ItemMasterWorkTask extends RecursiveTask<Void> {
+	private static class Range {
+		public final int startId;
+		public final int endId;
+
+		public Range(int startId, int endId) {
+			this.startId = startId;
+			this.endId = endId;
+		}
+	}
+
+	private class ItemMasterWorkTask extends DaoListTask<Range> {
 		private final ItemMasterDao dao;
 		private final ItemConstructionMasterDao icDao;
 
-		private class Range {
-			public final int startId;
-			public final int endId;
-
-			public Range(int startId, int endId) {
-				this.startId = startId;
-				this.endId = endId;
-			}
-		}
-
-		private final List<Range> rangeList = new ArrayList<>();
 		private int idSize = 0;
 
 		public ItemMasterWorkTask(ItemMasterDao dao, ItemConstructionMasterDao icDao) {
@@ -327,7 +325,7 @@ public class InitialData03ItemMaster extends InitialData {
 		}
 
 		public void add(int startId, int endId) {
-			rangeList.add(new Range(startId, endId));
+			super.add(new Range(startId, endId));
 			int size = endId - startId;
 			this.idSize += size;
 		}
@@ -337,14 +335,8 @@ public class InitialData03ItemMaster extends InitialData {
 		}
 
 		@Override
-		protected Void compute() {
-			TransactionManager tm = AppConfig.singleton().getTransactionManager();
-			tm.required(() -> {
-				for (Range range : rangeList) {
-					insertItemMasterWorkInProcess(range.startId, range.endId, dao, icDao);
-				}
-			});
-			return null;
+		protected void execute(Range range) {
+			insertItemMasterWorkInProcess(range.startId, range.endId, dao, icDao);
 		}
 	}
 

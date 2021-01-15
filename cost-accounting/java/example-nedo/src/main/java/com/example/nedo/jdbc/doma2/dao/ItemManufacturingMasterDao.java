@@ -16,6 +16,7 @@ import org.seasar.doma.message.Message;
 
 import com.example.nedo.jdbc.doma2.config.AppConfig;
 import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
+import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMasterIds;
 
 @Dao(config = AppConfig.class)
 public interface ItemManufacturingMasterDao {
@@ -39,6 +40,10 @@ public interface ItemManufacturingMasterDao {
 	@Select
 	@Sql("select * from " + TABLE_NAME)
 	List<ItemManufacturingMaster> selectAll();
+
+	@Select
+	@Sql("select im_f_id, im_i_id from " + TABLE_NAME + " where " + COND_DATE + " order by im_f_id, im_i_id")
+	List<ItemManufacturingMasterIds> selectIds(LocalDate date);
 
 	@Select
 	@Sql("select * from " + TABLE_NAME + " where im_f_id = /* factoryId */1 and " + COND_DATE)
