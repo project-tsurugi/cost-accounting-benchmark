@@ -21,53 +21,53 @@ public class Config {
 	/**
 	 * 計算対象日(指定の日を含む月を計算対象とする)
 	 */
-	public Date targetMonth = DBUtils.toDate("2020-12-01");
+	public Date targetMonth;
 
 	/* 契約マスタ生成に関するパラメータ */
 
 	/**
 	 * 契約マスタのレコード数
 	 */
-	public int numberOfContractsRecords = (int)1e3;
+	public int numberOfContractsRecords;
 
 	/**
 	 *  契約マスタの電話番号が重複する割合
 	 */
-	public int duplicatePhoneNumberRatio = 10;
+	public int duplicatePhoneNumberRatio;
 
 	/**
 	 * 契約終了日がある電話番号の割合
 	 */
-	public int expirationDateRate = 30;
+	public int expirationDateRate;
 
 	/**
 	 * 契約終了日がない電話番号の割合
 	 */
-	public int noExpirationDateRate = 50;;
+	public int noExpirationDateRate;
 
 	/**
 	 * 契約開始日の最小値
 	 */
-	public Date minDate = DBUtils.toDate("2010-11-11");;
+	public Date minDate;
 
 	/**
 	 * 契約終了日の最大値
 	 */
-	public Date maxDate = DBUtils.toDate("2021-03-01");
+	public Date maxDate;
 
 	/* 通話履歴生成に関するパラメータ */
 
 	/**
 	 * 通話履歴のレコード数
 	 */
-	public int numberOfHistoryRecords = (int) 1e6;
+	public int numberOfHistoryRecords;
 
 
 	/* jdbcのパラメータ */
 
-    public String url = "jdbc:postgresql://127.0.0.1/phonebill";
-    public String user = "phonebill";
-    public String password = "phonebill";
+    public String url;
+    public String user;
+    public String password;
 
 
 	/* その他のパラメータ */
@@ -75,12 +75,12 @@ public class Config {
 	/**
 	 * 乱数のシード
 	 */
-	public long randomSeed = 0;
+	public long randomSeed;
 
 	/**
 	 * ログ出力ディレクトリ
 	 */
-	public String logDir = "logs";
+	public String logDir;
 
 
 
@@ -91,11 +91,12 @@ public class Config {
 	 * @throws IOException
 	 */
 	private Config(String configFileName) throws IOException {
+		prop = new Properties();
 		if (configFileName != null) {
-			prop = new Properties();
 			prop.load(Files.newBufferedReader(Paths.get(configFileName), StandardCharsets.UTF_8));
-			init();
 		}
+		init();
+
 		Files.createDirectories(Paths.get(logDir));
 		System.setProperty("log.dir", logDir);
 		Logger logger = LoggerFactory.getLogger(Config.class);
@@ -107,30 +108,29 @@ public class Config {
 	 * config値を初期化する
 	 */
 	private void init() {
-
 		// 料金計算に関するパラメータ
-		 targetMonth = getDate("target.month", targetMonth);
+		 targetMonth = getDate("target.month", DBUtils.toDate("2020-12-01"));
 
 		// 契約マスタ生成に関するパラメータ
 		 numberOfContractsRecords =
-				 getInt("number.of.contracts.records", numberOfContractsRecords);
-		 duplicatePhoneNumberRatio = getInt("duplicate.phone.number.ratio", duplicatePhoneNumberRatio);
-		 expirationDateRate = getInt("expiration.date.rate", expirationDateRate);
-		 noExpirationDateRate = getInt("no.expiration.date.rate", noExpirationDateRate);
-		 minDate = getDate("min.date", minDate);
-		 maxDate = getDate("max.date", maxDate);
+				 getInt("number.of.contracts.records", 1000);
+		 duplicatePhoneNumberRatio = getInt("duplicate.phone.number.ratio", 10);
+		 expirationDateRate = getInt("expiration.date.rate", 30);
+		 noExpirationDateRate = getInt("no.expiration.date.rate", 50);
+		 minDate = getDate("min.date", DBUtils.toDate("2010-11-11"));
+		 maxDate = getDate("max.date", DBUtils.toDate("2021-03-01"));
 
 		// 通話履歴生成に関するパラメータ
-		 numberOfHistoryRecords = getInt("number.of.history.records", numberOfHistoryRecords);
+		 numberOfHistoryRecords = getInt("number.of.history.records", (int) 1e6);
 
 		// JDBCに関するパラメータ
-		 url = getString("url", url);
-		 user = getString("user", user);
-		 password = getString("password", password);
+		 url = getString("url", "jdbc:postgresql://127.0.0.1/phonebill");
+		 user = getString("user", "phonebill");
+		 password = getString("password", "phonebill");
 
 		// その他のパラメータ
-		 randomSeed = getLong("random.seed", randomSeed);
-		 logDir = getString("log.dir", logDir);
+		 randomSeed = getLong("random.seed", 0);
+		 logDir = getString("log.dir", "logs");
 	}
 
 
