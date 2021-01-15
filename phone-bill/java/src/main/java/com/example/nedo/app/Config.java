@@ -3,7 +3,6 @@ package com.example.nedo.app;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Date;
 import java.util.Properties;
@@ -13,23 +12,16 @@ import org.slf4j.LoggerFactory;
 
 import com.example.nedo.db.DBUtils;
 
-/**
- * @author umega
- *
- */
 public class Config {
+	private Properties prop;
+
+
 	/* 料金計算に関するパラメータ */
 
 	/**
 	 * 計算対象日(指定の日を含む月を計算対象とする)
 	 */
 	public Date targetMonth = DBUtils.toDate("2020-12-01");
-
-
-	/**
-	 * 計算対象の終了日
-	 */
-
 
 	/* 契約マスタ生成に関するパラメータ */
 
@@ -88,7 +80,7 @@ public class Config {
 	/**
 	 * ログ出力ディレクトリ
 	 */
-	public Path logDir = Paths.get("logs");
+	public String logDir = "logs";
 
 
 
@@ -100,15 +92,113 @@ public class Config {
 	 */
 	private Config(String configFileName) throws IOException {
 		if (configFileName != null) {
-			Properties prop = new Properties();
+			prop = new Properties();
 			prop.load(Files.newBufferedReader(Paths.get(configFileName), StandardCharsets.UTF_8));
+			init();
 		}
-		Files.createDirectories(logDir);
-		System.setProperty("log.dir", logDir.toString());
+		Files.createDirectories(Paths.get(logDir));
+		System.setProperty("log.dir", logDir);
 		Logger logger = LoggerFactory.getLogger(Config.class);
 		logger.info("Config initialized" +
 				System.lineSeparator() + "--- " + System.lineSeparator() + this.toString() + "---");
 	}
+
+	/**
+	 * config値を初期化する
+	 */
+	private void init() {
+
+		// 料金計算に関するパラメータ
+		 targetMonth = getDate("target.month", targetMonth);
+
+		// 契約マスタ生成に関するパラメータ
+		 numberOfContractsRecords =
+				 getInt("number.of.contracts.records", numberOfContractsRecords);
+		 duplicatePhoneNumberRatio = getInt("duplicate.phone.number.ratio", duplicatePhoneNumberRatio);
+		 expirationDateRate = getInt("expiration.date.rate", expirationDateRate);
+		 noExpirationDateRate = getInt("no.expiration.date.rate", noExpirationDateRate);
+		 minDate = getDate("min.date", minDate);
+		 maxDate = getDate("max.date", maxDate);
+
+		// 通話履歴生成に関するパラメータ
+		 numberOfHistoryRecords = getInt("number.of.history.records", numberOfHistoryRecords);
+
+		// JDBCに関するパラメータ
+		 url = getString("url", url);
+		 user = getString("user", user);
+		 password = getString("password", password);
+
+		// その他のパラメータ
+		 randomSeed = getLong("random.seed", randomSeed);
+		 logDir = getString("log.dir", logDir);
+	}
+
+
+
+
+	/**
+	 * int型のプロパティの値を取得する
+	 *
+	 * @param key プロパティ名
+	 * @param defaultValue プロパティが存在しない時のデフォルト値
+	 * @return
+	 */
+	private int getInt(String key, int defaultValue) {
+		int value = defaultValue;
+		if (prop.containsKey(key)) {
+			String s = prop.getProperty(key);
+			value = Integer.parseInt(s);
+		}
+		return value;
+	}
+
+	/**
+	 * long型のプロパティの値を取得する
+	 *
+	 * @param key プロパティ名
+	 * @param defaultValue プロパティが存在しない時のデフォルト値
+	 * @return
+	 */
+	private long getLong(String key, long defaultValue) {
+		long value = defaultValue;
+		if (prop.containsKey(key)) {
+			String s = prop.getProperty(key);
+			value = Long.parseLong(s);
+		}
+		return value;
+	}
+
+	/**
+	 * Stringのプロパティの値を取得する
+	 *
+	 * @param key プロパティ名
+	 * @param defaultValue プロパティが存在しない時のデフォルト値
+	 * @return
+	 */
+	private String getString(String key, String defaultValue) {
+		String value = defaultValue;
+		if (prop.containsKey(key)) {
+			value = prop.getProperty(key);
+		}
+		return value;
+	}
+
+	/**
+	 * Date型のプロパティの値を取得する
+	 *
+	 * @param key プロパティ名
+	 * @param defaultValue プロパティが存在しない時のデフォルト値
+	 * @return
+	 */
+	private Date getDate(String key, Date defaultValue) {
+		Date value = defaultValue;
+		if (prop.containsKey(key)) {
+			String s = prop.getProperty(key);
+			value = DBUtils.toDate(s);
+		}
+		return value;
+	}
+
 
 	/**
 	 * configオブジェクトの生成.
