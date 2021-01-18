@@ -2,6 +2,7 @@ package com.example.nedo.app.billing;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,7 +12,11 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.example.nedo.app.Config;
 import com.example.nedo.app.CreateTable;
@@ -19,18 +24,33 @@ import com.example.nedo.db.Billing;
 import com.example.nedo.db.DBUtils;
 import com.example.nedo.db.Duration;
 import com.example.nedo.db.History;
+import com.example.nedo.testdata.CreateTestData;
 
 class PhoneBillTest {
+    private static final Logger LOG = LoggerFactory.getLogger(PhoneBillTest.class);
+
 	Connection conn;
 	Statement stmt;
+
+	@BeforeEach
+	void beforeEach() throws IOException, SQLException {
+		Config config = Config.getConfig();
+		conn = DBUtils.getConnection(config);
+		conn.setAutoCommit(true);
+		stmt = conn.createStatement();
+	}
+
+	@AfterEach
+	void afterEach() throws SQLException{
+		if (conn != null && !conn.isClosed() ) {
+			conn.close();
+		}
+	}
 
 	@Test
 	void test() throws Exception {
 		// 初期化
 		Config config = Config.getConfig();
-		conn = DBUtils.getConnection(config);
-		conn.setAutoCommit(true);
-		stmt = conn.createStatement();
 		CreateTable.main(new String[0]);
 		PhoneBill phoneBill = new PhoneBill();
 
@@ -306,6 +326,43 @@ class PhoneBillTest {
 		assertEquals(DBUtils.toDate("2021-02-01"), d.end);
 
 	}
+
+	/*
+	 * スレッド数、コネクションプールの共有有無の違いがあっても処理結果が変わらないことを確認
+	 */
+	@Test
+	void testTreads() throws Exception {
+		// まず実行し、その結果を期待値とする
+		Config config = Config.getConfig();
+		config.duplicatePhoneNumberRatio = 10;
+		config.expirationDateRate = 10;
+		config.noExpirationDateRate = 70;
+		config.numberOfContractsRecords = (int) 100;
+		config.numberOfHistoryRecords = (int) 1000;
+		config.threadCount = 1;
+		config.sharedConnection = false;
+		CreateTestData createTestData = new CreateTestData();
+		createTestData.execute(config);
+		PhoneBill phoneBill = new PhoneBill();
+		phoneBill.execute(config);
+		List<Billing> expected = getBillings();
+
+		// スレッド数 、コネクションプールの有無で結果が変わらないことを確認
+		boolean[] sharedConnections = { false, true };
+		int[] threadCounts = { 1, 2, 4, 8, 16 };
+		for (boolean sharedConnection : sharedConnections) {
+			for (int threadCount : threadCounts) {
+				config.threadCount = threadCount;
+				config.sharedConnection = sharedConnection;
+				LOG.info("Executing phoneBill.exec() with threadCount =" + threadCount +
+						", sharedConnection = " + sharedConnection);
+				phoneBill.execute(config);
+				List<Billing> actual = getBillings();
+				assertEquals(expected, actual);
+			}
+		}
+	}
+
 }
 
 

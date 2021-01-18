@@ -28,7 +28,8 @@ public class Main {
 			usage();
 			System.exit(1);
 		}
-		command.executableCommand.execute(Arrays.copyOfRange(args, 1, args.length));
+		Config config = Config.getConfig(Arrays.copyOfRange(args, 1, args.length));
+		command.executableCommand.execute(config);
 	}
 
 

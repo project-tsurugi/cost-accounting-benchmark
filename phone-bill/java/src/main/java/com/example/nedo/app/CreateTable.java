@@ -1,6 +1,5 @@
 package com.example.nedo.app;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -10,15 +9,14 @@ import com.example.nedo.db.DBUtils;
 public class CreateTable implements ExecutableCommand{
 	Config config;
 
-	public static void main(String[] args) throws SQLException, IOException {
+	public static void main(String[] args) throws Exception {
+		Config config = Config.getConfig(args);
 		CreateTable createTable = new CreateTable();
-		createTable.execute(args);
+		createTable.execute(config);
 	}
 
-
 	@Override
-	public void execute(String[] args) throws SQLException, IOException {
-		Config config = Config.getConfig(args);
+	public void execute(Config config) throws Exception {
 		try (Connection conn = DBUtils.getConnection(config)) {
 			conn.setAutoCommit(true);
 			Statement stmt = conn.createStatement();

@@ -126,11 +126,11 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 
 	/**
 	 * generateContract()のテスト
-	 * @throws IOException
+	 * @throws Exception
 	 */
 	@Test
-	void testGenerateContract() throws SQLException, IOException {
-		new CreateTable().execute(new String[0]);
+	void testGenerateContract() throws Exception {
+		new CreateTable().execute(Config.getConfig());
 
 		Config config = Config.getConfig();
 		config.minDate = DBUtils.toDate("2010-01-11");

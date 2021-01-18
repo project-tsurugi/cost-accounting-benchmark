@@ -32,9 +32,9 @@ class CreateTableTest extends AbstractDbTestCase {
 	}
 
 	@Test
-	void testExecute() throws SQLException, IOException {
+	void testExecute() throws Exception {
 		CreateTable createTable = new CreateTable();
-		createTable.execute(new String[0]);
+		createTable.execute(Config.getConfig());
 
 		// テーブルが作成されることを確認
 		assertTrue(exists("billing"));

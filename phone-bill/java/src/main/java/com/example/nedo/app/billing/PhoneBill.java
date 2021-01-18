@@ -35,13 +35,13 @@ public class PhoneBill implements ExecutableCommand {
 
 
 	public static void main(String[] args) throws Exception {
+		Config config = Config.getConfig(args);
 		PhoneBill phoneBill = new PhoneBill();
-		phoneBill.execute(args);
+		phoneBill.execute(config);
 	}
 
 	@Override
-	public void execute(String[] args) throws Exception {
-		Config config = Config.getConfig(args);
+	public void execute(Config config) throws Exception {
 		Duration d = toDuration(config.targetMonth);
 		doCalc(config, d.start, d.end);
 	}

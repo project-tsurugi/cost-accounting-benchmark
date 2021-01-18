@@ -1,8 +1,5 @@
 package com.example.nedo.testdata;
 
-import java.io.IOException;
-import java.sql.SQLException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,16 +10,15 @@ import com.example.nedo.db.DBUtils;
 public class CreateTestData implements ExecutableCommand {
     private static final Logger LOG = LoggerFactory.getLogger(CreateTestData.class);
 
-    public static void main(String[] args) throws SQLException, IOException {
+    public static void main(String[] args) throws Exception {
+		Config config = Config.getConfig(args);
 		CreateTestData createTestData = new CreateTestData();
-		createTestData.execute(args);
+		createTestData.execute(config);
 	}
 
 
 	@Override
-	public void execute(String[] args) throws SQLException, IOException {
-		Config config = Config.getConfig(args);
-
+	public void execute(Config config) throws Exception {
 		TestDataGenerator generator = new TestDataGenerator(config);
 
 		// 契約マスタのテストデータ生成
@@ -39,5 +35,4 @@ public class CreateTestData implements ExecutableCommand {
 		format = "%,d records generated to history table in %,.3f sec ";
 		LOG.info(String.format(format, config.numberOfHistoryRecords, elapsedTime / 1000d));
 	}
-
 }
