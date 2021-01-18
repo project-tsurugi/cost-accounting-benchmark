@@ -89,6 +89,11 @@ class ConfigTest {
 		assertEquals("phonebill", config.user);
 		assertEquals("phonebill", config.password);
 
+		/* スレッドに関するパラメータ */
+		assertEquals(1, config.threadCount);
+		assertEquals(true, config.sharedConnection);
+
+
 		/* その他のパラメータ */
 		assertEquals(0, config.randomSeed);
 		assertEquals("logs", config.logDir);
@@ -124,6 +129,10 @@ class ConfigTest {
 		assertEquals(1969, config.randomSeed);
 		assertEquals("mylogs", config.logDir);
 
+		/* スレッドに関するパラメータ */
+		assertEquals(10, config.threadCount);
+		assertEquals(false, config.sharedConnection);
+
 		/* JDBCに関するパラメータ*/
 		assertEquals("jdbc:postgresql://127.0.0.1/mydatabase", config.url);
 		assertEquals("myuser", config.user);
@@ -142,10 +151,29 @@ class ConfigTest {
 	 * @param string
 	 */
 	private void assertEqualsIgnoreLineSeparator(String expected, String actual) {
-		String e = expected.replaceAll("[\r\n]+", System.lineSeparator());
-		String a = actual.replaceAll("[\r\n]+", System.lineSeparator());
+		String e = expected.replaceAll("[\r\n]+$", System.lineSeparator());
+		String a = actual.replaceAll("[\r\n]+$", System.lineSeparator());
 		assertEquals(e, a);
 	}
 
 
+	/**
+	 * toBoolean()のテスト
+	 */
+	@Test
+	void testToBoolan() {
+		assertTrue(Config.toBoolan("true"));
+		assertTrue(Config.toBoolan("True"));
+		assertTrue(Config.toBoolan("TRUE"));
+		assertTrue(Config.toBoolan(" true "));
+		assertTrue(Config.toBoolan("yes"));
+		assertTrue(Config.toBoolan("1"));
+
+		assertFalse(Config.toBoolan("false"));
+		assertFalse(Config.toBoolan("no"));
+		assertFalse(Config.toBoolan("0"));
+
+		RuntimeException e = assertThrows(RuntimeException.class, () -> Config.toBoolan("badValue"));
+		assertEquals("Illegal property value: badValue", e.getMessage());
+	}
 }

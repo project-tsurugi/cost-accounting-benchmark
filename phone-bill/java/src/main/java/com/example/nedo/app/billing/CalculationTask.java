@@ -61,7 +61,6 @@ public class CalculationTask implements Callable<Exception> {
 					continue;
 				}
 				if (target.isEndOfTask()) {
-//					conn.commit(); TODO スレッド毎に異なるコネクションを使用する場合はcommitする
 					return null;
 				}
 				doCalc(target);

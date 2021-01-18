@@ -1,40 +1,63 @@
 package com.example.nedo.app;
 
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.example.nedo.app.billing.PhoneBill;
 import com.example.nedo.testdata.CreateTestData;
 
 public class Main {
-	private static final Map<String, ExecutableCommand> COMMAND_MAP = new HashMap<>();
+	private static final Map<String, Command> COMMAND_MAP = new LinkedHashMap<>();
 	static {
-		COMMAND_MAP.put("CreateTable", new CreateTable());
-		COMMAND_MAP.put("CreateTestData", new CreateTestData());
-		COMMAND_MAP.put("PhoneBill", new PhoneBill());
+		addCommand("CreateTable","Create tables", new CreateTable());
+		addCommand("CreateTestData","Create test data", new CreateTestData());
+		addCommand("PhoneBill", "Execute phone bill batch.", new PhoneBill());
 	}
 
 	public static void main(String[] args) throws Exception {
 		if (args.length == 0) {
-			System.err.println("No argument is specified. Please specify one of the following arguments.");
+			System.err.println("ERROR: No argument is specified.");
 			usage();
 			System.exit(1);
 		}
 		String cmd = args[0];
-		ExecutableCommand executableCommand = COMMAND_MAP.get(cmd);
-		if (executableCommand == null) {
-			System.err.println("Command '" + cmd + "' is not supprted. Please specify one of the following commands.");
+		Command command = COMMAND_MAP.get(cmd);
+		if (command == null) {
+			System.err.println("ERROR: Command '" + cmd + "' is not available.");
 			usage();
 			System.exit(1);
 		}
-		executableCommand.execute(Arrays.copyOfRange(args, 1, args.length));
+		command.executableCommand.execute(Arrays.copyOfRange(args, 1, args.length));
 	}
 
 
 	private static void usage() {
-		for(String cmd: COMMAND_MAP.keySet()) {
-			System.err.println("  " + cmd);
+		System.err.println();
+		System.err.println("USAGE: run COMMAND [FILE]");
+		System.err.println();
+		System.err.println("COMMAND: Following commands available");
+		System.err.println();
+		for(Command command: COMMAND_MAP.values()) {
+			System.err.println("  " + command.name+" : " + command.description);
 		}
+		System.err.println();
+		System.err.println("FILE: The filename of the configuration file, if not specified, the default value is used.");
+		System.err.println();
 	}
+
+	private static  class Command {
+		String name;
+		String description;
+		ExecutableCommand executableCommand;
+	}
+
+	private static void addCommand(String name, String description, ExecutableCommand instance) {
+		Command command = new Command();
+		command.name = name;
+		command.description = description;
+		command.executableCommand = instance;
+		COMMAND_MAP.put(name, command);
+	}
+
 }

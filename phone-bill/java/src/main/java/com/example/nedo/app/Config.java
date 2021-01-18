@@ -70,6 +70,21 @@ public class Config {
     public String password;
 
 
+	/* スレッドに関するパラメータ */
+
+	/**
+	 * 料金計算スレッドのスレッド数
+	 */
+	public int threadCount;
+
+
+	/**
+	 * 料金計算のスレッドが、メインスレッドとJDBC Connectionを共有することを示すフラグ
+	 */
+	public boolean sharedConnection;
+
+
+
 	/* その他のパラメータ */
 
 	/**
@@ -128,6 +143,10 @@ public class Config {
 		 user = getString("user", "phonebill");
 		 password = getString("password", "phonebill");
 
+		 /* スレッドに関するパラメータ */
+		 threadCount = getInt("thread.count", 1);
+		 sharedConnection = getBoolean("shared.connection", true);
+
 		// その他のパラメータ
 		 randomSeed = getLong("random.seed", 0);
 		 logDir = getString("log.dir", "logs");
@@ -167,6 +186,48 @@ public class Config {
 		}
 		return value;
 	}
+
+	/**
+	 * boolean型のプロパティの値を取得する
+	 *
+	 * @param key プロパティ名
+	 * @param defaultValue プロパティが存在しない時のデフォルト値
+	 * @return
+	 */
+	private boolean getBoolean(String key, boolean defaultValue) {
+		if (prop.containsKey(key)) {
+			String value = prop.getProperty(key);
+			return toBoolan(value);
+		}
+		return defaultValue;
+	}
+
+	/**
+	 * 文字列をbooleanに変換する
+	 *
+	 * @param value
+	 * @return
+	 */
+	static boolean toBoolan(String value) {
+		String s = value.trim().toLowerCase();
+		switch (s) {
+		case "yes":
+			return true;
+		case "true":
+			return true;
+		case "1":
+			return true;
+		case "no":
+			return false;
+		case "false":
+			return false;
+		case "0":
+			return false;
+		default:
+			throw new RuntimeException("Illegal property value: " + value);
+		}
+	}
+
 
 	/**
 	 * Stringのプロパティの値を取得する
@@ -249,13 +310,13 @@ public class Config {
 		sb.append(String.format(format, "user", user));
 		sb.append(String.format(format, "password", password));
 		sb.append(System.lineSeparator());
+		sb.append(String.format(commentFormat, "スレッドに関するパラメータ"));
+		sb.append(String.format(format, "thread.count", threadCount));
+		sb.append(String.format(format, "shared.connection", sharedConnection));
+		sb.append(System.lineSeparator());
 		sb.append(String.format(commentFormat, "その他のパラメータ"));
 		sb.append(String.format(format, "random.seed", randomSeed));
 		sb.append(String.format(format, "log.dir", logDir));
 		return sb.toString();
 	}
-
-
-
-
 }

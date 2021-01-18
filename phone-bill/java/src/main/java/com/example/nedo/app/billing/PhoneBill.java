@@ -73,8 +73,8 @@ public class PhoneBill implements ExecutableCommand {
 	 */
 	void doCalc(Config config, Date start, Date end) throws SQLException {
 		String batchExecId = UUID.randomUUID().toString();
-		int threadCount = 10; // TODO Configで指定可能にする
-		boolean sharedConnection = false; // TODO Configで指定可能にする
+		int threadCount = config.threadCount;
+		boolean sharedConnection = config.sharedConnection;
 
 		long startTime = System.currentTimeMillis();
 		try (Connection conn = DBUtils.getConnection(config)) {
