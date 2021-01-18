@@ -13,6 +13,7 @@ public class Main {
 		addCommand("CreateTable","Create tables", new CreateTable());
 		addCommand("CreateTestData","Create test data", new CreateTestData());
 		addCommand("PhoneBill", "Execute phone bill batch.", new PhoneBill());
+		addCommand("ThreadBench", "Execute PhonBill with multiple thread counts", new ThreadBench());
 	}
 
 	public static void main(String[] args) throws Exception {
