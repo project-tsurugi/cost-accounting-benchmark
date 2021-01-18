@@ -30,7 +30,7 @@ public class ThreadBench implements ExecutableCommand {
 		new CreateTestData().execute(config);
 		PhoneBill phoneBill = new PhoneBill();
 		boolean[] sharedConnections = { false, true };
-		int[] threadCounts = { 1, 2, 4, 6, 8, 10, 12, 14,16};
+		int[] threadCounts = { 1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32 };
 		for (boolean sharedConnection : sharedConnections) {
 			for (int threadCount : threadCounts) {
 				config.threadCount = threadCount;

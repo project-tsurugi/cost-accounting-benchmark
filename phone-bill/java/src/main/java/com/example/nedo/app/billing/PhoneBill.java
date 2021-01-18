@@ -76,14 +76,17 @@ public class PhoneBill implements ExecutableCommand {
 		int threadCount = config.threadCount;
 		boolean sharedConnection = config.sharedConnection;
 
+		ExecutorService service = null;
+		Set<Future<Exception>> futures = new HashSet<>(threadCount);
+		List<Connection> connections = new ArrayList<Connection>(threadCount);
+		BlockingQueue<CalculationTarget> queue = new LinkedBlockingDeque<CalculationTarget>();
+
 		long startTime = System.currentTimeMillis();
-		try (Connection conn = DBUtils.getConnection(config)) {
-			List<Connection> connections = new ArrayList<Connection>(threadCount);
+		try {
+			Connection conn = DBUtils.getConnection(config);
 			connections.add(conn);
 			// 契約毎の計算を行うスレッドを生成する
-			ExecutorService service = Executors.newFixedThreadPool(threadCount);
-			BlockingQueue<CalculationTarget> queue = new LinkedBlockingDeque<CalculationTarget>();
-			Set<Future<Exception>> futures = new HashSet<>(threadCount);
+			service = Executors.newFixedThreadPool(threadCount);
 			for(int i =0; i < threadCount; i++) {
 				if (sharedConnection) {
 					futures.add( service.submit(new CalculationTask(queue, conn, batchExecId)));
@@ -109,12 +112,14 @@ public class PhoneBill implements ExecutableCommand {
 					putToQueue(queue, target);;
 				}
 			}
-
+		} finally {
 			// EndOfTaskをキューに入れる
 			for (int i =0; i < threadCount; i++) {
 				putToQueue(queue, CalculationTarget.getEndOfTask());
 			}
-			service.shutdown();
+			if (service != null && !service.isTerminated()) {
+				service.shutdown();
+			}
 			cleanup(futures, connections);
 		}
 		long elapsedTime = System.currentTimeMillis() - startTime;
@@ -166,11 +171,17 @@ public class PhoneBill implements ExecutableCommand {
 		}
 		if (needRollback) {
 			for (Connection c: connections) {
-				c.rollback();
+				if (c != null && !c.isClosed()) {
+					c.rollback();
+					c.close();
+				}
 			}
 		} else {
 			for (Connection c: connections) {
-				c.commit();
+				if (c != null && !c.isClosed()) {
+					c.commit();
+					c.close();
+				}
 			}
 		}
 	}
