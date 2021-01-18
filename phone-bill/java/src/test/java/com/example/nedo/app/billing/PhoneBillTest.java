@@ -2,7 +2,6 @@ package com.example.nedo.app.billing;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -33,8 +32,9 @@ class PhoneBillTest {
 	Statement stmt;
 
 	@BeforeEach
-	void beforeEach() throws IOException, SQLException {
+	void beforeEach() throws Exception {
 		Config config = Config.getConfig();
+		new CreateTable().execute(config);  // 既存データの削除
 		conn = DBUtils.getConnection(config);
 		conn.setAutoCommit(true);
 		stmt = conn.createStatement();

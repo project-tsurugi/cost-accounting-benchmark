@@ -78,7 +78,6 @@ public class TestDataGenerator {
 	 */
 	public void generateContract() throws SQLException {
 		try (Connection conn = DBUtils.getConnection(config)) {
-			// TODO オプション指定により、truncateするのではなく、データが存在する場合警告して終了するようにする
 			Statement stmt = conn.createStatement();
 			stmt.executeUpdate("truncate table contracts");
 
@@ -152,7 +151,6 @@ public class TestDataGenerator {
 		Duration targetDuration = new Duration(minDate, maxDate);
 
 		try (Connection conn = DBUtils.getConnection(config)) {
-			// TODO オプション指定により、truncateするのではなく、データが存在する場合警告して終了するようにする
 			Statement stmt = conn.createStatement();
 			stmt.executeUpdate("truncate table history");
 
@@ -358,7 +356,6 @@ public class TestDataGenerator {
 		if (n < 0 || MAX_PHNE_NUMBER <= n) {
 			throw new RuntimeException("Out of phone number range: " + n);
 		}
-		// TODO 電話番号が連番にならないようにする
 		long blockSize = config.duplicatePhoneNumberRatio * 2 + config.expirationDateRate + config.noExpirationDateRate;
 		long noDupSize = config.expirationDateRate + config.noExpirationDateRate;
 		long posInBlock = n % blockSize;
