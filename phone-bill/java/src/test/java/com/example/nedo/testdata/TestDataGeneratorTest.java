@@ -154,8 +154,8 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 
 		// 複数のレコードを持つ電話番号が1000種類存在すること
 		sql = "select count(*) from  "
-				+ "(select phone_number, count(*) as c from contracts group by phone_number) "
-				+ "as dummy where c > 1";
+				+ "(select phone_number, count(*) from contracts group by phone_number "
+				+ " having count(*) > 1) as dummy ";
 		assertEquals("1000", execSqlAndGetString(sql));
 
 		// end_dateを持たないレコードが6500であること

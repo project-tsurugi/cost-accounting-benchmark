@@ -177,7 +177,7 @@ public class TestDataGenerator {
 				} else {
 					ps.setInt(6, h.charge);
 				}
-				ps.setBoolean(7, h.df);
+				ps.setInt(7, h.df ? 1 : 0);
 				ps.addBatch();
 				if (++batchSize == SQL_BATCH_EXEC_SIZE) {
 					execBatch(ps);

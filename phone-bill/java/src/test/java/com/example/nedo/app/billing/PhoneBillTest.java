@@ -162,7 +162,7 @@ class PhoneBillTest {
 
 
 		// 論理削除フラグを立てたレコードが計算対象外になることの確認
-		sql = "update history set df = true where caller_phone_number = 'Phone-0001' and start_time = '2020-11-30 23:59:59.999'";
+		sql = "update history set df = 1 where caller_phone_number = 'Phone-0001' and start_time = '2020-11-30 23:59:59.999'";
 		stmt.execute(sql);
 		phoneBill.doCalc(config, DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
 		billings = getBillings();
@@ -299,7 +299,7 @@ class PhoneBillTest {
 			ps.setTimestamp(4, DBUtils.toTimestamp(start_time));
 			ps.setInt(5, time_secs);
 			ps.setNull(6, Types.INTEGER);
-			ps.setBoolean(7, df);
+			ps.setInt(7, df ? 1 : 0);
 			int c = ps.executeUpdate();
 			assertEquals(1, c);
 		}

@@ -136,10 +136,11 @@ public class Config {
 		 maxDate = getDate("max.date", DBUtils.toDate("2021-03-01"));
 
 		// 通話履歴生成に関するパラメータ
-		 numberOfHistoryRecords = getInt("number.of.history.records", (int) 1e6);
+		 numberOfHistoryRecords = getInt("number.of.history.records", 1000);
 
 		// JDBCに関するパラメータ
 		 url = getString("url", "jdbc:postgresql://127.0.0.1/phonebill");
+//		 url = getString("url", "jdbc:oracle:thin:@localhost:1521:ORCL");
 		 user = getString("user", "phonebill");
 		 password = getString("password", "phonebill");
 

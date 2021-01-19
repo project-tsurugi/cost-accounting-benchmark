@@ -7,7 +7,7 @@ import java.sql.Statement;
 import com.example.nedo.db.DBUtils;
 
 public class CreateTable implements ExecutableCommand{
-	Config config;
+	private boolean isOracle;
 
 	public static void main(String[] args) throws Exception {
 		Config config = Config.getConfig(args);
@@ -17,10 +17,11 @@ public class CreateTable implements ExecutableCommand{
 
 	@Override
 	public void execute(Config config) throws Exception {
+		isOracle = config.url.toLowerCase().contains("oracle");
 		try (Connection conn = DBUtils.getConnection(config)) {
 			conn.setAutoCommit(true);
 			Statement stmt = conn.createStatement();
-			dropTables(stmt);
+			dropTables( stmt);
 			createHistoryTable(stmt);
 			createContractsTable(stmt);
 			createBillingTable(stmt);
@@ -35,8 +36,8 @@ public class CreateTable implements ExecutableCommand{
 				+ "start_time timestamp not null,"			 		// 通話開始時刻
 				+ "time_secs integer not null," 								// 通話時間(秒)
 				+ "charge integer," 								// 料金
-				+ "df boolean not null default '0'," 				// 論理削除フラグ
-				+ "primary key(caller_phone_number, start_time)"
+				+ "df integer not null," 				// 論理削除フラグ
+				+ "constraint history_pkey primary key(caller_phone_number, start_time)"
 				+ ")";
 		stmt.execute(create_table);
 
@@ -71,12 +72,29 @@ public class CreateTable implements ExecutableCommand{
 
 	void dropTables(Statement stmt) throws SQLException {
 		// 通話履歴テーブル
-		stmt.execute("drop table if exists history");
-
-		// 契約マスタ
-		stmt.execute("drop table if exists contracts");
-
-		// 月額利用料金
-		stmt.execute("drop table if exists billing");
+		if (isOracle) {
+			dropTableOracle(stmt, "history");
+			dropTableOracle(stmt, "contracts");
+			dropTableOracle(stmt, "billing");
+		} else {
+			dropTable(stmt, "history");
+			dropTable(stmt, "contracts");
+			dropTable(stmt, "billing");
+		}
 	}
+
+	void dropTable(Statement stmt, String table) throws SQLException {
+		stmt.execute("drop table if exists "+ table);
+	}
+
+	void dropTableOracle(Statement stmt, String table) throws SQLException {
+		try {
+			stmt.execute("drop table "+ table);
+		} catch (SQLException e) {
+			if (e.getErrorCode() != 942) { // 「ORA-00942 表またはビューが存在しません」は無視する
+				throw e;
+			}
+		}
+	}
+
 }

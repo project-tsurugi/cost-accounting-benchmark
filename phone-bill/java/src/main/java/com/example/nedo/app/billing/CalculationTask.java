@@ -115,7 +115,7 @@ public class CalculationTask implements Callable<Exception> {
 				+ "where start_time >= ? and start_time < ?"
 				+ " and ((caller_phone_number = ? and payment_categorty = 'C') "
 				+ "  or (recipient_phone_number = ? and payment_categorty = 'R'))"
-				+ " and df = false";
+				+ " and df = 0";
 
 		PreparedStatement ps = conn.prepareStatement(sql,ResultSet.TYPE_FORWARD_ONLY	, ResultSet.CONCUR_UPDATABLE);
 		ps.setDate(1, start);

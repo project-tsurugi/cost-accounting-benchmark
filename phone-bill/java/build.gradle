@@ -48,3 +48,7 @@ dependencies {
   compile "commons-cli:commons-cli:1.4"
   compile "ch.qos.logback:logback-classic:1.2.3"
 }
+
+startScripts {
+    applicationName = 'run'
+}

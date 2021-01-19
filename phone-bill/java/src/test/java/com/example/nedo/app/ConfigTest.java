@@ -82,7 +82,7 @@ class ConfigTest {
 		assertEquals(DBUtils.toDate("2021-03-01"), config.maxDate);
 
 		/* 通話履歴生成に関するパラメータ */
-		assertEquals((int) 1e6, config.numberOfHistoryRecords);
+		assertEquals(1000, config.numberOfHistoryRecords);
 
 		/* JDBCに関するパラメータ*/
 		assertEquals("jdbc:postgresql://127.0.0.1/phonebill", config.url);
