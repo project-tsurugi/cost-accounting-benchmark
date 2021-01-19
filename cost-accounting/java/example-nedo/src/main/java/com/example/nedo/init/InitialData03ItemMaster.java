@@ -107,7 +107,7 @@ public class InitialData03ItemMaster extends InitialData {
 		ptask.join();
 		mtask.join();
 		forkItemMasterWorkInProcess(getWorkStartId(), getWorkEndId(), dao, icDao);
-		new ItemConstructionMasterProductTask(getProductEndId(), getProductEndId(), icDao).fork().join();
+		new ItemConstructionMasterProductTask(getProductStartId(), getProductEndId(), icDao).fork().join();
 	}
 
 	private abstract class ItemMasterTask extends DaoSplitTask {
