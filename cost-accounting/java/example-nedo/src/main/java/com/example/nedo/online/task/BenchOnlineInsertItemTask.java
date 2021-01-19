@@ -57,14 +57,16 @@ public class BenchOnlineInsertItemTask extends BenchOnlineTask {
 		ItemMaster item;
 		for (;;) {
 			item = insertItemMaster(initialData);
-			switch (2) {
+			switch (1) {
 			case 1:
 				if (item == null) {
+					// 別コネクションでリトライ
 					return null;
 				}
 				break;
 			default:
 				if (item == null) {
+					// 同一コネクション内でリトライ（PostgreSQLだと例外発生時に同一コネクションでSQLを発行するとエラーになる）
 					continue;
 				}
 				break;
