@@ -5,6 +5,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
@@ -84,7 +85,8 @@ public class CalculationTask implements Callable<Exception> {
 		BillingCalculator billingCalculator = target.getBillingCalculator();
 
 
-		try (ResultSet historyResultSet = getHistoryResultSet(contract, start, end)) {
+		try (ResultSet historyResultSet = getHistoryResultSet(contract, start, end);
+				Statement stmt = historyResultSet.getStatement();) {
 			while (historyResultSet.next()) {
 				int time = historyResultSet.getInt("time_secs"); // 通話時間を取得
 				if (time < 0) {

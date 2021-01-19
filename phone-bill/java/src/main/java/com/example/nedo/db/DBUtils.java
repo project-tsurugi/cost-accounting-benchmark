@@ -25,6 +25,7 @@ public class DBUtils {
 		try {
 			conn = DriverManager.getConnection(config.url, config.user, config.password);
 			conn.setAutoCommit(false);
+			conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
