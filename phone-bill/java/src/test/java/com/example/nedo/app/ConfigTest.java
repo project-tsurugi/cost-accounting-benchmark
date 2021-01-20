@@ -104,6 +104,7 @@ class ConfigTest {
 		assertEquals("jdbc:postgresql://127.0.0.1/phonebill", config.url);
 		assertEquals("phonebill", config.user);
 		assertEquals("phonebill", config.password);
+		assertEquals(Connection.TRANSACTION_READ_COMMITTED, config.isolationLevel);
 
 		/* スレッドに関するパラメータ */
 		assertEquals(1, config.threadCount);
@@ -151,7 +152,7 @@ class ConfigTest {
 		assertEquals("jdbc:postgresql://127.0.0.1/mydatabase", config.url);
 		assertEquals("myuser", config.user);
 		assertEquals("mypassword", config.password);
-		assertEquals(Connection.TRANSACTION_READ_COMMITTED, config.isolationLevel);
+		assertEquals(Connection.TRANSACTION_SERIALIZABLE, config.isolationLevel);
 
 		// toStringのチェック
 		Path path = Paths.get(NOT_DEFALUT_CONFIG_PATH);
