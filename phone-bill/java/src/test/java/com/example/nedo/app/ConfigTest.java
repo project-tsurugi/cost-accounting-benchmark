@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +36,7 @@ class ConfigTest {
 		Config config = Config.getConfig(args);
 		checkConfig(config);
 
-		// 引く数なしのgetConfig()と空配列を引数に持つgetConfig(String[])は同じ結果を返す
+		// 引数なしのgetConfig()と空配列を引数に持つgetConfig(String[])は同じ結果を返す
 		assertEqualsIgnoreLineSeparator(defaultConfig.toString(), Config.getConfig(new String[0]).toString());
 
 		// テストケースの作成漏れ確認のため、configにデフォルト値以外が指定されていることを確認する
@@ -47,17 +48,32 @@ class ConfigTest {
 		Map<String, Object> map = describe(config);
 		assertEquals(defaultMap.keySet(), map.keySet());
 		for(String key: defaultMap.keySet()) {
+			System.out.println("key = " + key +
+					", default = " + defaultMap.get(key) +
+					", not default = " + map.get(key));
 			assertNotEquals(defaultMap.get(key), map.get(key));
 		}
 	}
 
+	/**
+	 * 指定したconfigのフィールド名とフィールド値のmapを返す.
+	 * <br>
+	 * 大文字で始まるフィールドは定数フィールドとみなしmapに入れない。
+	 *
+	 * @param config
+	 * @return
+	 * @throws IllegalArgumentException
+	 * @throws IllegalAccessException
+	 */
 	private Map<String, Object> describe(Config config) throws IllegalArgumentException, IllegalAccessException {
 		Map<String, Object> map = new HashMap<>();
 		for (Field field : config.getClass().getDeclaredFields()) {
 			field.setAccessible(true);
 			String key = field.getName();
 			Object value = field.get(config);
-			map.put(key, value);
+			if (Character.isLowerCase(key.charAt(0))) {
+				map.put(key, value);
+			}
 		}
 		return map;
 	}
@@ -137,6 +153,7 @@ class ConfigTest {
 		assertEquals("jdbc:postgresql://127.0.0.1/mydatabase", config.url);
 		assertEquals("myuser", config.user);
 		assertEquals("mypassword", config.password);
+		assertEquals(Connection.TRANSACTION_READ_COMMITTED, config.isolationLevel);
 
 		// toStringのチェック
 		Path path = Paths.get(NOT_DEFALUT_CONFIG_PATH);
