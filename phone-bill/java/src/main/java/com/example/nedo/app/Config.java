@@ -163,7 +163,7 @@ public class Config {
 //		 url = getString(URL, "jdbc:oracle:thin:@localhost:1521:ORCL");
 		 user = getString(USER, "phonebill");
 		 password = getString(PASSWORD, "phonebill");
-		 isolationLevel = getIsolationLevel(ISOLATION_LEVEL, Connection.TRANSACTION_SERIALIZABLE);
+		 isolationLevel = getIsolationLevel(ISOLATION_LEVEL, Connection.TRANSACTION_READ_COMMITTED);
 		 String str = getString(ISOLATION_LEVEL, "DEFAULT");
 
 		 /* スレッドに関するパラメータ */
