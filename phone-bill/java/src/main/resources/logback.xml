@@ -13,7 +13,7 @@
 
   <appender name="SUMMARY"
     class="ch.qos.logback.core.FileAppender">
-    <file>${log.dir}/summary.log</file>
+    <file>logs/summary.log</file>
     <append>false</append>
     <encoder>
       <pattern>
@@ -27,7 +27,7 @@
 
   <appender name="DETAIL"
     class="ch.qos.logback.core.FileAppender">
-    <file>${log.dir}/detail.log</file>
+    <file>logs/detail.log</file>
     <append>false</append>
     <encoder>
       <pattern>
