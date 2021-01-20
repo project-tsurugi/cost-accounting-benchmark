@@ -167,11 +167,11 @@ public class TestDataGenerator {
 			// numberOfHistoryRecords だけレコードを生成する
 			for (long n = 0; n < config.numberOfHistoryRecords; n++) {
 				History h = createHistoryRecord(targetDuration);
-				ps.setString(1, h.caller_phone_number);
-				ps.setString(2, h.recipient_phone_number);
-				ps.setString(3, h.payment_categorty);
-				ps.setTimestamp(4, h.start_time);
-				ps.setInt(5, h.time_secs);
+				ps.setString(1, h.callerPhoneNumber);
+				ps.setString(2, h.recipientPhoneNumber);
+				ps.setString(3, h.paymentCategorty);
+				ps.setTimestamp(4, h.startTime);
+				ps.setInt(5, h.timeSecs);
 				if (h.charge == null) {
 					ps.setNull(6, Types.INTEGER);
 				} else {
@@ -227,21 +227,21 @@ public class TestDataGenerator {
 			startTime = getRandomLong(targetDuration.start.getTime(), targetDuration.end.getTime());
 		} while (startTimeSet.contains(startTime));
 		startTimeSet.add(startTime);
-		history.start_time = new Timestamp(startTime);
+		history.startTime = new Timestamp(startTime);
 
 		// 電話番号の生成
 		long caller = selectContract(startTime, -1, getRandomLong(0, config.numberOfContractsRecords));
 		long recipient = selectContract(startTime, caller, getRandomLong(0, config.numberOfContractsRecords));
-		history.caller_phone_number = getPhoneNumber(caller);
-		history.recipient_phone_number = getPhoneNumber(recipient);
+		history.callerPhoneNumber = getPhoneNumber(caller);
+		history.recipientPhoneNumber = getPhoneNumber(recipient);
 
 		// 料金区分(発信者負担、受信社負担)
 		// TODO 割合を指定可能にする
-		history.payment_categorty = random.nextInt(2) == 0 ? "C" : "R";
+		history.paymentCategorty = random.nextInt(2) == 0 ? "C" : "R";
 
 		// 通話時間
 		// TODO 分布関数を指定可能にする
-		history.time_secs = random.nextInt(3600) + 1;
+		history.timeSecs = random.nextInt(3600) + 1;
 
 		return history;
 	}

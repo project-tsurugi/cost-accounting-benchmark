@@ -193,11 +193,11 @@ class PhoneBillTest {
 		ResultSet rs = stmt.executeQuery(sql);
 		while (rs.next()) {
 			History history = new History();
-			history.caller_phone_number= rs.getString(1);
-			history.recipient_phone_number= rs.getString(2);
-			history.payment_categorty= rs.getString(3);
-			history.start_time= rs.getTimestamp(4);
-			history.time_secs= rs.getInt(5);
+			history.callerPhoneNumber= rs.getString(1);
+			history.recipientPhoneNumber= rs.getString(2);
+			history.paymentCategorty= rs.getString(3);
+			history.startTime= rs.getTimestamp(4);
+			history.timeSecs= rs.getInt(5);
 			history.charge= rs.getInt(6);
 			if (rs.wasNull()) {
 				history.charge = null;
@@ -241,11 +241,11 @@ class PhoneBillTest {
 	private History toHistory(String caller_phone_number, String recipient_phone_number, String payment_categorty,
 			String start_time, int time_secs, Integer charge, boolean df) {
 		History history = new History();
-			history.caller_phone_number = caller_phone_number;
-			history.recipient_phone_number = recipient_phone_number;
-			history.payment_categorty = payment_categorty;
-			history.start_time = DBUtils.toTimestamp(start_time);
-			history.time_secs = time_secs;
+			history.callerPhoneNumber = caller_phone_number;
+			history.recipientPhoneNumber = recipient_phone_number;
+			history.paymentCategorty = payment_categorty;
+			history.startTime = DBUtils.toTimestamp(start_time);
+			history.timeSecs = time_secs;
 			history.charge = charge;
 			history.df = df;
 		return history;

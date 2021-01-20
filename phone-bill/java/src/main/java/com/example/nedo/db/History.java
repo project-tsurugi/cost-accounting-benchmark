@@ -6,28 +6,28 @@ public class History {
 	/**
 	 * 発信者電話番号
 	 */
-	public String caller_phone_number;
+	public String callerPhoneNumber;
 
 	/**
 	 * 受信者電話番号
 	 */
-	public String recipient_phone_number;
+	public String recipientPhoneNumber;
 
 	/**
 	 * 料金区分(発信者負担(C)、受信社負担(R))
 	 */
 
-	public String payment_categorty;
+	public String paymentCategorty;
 	 /**
 	 * 通話開始時刻
 	 */
 
-	public Timestamp start_time;
+	public Timestamp startTime;
 	 /**
 	 * 通話時間(秒)
 	 */
 
-	public int time_secs;
+	public int timeSecs;
 
 	/**
 	 * 料金
@@ -42,16 +42,16 @@ public class History {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("History [caller_phone_number=");
-		builder.append(caller_phone_number);
-		builder.append(", recipient_phone_number=");
-		builder.append(recipient_phone_number);
-		builder.append(", payment_categorty=");
-		builder.append(payment_categorty);
-		builder.append(", start_time=");
-		builder.append(start_time);
-		builder.append(", time_secs=");
-		builder.append(time_secs);
+		builder.append("History [callerPhoneNumber=");
+		builder.append(callerPhoneNumber);
+		builder.append(", recipientPhoneNumber=");
+		builder.append(recipientPhoneNumber);
+		builder.append(", paymentCategorty=");
+		builder.append(paymentCategorty);
+		builder.append(", startTime=");
+		builder.append(startTime);
+		builder.append(", timeSecs=");
+		builder.append(timeSecs);
 		builder.append(", charge=");
 		builder.append(charge);
 		builder.append(", df=");
@@ -64,13 +64,13 @@ public class History {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((caller_phone_number == null) ? 0 : caller_phone_number.hashCode());
+		result = prime * result + ((callerPhoneNumber == null) ? 0 : callerPhoneNumber.hashCode());
 		result = prime * result + ((charge == null) ? 0 : charge.hashCode());
 		result = prime * result + (df ? 1231 : 1237);
-		result = prime * result + ((payment_categorty == null) ? 0 : payment_categorty.hashCode());
-		result = prime * result + ((recipient_phone_number == null) ? 0 : recipient_phone_number.hashCode());
-		result = prime * result + ((start_time == null) ? 0 : start_time.hashCode());
-		result = prime * result + time_secs;
+		result = prime * result + ((paymentCategorty == null) ? 0 : paymentCategorty.hashCode());
+		result = prime * result + ((recipientPhoneNumber == null) ? 0 : recipientPhoneNumber.hashCode());
+		result = prime * result + ((startTime == null) ? 0 : startTime.hashCode());
+		result = prime * result + timeSecs;
 		return result;
 	}
 
@@ -83,10 +83,10 @@ public class History {
 		if (getClass() != obj.getClass())
 			return false;
 		History other = (History) obj;
-		if (caller_phone_number == null) {
-			if (other.caller_phone_number != null)
+		if (callerPhoneNumber == null) {
+			if (other.callerPhoneNumber != null)
 				return false;
-		} else if (!caller_phone_number.equals(other.caller_phone_number))
+		} else if (!callerPhoneNumber.equals(other.callerPhoneNumber))
 			return false;
 		if (charge == null) {
 			if (other.charge != null)
@@ -95,22 +95,22 @@ public class History {
 			return false;
 		if (df != other.df)
 			return false;
-		if (payment_categorty == null) {
-			if (other.payment_categorty != null)
+		if (paymentCategorty == null) {
+			if (other.paymentCategorty != null)
 				return false;
-		} else if (!payment_categorty.equals(other.payment_categorty))
+		} else if (!paymentCategorty.equals(other.paymentCategorty))
 			return false;
-		if (recipient_phone_number == null) {
-			if (other.recipient_phone_number != null)
+		if (recipientPhoneNumber == null) {
+			if (other.recipientPhoneNumber != null)
 				return false;
-		} else if (!recipient_phone_number.equals(other.recipient_phone_number))
+		} else if (!recipientPhoneNumber.equals(other.recipientPhoneNumber))
 			return false;
-		if (start_time == null) {
-			if (other.start_time != null)
+		if (startTime == null) {
+			if (other.startTime != null)
 				return false;
-		} else if (!start_time.equals(other.start_time))
+		} else if (!startTime.equals(other.startTime))
 			return false;
-		if (time_secs != other.time_secs)
+		if (timeSecs != other.timeSecs)
 			return false;
 		return true;
 	}
