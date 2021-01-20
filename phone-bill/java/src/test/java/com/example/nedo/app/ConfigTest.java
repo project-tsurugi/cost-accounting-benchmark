@@ -112,7 +112,6 @@ class ConfigTest {
 
 		/* その他のパラメータ */
 		assertEquals(0, config.randomSeed);
-		assertEquals("logs", config.logDir);
 
 		// toStringのチェック
 		Path path = Paths.get(DEFALUT_CONFIG_PATH);
@@ -143,7 +142,6 @@ class ConfigTest {
 
 		/* その他のパラメータ */
 		assertEquals(1969, config.randomSeed);
-		assertEquals("mylogs", config.logDir);
 
 		/* スレッドに関するパラメータ */
 		assertEquals(10, config.threadCount);

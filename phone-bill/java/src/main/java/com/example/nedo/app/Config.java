@@ -112,14 +112,6 @@ public class Config {
 	private static final String RANDOM_SEED = "random.seed";
 
 	/**
-	 * ログ出力ディレクトリ
-	 */
-	public String logDir;
-	private static final String LOG_DIR = "log.dir";
-
-
-
-	/**
 	 * コンストラクタ
 	 *
 	 * @param configFileName
@@ -132,8 +124,6 @@ public class Config {
 		}
 		init();
 
-		Files.createDirectories(Paths.get(logDir));
-		System.setProperty(LOG_DIR, logDir);
 		Logger logger = LoggerFactory.getLogger(Config.class);
 		logger.info("Config initialized" +
 				System.lineSeparator() + "--- " + System.lineSeparator() + this.toString() + "---");
@@ -164,7 +154,6 @@ public class Config {
 		 user = getString(USER, "phonebill");
 		 password = getString(PASSWORD, "phonebill");
 		 isolationLevel = getIsolationLevel(ISOLATION_LEVEL, Connection.TRANSACTION_SERIALIZABLE);
-		 String str = getString(ISOLATION_LEVEL, "DEFAULT");
 
 		 /* スレッドに関するパラメータ */
 		 threadCount = getInt(THREAD_COUNT, 1);
@@ -172,7 +161,6 @@ public class Config {
 
 		// その他のパラメータ
 		 randomSeed = getLong(RANDOM_SEED, 0);
-		 logDir = getString(LOG_DIR, "logs");
 	}
 
 
@@ -374,7 +362,6 @@ public class Config {
 		sb.append(System.lineSeparator());
 		sb.append(String.format(commentFormat, "その他のパラメータ"));
 		sb.append(String.format(format, RANDOM_SEED, randomSeed));
-		sb.append(String.format(format, LOG_DIR, logDir));
 		return sb.toString();
 	}
 }
