@@ -3,6 +3,7 @@ package com.example.nedo.init;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,10 +11,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.seasar.doma.jdbc.tx.TransactionManager;
 
 import com.example.nedo.BenchConst;
+import com.example.nedo.init.util.AmplificationRecord;
 import com.example.nedo.jdbc.doma2.config.AppConfig;
 import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
 import com.example.nedo.jdbc.doma2.dao.FactoryMasterDaoImpl;
@@ -93,20 +96,9 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 		map.forEach((factoryId, list) -> {
 			for (Integer productId : list) {
 				ItemManufacturingMaster entity = newItemManufacturingMaster(factoryId, productId);
-				dao.insert(entity);
+				insertItemManufacturingMaster(dao, entity);
 			}
 		});
-	}
-
-	public ItemManufacturingMaster newItemManufacturingMaster(int factoryId, int productId) {
-		ItemManufacturingMaster entity = new ItemManufacturingMaster();
-
-		entity.setImFId(factoryId);
-		entity.setImIId(productId);
-		initializeStartEndDate(factoryId + productId, entity);
-		initializeItemManufacturingMasterRandom(random, entity);
-
-		return entity;
 	}
 
 	private Map<Integer, Set<Integer>> generateA(Set<Integer> remainSet) {
@@ -175,6 +167,50 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 		}
 
 		return map;
+	}
+
+	public ItemManufacturingMaster newItemManufacturingMaster(int factoryId, int productId) {
+		ItemManufacturingMaster entity = new ItemManufacturingMaster();
+
+		entity.setImFId(factoryId);
+		entity.setImIId(productId);
+		initializeStartEndDate(factoryId + productId, entity);
+		initializeItemManufacturingMasterRandom(random, entity);
+
+		return entity;
+	}
+
+	// 1.6倍に増幅する
+	private final AmplificationRecord<ItemManufacturingMaster> AMPLIFICATION_ITEM_MANUFACTURING = new AmplificationRecord<ItemManufacturingMaster>(
+			1.6, random) {
+		private final AtomicInteger amplificationId = new AtomicInteger(1);
+
+		@Override
+		protected int getAmplificationId(ItemManufacturingMaster entity) {
+			return amplificationId.getAndIncrement();
+		}
+
+		@Override
+		protected int getSeed(ItemManufacturingMaster entity) {
+			return entity.getImFId() + entity.getImIId();
+		}
+
+		@Override
+		protected ItemManufacturingMaster getClone(ItemManufacturingMaster entity) {
+			return entity.clone();
+		}
+
+		@Override
+		protected void initialize(ItemManufacturingMaster entity) {
+			initializeItemManufacturingMasterRandom(random, entity);
+		}
+	};
+
+	private void insertItemManufacturingMaster(ItemManufacturingMasterDao dao, ItemManufacturingMaster entity) {
+		Collection<ItemManufacturingMaster> list = AMPLIFICATION_ITEM_MANUFACTURING.amplify(entity);
+		list.forEach(ent -> {
+			dao.insert(ent);
+		});
 	}
 
 	public static void initializeItemManufacturingMasterRandom(BenchRandom random, ItemManufacturingMaster entity) {

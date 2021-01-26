@@ -38,6 +38,9 @@ dependencies {
   implementation "org.seasar.doma:doma-core:2.41.0"
   annotationProcessor "org.seasar.doma:doma-processor:2.41.0"
 
+  // https://mvnrepository.com/artifact/org.apache.commons/commons-math3
+  implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
+
   testCompileOnly("org.junit.jupiter:junit-jupiter-api:5.7.0")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
   testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.0.0") // for IDE

@@ -4,10 +4,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,6 +16,7 @@ import java.util.function.Consumer;
 import org.seasar.doma.jdbc.tx.TransactionManager;
 
 import com.example.nedo.BenchConst;
+import com.example.nedo.init.util.AmplificationRecord;
 import com.example.nedo.jdbc.doma2.config.AppConfig;
 import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDao;
 import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDaoImpl;
@@ -427,7 +428,7 @@ public class InitialData03ItemMaster extends InitialData {
 		root.assignId(iId);
 		for (Node node : nodeList) {
 			node.entity = newItemMasterWork(node.itemId);
-			dao.insert(node.entity);
+			insertItemMaster(dao, node.entity, null);
 		}
 
 		// 材料を割り当てる
@@ -473,9 +474,29 @@ public class InitialData03ItemMaster extends InitialData {
 
 			initializeLossRatio(entity.getIcIId() + entity.getIcParentIId(), entity);
 
-			icDao.insert(entity);
+			insertItemConstructionMaster(icDao, entity);
 		}
 	}
+
+	private List<ItemMaster> findRandomMaterial(int seed, int size, ItemMasterDao dao) {
+		int materialStartId = getMaterialStartId();
+		int materialEndId = materialStartId + materialSize - 1;
+
+		Set<Integer> idSet = new TreeSet<>();
+		while (idSet.size() < size) {
+			idSet.add(random(seed++, materialStartId, materialEndId));
+		}
+
+		return dao.selectByIds(idSet, batchDate);
+	}
+
+	private static final BigDecimal LOSS_END = new BigDecimal("10.00");
+
+	public void initializeLossRatio(int seed, ItemConstructionMaster entity) {
+		entity.setIcLossRatio(random.random0(seed, LOSS_END));
+	}
+
+	public static final int PRODUCT_TREE_SIZE = 5;
 
 	// 製品品目の品目構成マスター
 	private class ItemConstructionMasterProductTask extends DaoSplitTask {
@@ -507,14 +528,6 @@ public class InitialData03ItemMaster extends InitialData {
 		}
 	}
 
-	private static final BigDecimal LOSS_END = new BigDecimal("10.00");
-
-	public void initializeLossRatio(int seed, ItemConstructionMaster entity) {
-		entity.setIcLossRatio(random.random0(seed, LOSS_END));
-	}
-
-	public static final int PRODUCT_TREE_SIZE = 5;
-
 	public void insertItemConstructionMasterProduct(int productId, Set<Integer> workSet,
 			ItemConstructionMasterDao icDao) {
 		for (Integer workId : workSet) {
@@ -524,47 +537,74 @@ public class InitialData03ItemMaster extends InitialData {
 			initializeStartEndDate(workId + productId, entity);
 			initializeItemConstructionMasterRandom(random, entity);
 
-			icDao.insert(entity);
+			insertItemConstructionMaster(icDao, entity);
 		}
 	}
 
-	private List<ItemMaster> findRandomMaterial(int seed, int size, ItemMasterDao dao) {
-		int materialStartId = getMaterialStartId();
-		int materialEndId = materialStartId + materialSize - 1;
+	// 3倍に増幅する
+	private final AmplificationRecord<ItemMaster> AMPLIFICATION_ITEM = new AmplificationRecord<ItemMaster>(3, random) {
 
-		Set<Integer> idSet = new TreeSet<>();
-		while (idSet.size() < size) {
-			idSet.add(random(seed++, materialStartId, materialEndId));
+		@Override
+		protected int getAmplificationId(ItemMaster entity) {
+			return entity.getIId();
 		}
 
-		return dao.selectByIds(idSet, batchDate);
-	}
+		@Override
+		protected int getSeed(ItemMaster entity) {
+			return entity.getIId();
+		}
+
+		@Override
+		protected ItemMaster getClone(ItemMaster entity) {
+			return entity.clone();
+		}
+
+		@Override
+		protected void initialize(ItemMaster entity) {
+			// do nothing
+		}
+	};
 
 	private void insertItemMaster(ItemMasterDao dao, ItemMaster entity, Consumer<ItemMaster> initializer) {
-		TreeMap<LocalDate, ItemMaster> map = new TreeMap<>();
-		map.put(entity.getIEffectiveDate(), entity);
-
-		for (int i = 0; i < 2; i++) { // 3倍に増幅する
-			ItemMaster ent;
-			int seed = entity.getIId() + i;
-			if (random(seed, 0, 1) == 0) {
-				ItemMaster src = map.firstEntry().getValue();
-				ent = src.clone();
-				initializePrevStartEndDate(seed + 1, src, ent);
-			} else {
-				ItemMaster src = map.lastEntry().getValue();
-				ent = src.clone();
-				initializeNextStartEndDate(seed + 1, src, ent);
-			}
-
-			map.put(ent.getIEffectiveDate(), ent);
-		}
-
-		map.values().forEach(ent -> {
+		Collection<ItemMaster> list = AMPLIFICATION_ITEM.amplify(entity);
+		list.forEach(ent -> {
 			if (initializer != null) {
 				initializer.accept(ent);
 			}
 			dao.insert(ent);
+		});
+	}
+
+	// 1.25倍に増幅する
+	private final AmplificationRecord<ItemConstructionMaster> AMPLIFICATION_ITEM_CONSTRUCTION = new AmplificationRecord<ItemConstructionMaster>(
+			1.25, random) {
+		private final AtomicInteger amplificationId = new AtomicInteger(1);
+
+		@Override
+		protected int getAmplificationId(ItemConstructionMaster entity) {
+			return amplificationId.getAndIncrement();
+		}
+
+		@Override
+		protected int getSeed(ItemConstructionMaster entity) {
+			return entity.getIcParentIId() + entity.getIcIId();
+		}
+
+		@Override
+		protected ItemConstructionMaster getClone(ItemConstructionMaster entity) {
+			return entity.clone();
+		}
+
+		@Override
+		protected void initialize(ItemConstructionMaster entity) {
+			initializeItemConstructionMasterRandom(random, entity);
+		}
+	};
+
+	private void insertItemConstructionMaster(ItemConstructionMasterDao icDao, ItemConstructionMaster entity) {
+		Collection<ItemConstructionMaster> list = AMPLIFICATION_ITEM_CONSTRUCTION.amplify(entity);
+		list.forEach(ent -> {
+			icDao.insert(ent);
 		});
 	}
 

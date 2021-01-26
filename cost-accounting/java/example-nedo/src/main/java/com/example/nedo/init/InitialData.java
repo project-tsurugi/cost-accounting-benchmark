@@ -45,28 +45,6 @@ public class InitialData {
 		return endDate;
 	}
 
-	protected <T extends HasDateRange> void initializePrevStartEndDate(int seed, T src, T dst) {
-		LocalDate srcStartDate = src.getEffectiveDate();
-
-		LocalDate endDate = srcStartDate.minusDays(1);
-		dst.setExpiredDate(endDate);
-		dst.setEffectiveDate(endDate.minusDays(random(seed, 1, 700)));
-	}
-
-	protected <T extends HasDateRange> void initializeNextStartEndDate(int seed, T src, T dst) {
-		LocalDate srcEndDate = src.getExpiredDate();
-
-		LocalDate startDate = srcEndDate.plusDays(1);
-		dst.setEffectiveDate(startDate);
-		dst.setExpiredDate(startDate.plusDays(random(seed, 1, 700)));
-	}
-
-	protected void weightToVolume(int weight, BigDecimal weighRatio) {
-		// weight = volume * ratio
-		// volume = weight / ratio
-		throw new InternalError("yet");
-	}
-
 	// random
 
 	protected int random(int seed, int start, int end) {

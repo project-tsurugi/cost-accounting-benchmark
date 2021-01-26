@@ -20,4 +20,3 @@ call_java com.example.nedo.init.InitialData02FactoryMaster
 call_java com.example.nedo.init.InitialData03ItemMaster
 call_java com.example.nedo.init.InitialData04ItemManufacturingMaster
 call_java com.example.nedo.init.InitialData05CostMaster
-call_java com.example.nedo.init.InitialData06Increase
