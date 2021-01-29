@@ -10,6 +10,7 @@ import java.util.TreeSet;
 
 import org.seasar.doma.jdbc.tx.TransactionManager;
 
+import com.example.nedo.init.util.DaoSplitTask;
 import com.example.nedo.jdbc.doma2.config.AppConfig;
 import com.example.nedo.jdbc.doma2.dao.CostMasterDao;
 import com.example.nedo.jdbc.doma2.dao.CostMasterDaoImpl;
@@ -67,7 +68,8 @@ public class InitialData05CostMaster extends InitialData {
 		InitialData03ItemMaster itemMasterData = InitialData03ItemMaster.getDefaultInstance();
 		int materialStartId = itemMasterData.getMaterialStartId();
 		int materialEndId = itemMasterData.getMaterialEndId();
-		new CostMasterTask(materialStartId, materialEndId, new ItemMasterDaoImpl(), dao).fork().join();
+		executeTask(new CostMasterTask(materialStartId, materialEndId, new ItemMasterDaoImpl(), dao));
+		joinAllTask();
 	}
 
 	@SuppressWarnings("serial")

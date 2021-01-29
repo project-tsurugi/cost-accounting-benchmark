@@ -1,15 +1,15 @@
-package com.example.nedo.init;
+package com.example.nedo.init.util;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.RecursiveAction;
 
 import org.seasar.doma.jdbc.tx.TransactionManager;
 
 import com.example.nedo.jdbc.doma2.config.AppConfig;
 
 @SuppressWarnings("serial")
-public abstract class DaoListTask<T> extends RecursiveTask<Void> {
+public abstract class DaoListTask<T> extends RecursiveAction {
 	private final List<T> list = new ArrayList<>();
 
 	public void add(T t) {
@@ -21,14 +21,13 @@ public abstract class DaoListTask<T> extends RecursiveTask<Void> {
 	}
 
 	@Override
-	protected final Void compute() {
+	protected final void compute() {
 		TransactionManager tm = AppConfig.singleton().getTransactionManager();
 		tm.required(() -> {
 			for (T t : list) {
 				execute(t);
 			}
 		});
-		return null;
 	}
 
 	protected abstract void execute(T t);

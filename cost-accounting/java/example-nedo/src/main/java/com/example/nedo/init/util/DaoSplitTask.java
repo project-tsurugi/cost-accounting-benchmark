@@ -1,14 +1,14 @@
-package com.example.nedo.init;
+package com.example.nedo.init.util;
 
 import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.RecursiveAction;
 
 import org.seasar.doma.jdbc.tx.TransactionManager;
 
 import com.example.nedo.jdbc.doma2.config.AppConfig;
 
 @SuppressWarnings("serial")
-public abstract class DaoSplitTask extends RecursiveTask<Void> {
+public abstract class DaoSplitTask extends RecursiveAction {
 	public static final int TASK_THRESHOLD = 10000;
 
 	private final int startId;
@@ -20,7 +20,7 @@ public abstract class DaoSplitTask extends RecursiveTask<Void> {
 	}
 
 	@Override
-	protected final Void compute() {
+	protected final void compute() {
 		int size = endId - startId;
 		if (size > TASK_THRESHOLD) {
 			int middleId = startId + size / 2;
@@ -36,7 +36,6 @@ public abstract class DaoSplitTask extends RecursiveTask<Void> {
 				}
 			});
 		}
-		return null;
 	}
 
 	protected abstract DaoSplitTask createTask(int startId, int endId);

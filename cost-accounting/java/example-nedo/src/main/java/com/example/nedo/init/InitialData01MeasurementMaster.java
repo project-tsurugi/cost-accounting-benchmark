@@ -39,7 +39,7 @@ public class InitialData01MeasurementMaster extends InitialData {
 			Sheet sheet = workbook.getSheet("measurement");
 			TableSheet table = new TableSheet(sheet);
 
-			generateMetrologyMaster(table);
+			generateMeasurementMaster(table);
 		}
 
 		logEnd();
@@ -69,7 +69,7 @@ public class InitialData01MeasurementMaster extends InitialData {
 		}
 	}
 
-	private void generateMetrologyMaster(TableSheet table) {
+	private void generateMeasurementMaster(TableSheet table) {
 		MeasurementMasterDao dao = new MeasurementMasterDaoImpl();
 
 		TransactionManager tm = AppConfig.singleton().getTransactionManager();

@@ -4,7 +4,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 
 import com.example.nedo.BenchConst;
 import com.example.nedo.jdbc.doma2.entity.HasDateRange;
@@ -62,4 +65,25 @@ public class InitialData {
 		return list.remove(i);
 	}
 
+	// thread
+
+	private ForkJoinPool forkJoinPool = null;
+	private final List<ForkJoinTask<?>> taskList = new ArrayList<>();
+
+	protected void executeTask(ForkJoinTask<?> task) {
+		if (forkJoinPool == null) {
+			int parallelism = BenchConst.initParallelism();
+			System.out.printf("ForkJoinPool.parallelism=%d\n", parallelism);
+			forkJoinPool = new ForkJoinPool(parallelism);
+		}
+		forkJoinPool.execute(task);
+		taskList.add(task);
+	}
+
+	protected void joinAllTask() {
+		for (ForkJoinTask<?> task : taskList) {
+			task.join();
+		}
+		taskList.clear();
+	}
 }

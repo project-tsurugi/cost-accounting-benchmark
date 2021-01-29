@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -17,6 +16,8 @@ import org.seasar.doma.jdbc.tx.TransactionManager;
 
 import com.example.nedo.BenchConst;
 import com.example.nedo.init.util.AmplificationRecord;
+import com.example.nedo.init.util.DaoListTask;
+import com.example.nedo.init.util.DaoSplitTask;
 import com.example.nedo.jdbc.doma2.config.AppConfig;
 import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDao;
 import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDaoImpl;
@@ -103,12 +104,12 @@ public class InitialData03ItemMaster extends InitialData {
 			icDao.deleteAll();
 		});
 
-		ForkJoinTask<Void> ptask = new ItemMasterProductTask(getProductStartId(), getProductEndId(), dao).fork();
-		ForkJoinTask<Void> mtask = new ItemMasterMaterialTask(getMaterialStartId(), getMaterialEndId(), dao).fork();
-		ptask.join();
-		mtask.join();
+		executeTask(new ItemMasterProductTask(getProductStartId(), getProductEndId(), dao));
+		executeTask(new ItemMasterMaterialTask(getMaterialStartId(), getMaterialEndId(), dao));
+		joinAllTask();
 		forkItemMasterWorkInProcess(getWorkStartId(), getWorkEndId(), dao, icDao);
-		new ItemConstructionMasterProductTask(getProductStartId(), getProductEndId(), icDao).fork().join();
+		executeTask(new ItemConstructionMasterProductTask(getProductStartId(), getProductEndId(), icDao));
+		joinAllTask();
 	}
 
 	private abstract class ItemMasterTask extends DaoSplitTask {
@@ -272,7 +273,6 @@ public class InitialData03ItemMaster extends InitialData {
 
 	private void forkItemMasterWorkInProcess(int startId, int endId, ItemMasterDao dao,
 			ItemConstructionMasterDao icDao) {
-		List<ItemMasterWorkTask> taskList = new ArrayList<>();
 		ItemMasterWorkTask task = new ItemMasterWorkTask(dao, icDao);
 
 		int id = startId;
@@ -288,20 +288,15 @@ public class InitialData03ItemMaster extends InitialData {
 
 			task.add(id, id + treeSize);
 			if (task.idSize() >= TASK_THRESHOLD) {
-				task.fork();
-				taskList.add(task);
+				executeTask(task);
 				task = new ItemMasterWorkTask(dao, icDao);
 			}
 
 			id += treeSize;
 		}
 
-		task.fork();
-		taskList.add(task);
-
-		for (ItemMasterWorkTask t : taskList) {
-			t.join();
-		}
+		executeTask(task);
+		joinAllTask();
 	}
 
 	private static class Range {

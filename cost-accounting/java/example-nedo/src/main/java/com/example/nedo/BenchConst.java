@@ -73,6 +73,11 @@ public class BenchConst {
 		return getPropertyInt("init.item.manufacturing.size");
 	}
 
+	public static int initParallelism() {
+		int defaultValue = Runtime.getRuntime().availableProcessors();
+		return getPropertyInt("init.parallelism", defaultValue);
+	}
+
 	private static Properties properties;
 
 	private static Properties getProperties() {
@@ -93,19 +98,36 @@ public class BenchConst {
 		return properties;
 	}
 
-	private static String getProperty(String key) {
+	private static String getProperty(String key, String defaultValue) {
 		Properties p = getProperties();
 		String s = p.getProperty(key);
+		return (s != null) ? s : defaultValue;
+	}
+
+	private static String getProperty(String key) {
+		String s = getProperty(key, null);
 		if (s == null) {
 			throw new RuntimeException("not found key'" + key + "' in property-file");
 		}
 		return s;
 	}
 
+	private static int getPropertyInt(String key, int defaultValue) {
+		String s = getProperty(key, null);
+		if (s == null) {
+			return defaultValue;
+		}
+		return getPropertyInt(key, s);
+	}
+
 	private static int getPropertyInt(String key) {
+		String s = getProperty(key);
+		return getPropertyInt(key, s);
+	}
+
+	private static int getPropertyInt(String key, String value) {
 		try {
-			String s = getProperty(key).trim();
-			s = s.replaceAll("_", "");
+			String s = value.trim().replaceAll("_", "");
 			return Integer.parseInt(s);
 		} catch (NumberFormatException e) {
 			throw new RuntimeException("not integer key'" + key + "' in property-file", e);
