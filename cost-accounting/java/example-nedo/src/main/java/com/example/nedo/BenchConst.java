@@ -46,7 +46,7 @@ public class BenchConst {
 		return getPropertyInt("batch.execute.type");
 	}
 
-	public static int DECIMAL_SCALE = 20;
+	public static int DECIMAL_SCALE = getPropertyInt("decimal.scale", 20);
 
 	// initial data
 	public static LocalDate initBatchDate() {
