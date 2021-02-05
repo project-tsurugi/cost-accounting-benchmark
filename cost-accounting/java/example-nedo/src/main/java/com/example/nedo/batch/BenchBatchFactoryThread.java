@@ -44,13 +44,15 @@ public class BenchBatchFactoryThread implements Runnable, Callable<Void> {
 		tm.required(() -> {
 			deleteResult(resultTableDao);
 
+			int[] count = { 0 };
 			try (Stream<ItemManufacturingMaster> stream = selectMakeItem()) {
 				stream.forEach(item -> {
+					count[0]++;
 					itemTask.execute(item);
 				});
 			}
 
-			batch.commitOrRollback(tm, random);
+			batch.commitOrRollback(tm, batchDate, factoryId, count[0], random);
 		});
 	}
 

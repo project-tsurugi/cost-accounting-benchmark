@@ -167,16 +167,18 @@ public class BenchBatch {
 					resultTableDao);
 
 			ItemManufacturingMasterDao itemManufacturingMasterDao = new ItemManufacturingMasterDaoImpl();
+			int[] count = { 0 };
 			try (Stream<ItemManufacturingMaster> stream0 = itemManufacturingMasterDao.selectByFactories(factoryList,
 					batchDate)) {
 				Stream<ItemManufacturingMaster> stream = stream0;
 //				Stream<MakeItemMaster> stream = stream0.parallel(); // 効果が無いっぽい
 				stream.parallel().forEach(manufact -> {
+					count[0]++;
 					itemTask.execute(manufact);
 				});
 			}
 
-			commitOrRollback(tm, random);
+			commitOrRollback(tm, batchDate, -1, count[0], random);
 		});
 	}
 
@@ -209,15 +211,17 @@ public class BenchBatch {
 			public Void call() throws Exception {
 				TransactionManager tm = AppConfig.singleton().getTransactionManager();
 				tm.required(() -> {
+					int[] count = { 0 };
 					for (;;) {
 						ItemManufacturingMaster manufact = queue.pollLast();
 						if (manufact == null) {
 							break;
 						}
+						count[0]++;
 						itemTask.execute(manufact);
 					}
 
-					commitOrRollback(tm, random);
+					commitOrRollback(tm, batchDate, -1, count[0], random);
 				});
 				return null;
 			}
@@ -254,13 +258,16 @@ public class BenchBatch {
 		});
 	}
 
-	public void commitOrRollback(TransactionManager tm, BenchRandom random) {
+	public void commitOrRollback(TransactionManager tm, LocalDate batchDate, int factoryId, int count,
+			BenchRandom random) {
 		int n = random.random(0, 99);
 		if (n < commitRatio) {
 			// commit
+			System.out.printf("commit (%s, %d), count=%d\n", batchDate, factoryId, count);
 		} else {
 			// rollback
 			tm.setRollbackOnly();
+			System.out.printf("rollback (%s, %d), count=%d\n", batchDate, factoryId, count);
 		}
 	}
 }
