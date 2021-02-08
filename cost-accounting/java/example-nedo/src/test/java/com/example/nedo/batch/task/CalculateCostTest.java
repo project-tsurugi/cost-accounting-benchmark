@@ -1,4 +1,4 @@
-package com.example.nedo.batch;
+package com.example.nedo.batch.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -10,13 +10,13 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 
-import com.example.nedo.batch.BenchBatchItemTask.BomNode;
+import com.example.nedo.batch.task.BenchBatchItemTask.BomNode;
 import com.example.nedo.init.MeasurementUtilTestSupport;
 import com.example.nedo.init.MeasurementValue;
 import com.example.nedo.jdbc.doma2.entity.CostMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
+import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 
 class CalculateCostTest {
 	static {
@@ -26,7 +26,7 @@ class CalculateCostTest {
 	@Test
 	void testCalculateCost() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchItemTask(batchDate) {
+		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate) {
 			@Override
 			protected CostMaster selectCostMaster(int factoryId, int itemId) {
 				CostMaster entity = new CostMaster();
@@ -121,7 +121,8 @@ class CalculateCostTest {
 
 		assertEqualsDecimal(BigDecimal.ZERO, node.totalUnitCost);
 		assertEqualsDecimal(BigDecimal.ZERO, node.unitCost);
-		assertEqualsDecimal(child1.totalManufacturingCost.add(child2.totalManufacturingCost), node.totalManufacturingCost);
+		assertEqualsDecimal(child1.totalManufacturingCost.add(child2.totalManufacturingCost),
+				node.totalManufacturingCost);
 		assertEqualsDecimal(node.totalManufacturingCost.divide(BigDecimal.valueOf(4000)), node.manufacturingCost);
 
 		assertEqualsDecimal(BigDecimal.ZERO, root.totalUnitCost);

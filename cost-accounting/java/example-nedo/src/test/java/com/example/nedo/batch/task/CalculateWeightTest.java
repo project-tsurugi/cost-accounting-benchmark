@@ -1,6 +1,6 @@
-package com.example.nedo.batch;
+package com.example.nedo.batch.task;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -8,11 +8,11 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 import com.example.nedo.BenchConst;
-import com.example.nedo.batch.BenchBatchItemTask.BomNode;
+import com.example.nedo.batch.task.BenchBatchItemTask.BomNode;
 import com.example.nedo.init.MeasurementUtilTestSupport;
 import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
+import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 
 class CalculateWeightTest {
 	static {
@@ -22,7 +22,7 @@ class CalculateWeightTest {
 	@Test
 	void testCalculateWeight0() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchItemTask(batchDate);
+		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate);
 
 		ItemManufacturingMaster entity = new ItemManufacturingMaster();
 		entity.setImIId(1);
@@ -38,7 +38,7 @@ class CalculateWeightTest {
 	@Test
 	void testCalculateWeight_MaterialVolume_null() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchItemTask(batchDate);
+		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate);
 
 		ItemConstructionMaster entity = new ItemConstructionMaster();
 		entity.setIcIId(1);
@@ -54,7 +54,7 @@ class CalculateWeightTest {
 	@Test
 	void testCalculateWeight_MaterialUnit_weight() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchItemTask(batchDate);
+		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate);
 
 		ItemConstructionMaster entity = new ItemConstructionMaster();
 		entity.setIcIId(1);
@@ -72,7 +72,7 @@ class CalculateWeightTest {
 	@Test
 	void testCalculateWeight_MaterialUnit_notWeight() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchItemTask(batchDate) {
+		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate) {
 			@Override
 			protected ItemMaster selectItemMaster(int itemId) {
 				assertEquals(1, itemId);
@@ -102,7 +102,7 @@ class CalculateWeightTest {
 	@Test
 	void testCalculateWeight_child() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchItemTask(batchDate);
+		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate);
 
 		BomNode root;
 		{

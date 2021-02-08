@@ -1,4 +1,4 @@
-package com.example.nedo.batch;
+package com.example.nedo.batch.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 import com.example.nedo.BenchConst;
-import com.example.nedo.batch.BenchBatchItemTask.BomNode;
+import com.example.nedo.batch.task.BenchBatchItemTask.BomNode;
 import com.example.nedo.init.MeasurementUtilTestSupport;
 import com.example.nedo.init.MeasurementValue;
 import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
@@ -21,7 +21,7 @@ class CalculateWeightRatioTest {
 	@Test
 	void testCalculateWeightRatio0() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchItemTask(batchDate);
+		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate);
 
 		ItemManufacturingMaster entity = new ItemManufacturingMaster();
 		entity.setImIId(1);
@@ -36,7 +36,7 @@ class CalculateWeightRatioTest {
 	@Test
 	void testCalculateWeightRatio() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchItemTask(batchDate);
+		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate);
 
 		BomNode root;
 		{

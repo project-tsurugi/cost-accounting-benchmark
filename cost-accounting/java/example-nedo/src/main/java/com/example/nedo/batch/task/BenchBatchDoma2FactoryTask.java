@@ -1,48 +1,36 @@
-package com.example.nedo.batch;
+package com.example.nedo.batch.task;
 
 import java.time.LocalDate;
-import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 import org.seasar.doma.jdbc.tx.TransactionManager;
 
-import com.example.nedo.init.BenchRandom;
 import com.example.nedo.jdbc.doma2.config.AppConfig;
 import com.example.nedo.jdbc.doma2.dao.CostMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
 import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDaoImpl;
+import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.dao.ResultTableDao;
 import com.example.nedo.jdbc.doma2.dao.ResultTableDaoImpl;
 import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
 
-public class BenchBatchFactoryThread implements Runnable, Callable<Void> {
+public class BenchBatchDoma2FactoryTask extends BenchBatchFactoryTask {
 
-	private final BenchBatch batch;
-	private final LocalDate batchDate;
-	private final int factoryId;
+	private final ResultTableDao resultTableDao = new ResultTableDaoImpl();
 
-	private final BenchRandom random = new BenchRandom();
-
-	public BenchBatchFactoryThread(BenchBatch batch, LocalDate batchDate, int factoryId) {
-		this.batch = batch;
-		this.batchDate = batchDate;
-		this.factoryId = factoryId;
+	public BenchBatchDoma2FactoryTask(int commitRatio, LocalDate batchDate, int factoryId) {
+		super(commitRatio, batchDate, factoryId);
 	}
 
 	@Override
 	public void run() {
 		TransactionManager tm = AppConfig.singleton().getTransactionManager();
 
-		ResultTableDao resultTableDao = new ResultTableDaoImpl();
-
-		BenchBatchItemTask itemTask = new BenchBatchItemTask(batchDate);
-		itemTask.setDao(new ItemConstructionMasterDaoImpl(), new ItemMasterDaoImpl(), new CostMasterDaoImpl(),
-				resultTableDao);
+		BenchBatchItemTask itemTask = newBenchBatchItemTask();
 
 		tm.required(() -> {
-			deleteResult(resultTableDao);
+			deleteResult();
 
 			int[] count = { 0 };
 			try (Stream<ItemManufacturingMaster> stream = selectMakeItem()) {
@@ -52,23 +40,36 @@ public class BenchBatchFactoryThread implements Runnable, Callable<Void> {
 				});
 			}
 
-			batch.commitOrRollback(tm, batchDate, factoryId, count[0], random);
+			commitOrRollback(count[0]);
 		});
 	}
 
 	@Override
-	public Void call() {
-		run();
-		return null;
+	public BenchBatchItemTask newBenchBatchItemTask() {
+		BenchBatchDoma2ItemTask itemTask = new BenchBatchDoma2ItemTask(batchDate);
+		itemTask.setDao(new ItemConstructionMasterDaoImpl(), new ItemMasterDaoImpl(), new CostMasterDaoImpl(),
+				resultTableDao);
+		return itemTask;
 	}
 
-	private void deleteResult(ResultTableDao dao) {
-		dao.deleteByFactory(factoryId, batchDate);
+	private void deleteResult() {
+		resultTableDao.deleteByFactory(factoryId, batchDate);
 	}
 
 	private Stream<ItemManufacturingMaster> selectMakeItem() {
 		ItemManufacturingMasterDao dao = new ItemManufacturingMasterDaoImpl();
 
 		return dao.selectByFactory(factoryId, batchDate);
+	}
+
+	@Override
+	protected void doCommit() {
+		// do nothing
+	}
+
+	@Override
+	protected void doRollback() {
+		TransactionManager tm = AppConfig.singleton().getTransactionManager();
+		tm.setRollbackOnly();
 	}
 }

@@ -1,6 +1,7 @@
-package com.example.nedo.batch;
+package com.example.nedo.batch.task;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -10,12 +11,12 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 import com.example.nedo.BenchConst;
-import com.example.nedo.batch.BenchBatchItemTask.BomNode;
-import com.example.nedo.batch.BenchBatchItemTask.Ratio;
+import com.example.nedo.batch.task.BenchBatchItemTask.BomNode;
+import com.example.nedo.batch.task.BenchBatchItemTask.Ratio;
 import com.example.nedo.init.MeasurementUtilTestSupport;
 import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
+import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 
 class CalculateRequiredQuantityTest {
 	static {
@@ -25,7 +26,7 @@ class CalculateRequiredQuantityTest {
 	@Test
 	void testCalculateRequiredQuantity() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchItemTask(batchDate) {
+		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate) {
 			@Override
 			protected ItemMaster selectItemMaster(int itemId) {
 				ItemMaster entity = new ItemMaster();

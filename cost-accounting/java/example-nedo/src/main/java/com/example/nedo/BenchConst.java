@@ -80,11 +80,15 @@ public class BenchConst {
 
 	private static Properties properties;
 
-	private static Properties getProperties() {
+	private static Properties getProperties(boolean requiredFile) {
 		if (properties == null) {
 			String s = System.getProperty("property");
 			if (s == null) {
-				throw new RuntimeException("not found -Dproperty=property-file-path");
+				if (requiredFile) {
+					throw new RuntimeException("not found -Dproperty=property-file-path");
+				} else {
+					return new Properties();
+				}
 			}
 			Path path = Paths.get(s);
 			try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
@@ -98,14 +102,13 @@ public class BenchConst {
 		return properties;
 	}
 
-	private static String getProperty(String key, String defaultValue) {
-		Properties p = getProperties();
-		String s = p.getProperty(key);
-		return (s != null) ? s : defaultValue;
+	private static String getProperty(String key, boolean requiredFile) {
+		Properties p = getProperties(requiredFile);
+		return p.getProperty(key);
 	}
 
 	private static String getProperty(String key) {
-		String s = getProperty(key, null);
+		String s = getProperty(key, true);
 		if (s == null) {
 			throw new RuntimeException("not found key'" + key + "' in property-file");
 		}
@@ -113,7 +116,7 @@ public class BenchConst {
 	}
 
 	private static int getPropertyInt(String key, int defaultValue) {
-		String s = getProperty(key, null);
+		String s = getProperty(key, false);
 		if (s == null) {
 			return defaultValue;
 		}
