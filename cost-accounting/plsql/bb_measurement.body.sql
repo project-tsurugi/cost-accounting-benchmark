@@ -3,6 +3,7 @@ is
   unmatch_m_type_exception exception;
 
   function get_measurement_master(unit varchar2) return measurement_master%rowtype
+  result_cache
   is
     entity measurement_master%rowtype;
   begin
