@@ -33,7 +33,7 @@ public class BenchBatchDoma2FactoryTask extends BenchBatchFactoryTask {
 			deleteResult();
 
 			int[] count = { 0 };
-			try (Stream<ItemManufacturingMaster> stream = selectMakeItem()) {
+			try (Stream<ItemManufacturingMaster> stream = selectManufacturingItem()) {
 				stream.forEach(item -> {
 					count[0]++;
 					itemTask.execute(item);
@@ -56,7 +56,7 @@ public class BenchBatchDoma2FactoryTask extends BenchBatchFactoryTask {
 		resultTableDao.deleteByFactory(factoryId, batchDate);
 	}
 
-	private Stream<ItemManufacturingMaster> selectMakeItem() {
+	private Stream<ItemManufacturingMaster> selectManufacturingItem() {
 		ItemManufacturingMasterDao dao = new ItemManufacturingMasterDaoImpl();
 
 		return dao.selectByFactory(factoryId, batchDate);

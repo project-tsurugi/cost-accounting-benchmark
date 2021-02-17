@@ -22,6 +22,7 @@ import com.example.nedo.BenchConst;
 import com.example.nedo.batch.task.BenchBatchDoma2FactoryTask;
 import com.example.nedo.batch.task.BenchBatchFactoryTask;
 import com.example.nedo.batch.task.BenchBatchItemTask;
+import com.example.nedo.batch.task.BenchBatchJdbcFactoryTask;
 import com.example.nedo.init.InitialData;
 import com.example.nedo.jdbc.doma2.config.AppConfig;
 import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
@@ -162,8 +163,26 @@ public class BenchBatch {
 		}
 	}
 
+	private boolean logBenchBatchFactoryTask = false;
+
 	protected BenchBatchFactoryTask newBenchBatchFactoryThread(LocalDate batchDate, int factoryId) {
-		return new BenchBatchDoma2FactoryTask(commitRatio, batchDate, factoryId);
+		BenchBatchFactoryTask task;
+		{
+			int type = BenchConst.batchFactoryTaskType();
+			switch (type) {
+			default:
+				task = new BenchBatchDoma2FactoryTask(commitRatio, batchDate, factoryId);
+				break;
+			case 2:
+				task = new BenchBatchJdbcFactoryTask(commitRatio, batchDate, factoryId);
+				break;
+			}
+		}
+		if (!logBenchBatchFactoryTask) {
+			System.out.println("using " + task.getClass().getSimpleName());
+			logBenchBatchFactoryTask = true;
+		}
+		return task;
 	}
 
 	private void executeStream(LocalDate batchDate, List<Integer> factoryList) {

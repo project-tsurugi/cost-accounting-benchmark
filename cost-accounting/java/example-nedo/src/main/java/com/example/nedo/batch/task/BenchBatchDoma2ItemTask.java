@@ -27,7 +27,7 @@ import com.example.nedo.jdbc.doma2.entity.ResultTable;
 
 public class BenchBatchDoma2ItemTask extends BenchBatchItemTask {
 
-	private ItemConstructionMasterDao ItemConstructionMasterDao;
+	private ItemConstructionMasterDao itemConstructionMasterDao;
 	private ItemMasterDao itemMasterDao;
 	private CostMasterDao costMasterDao;
 	private ResultTableDao resultTableDao;
@@ -38,7 +38,7 @@ public class BenchBatchDoma2ItemTask extends BenchBatchItemTask {
 
 	public void setDao(ItemConstructionMasterDao ItemConstructionMasterDao, ItemMasterDao itemMasterDao,
 			CostMasterDao costMasterDao, ResultTableDao resultTableDao) {
-		this.ItemConstructionMasterDao = ItemConstructionMasterDao;
+		this.itemConstructionMasterDao = ItemConstructionMasterDao;
 		this.itemMasterDao = itemMasterDao;
 		this.costMasterDao = costMasterDao;
 		this.resultTableDao = resultTableDao;
@@ -46,13 +46,13 @@ public class BenchBatchDoma2ItemTask extends BenchBatchItemTask {
 
 	@Override
 	protected List<ItemConstructionMaster> selectItemConstructionMaster(int parentItemId, LocalDate batchDate) {
-		return ItemConstructionMasterDao.selectByParentId(parentItemId, batchDate);
+		return itemConstructionMasterDao.selectByParentId(parentItemId, batchDate);
 	}
 
 	@Override
 	protected Stream<ItemConstructionMaster> selectItemConstructionMasterRecursive(int parentItemId,
 			LocalDate batchDate) {
-		return ItemConstructionMasterDao.selectRecursiveByParentId(parentItemId, batchDate);
+		return itemConstructionMasterDao.selectRecursiveByParentId(parentItemId, batchDate);
 	}
 
 	@Override

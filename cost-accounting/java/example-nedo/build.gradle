@@ -29,6 +29,7 @@ dependencies {
   // https://mvnrepository.com/artifact/com.oracle.database.jdbc/ojdbc8
   runtimeOnly group: 'com.oracle.database.jdbc', name: 'ojdbc8', version: '21.1.0.0'
   implementation group: 'com.oracle.database.jdbc', name: 'ucp', version: '21.1.0.0'
+  runtimeOnly group: 'com.oracle.database.nls', name: 'orai18n', version: '21.1.0.0'
 
   // https://mvnrepository.com/artifact/org.apache.poi/poi
   implementation group: 'org.apache.poi', name: 'poi', version: '4.1.2'

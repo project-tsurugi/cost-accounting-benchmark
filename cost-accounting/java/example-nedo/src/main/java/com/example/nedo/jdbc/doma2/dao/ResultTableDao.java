@@ -22,6 +22,7 @@ public interface ResultTableDao {
 
 	public static final String TABLE_NAME = "result_table";
 
+	public static final String PS_COND_DATE = "r_manufacturing_date = ?";
 	static final String COND_DATE = "r_manufacturing_date = /* date */'2020-09-25'";
 
 	@Delete

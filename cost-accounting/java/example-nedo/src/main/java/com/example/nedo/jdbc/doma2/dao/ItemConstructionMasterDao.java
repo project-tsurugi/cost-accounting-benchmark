@@ -22,6 +22,7 @@ public interface ItemConstructionMasterDao {
 
 	public static final String TABLE_NAME = "item_construction_master";
 
+	public static final String PS_COND_DATE = "? between ic_effective_date and ic_expired_date";
 	static final String COND_DATE = "/* date */'2020-09-23' between ic_effective_date and ic_expired_date";
 
 	@Delete
@@ -50,7 +51,8 @@ public interface ItemConstructionMasterDao {
 	List<ItemConstructionMaster> selectByParentId(int parentId, LocalDate date);
 
 	@Select
-	@Sql("select * from " + TABLE_NAME + " where ic_parent_i_id = /*parentId*/1 and ic_i_id = /*itemId*/2 and " + COND_DATE)
+	@Sql("select * from " + TABLE_NAME + " where ic_parent_i_id = /*parentId*/1 and ic_i_id = /*itemId*/2 and "
+			+ COND_DATE)
 	ItemConstructionMaster selectById(int parentId, int itemId, LocalDate date);
 
 	@Select

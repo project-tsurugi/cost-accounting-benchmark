@@ -18,6 +18,7 @@ public interface ItemMasterDao {
 
 	public static final String TABLE_NAME = "item_master";
 
+	public static final String PS_COND_DATE = "? between i_effective_date and i_expired_date";
 	static final String COND_DATE = "/* date */'2020-09-23' between i_effective_date and i_expired_date";
 
 	@Delete

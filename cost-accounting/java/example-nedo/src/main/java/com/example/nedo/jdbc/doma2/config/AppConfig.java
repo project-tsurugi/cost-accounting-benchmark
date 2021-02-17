@@ -1,7 +1,5 @@
 package com.example.nedo.jdbc.doma2.config;
 
-import javax.sql.DataSource;
-
 import org.seasar.doma.SingletonConfig;
 import org.seasar.doma.jdbc.Config;
 import org.seasar.doma.jdbc.JdbcLogger;
@@ -47,7 +45,7 @@ public class AppConfig implements Config {
 	}
 
 	@Override
-	public DataSource getDataSource() {
+	public LocalTransactionDataSource getDataSource() {
 		return dataSource;
 	}
 
