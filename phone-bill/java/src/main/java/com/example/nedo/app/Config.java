@@ -74,6 +74,32 @@ public class Config {
 	public int numberOfHistoryRecords;
 
 
+	/* オンラインアプリケーションに関するパラメータ */
+
+	/**
+	 * 1分間に更新するマスタレコード数
+	 */
+	private int masterUpdateRecordsPerMin;
+
+
+	/**
+	 * 1分間に追加するレコード数
+	 */
+	private int masterInsertReccrdsPerMin;
+
+
+	/**
+	 * 1分間に追加する通話履歴レコード数
+	 */
+	private int historyUpdateRecordsPerMin;
+
+
+	/**
+	 * 1分間に追加する通話履歴レコード数
+	 */
+	private int historyInsertRecordsPerMin;
+
+
 	/* jdbcのパラメータ */
     public String url;
     public String user;
