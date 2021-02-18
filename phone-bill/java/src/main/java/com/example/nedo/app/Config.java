@@ -197,7 +197,7 @@ public class Config {
 		 threadCount = getInt(THREAD_COUNT, 1);
 		 sharedConnection = getBoolean(SHARED_CONNECTION, true);
 
-		// オンラインアプリケーションに関するパラメータ
+		 // オンラインアプリケーションに関するパラメータ
 		masterUpdateRecordsPerMin = getInt(MASTER_UPDATE_RECORDS_PER_MIN, 0);
 		masterInsertReccrdsPerMin = getInt(MASTER_INSERT_RECCRDS_PER_MIN, 0);
 		historyUpdateRecordsPerMin = getInt(HISTORY_UPDATE_RECORDS_PER_MIN, 0);
@@ -205,8 +205,10 @@ public class Config {
 		historyInsertRecordsPerTransaction = getInt(HISTORY_INSERT_RECORDS_PER_TRANSACTION, 1);
 
 		// その他のパラメータ
-		randomSeed = getLong(RANDOM_SEED, 0);
+		 randomSeed = getLong(RANDOM_SEED, 0);
 	}
+
+
 
 
 	/**
