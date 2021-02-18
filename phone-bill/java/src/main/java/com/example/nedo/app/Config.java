@@ -74,6 +74,44 @@ public class Config {
 	public int numberOfHistoryRecords;
 
 
+	/* オンラインアプリケーションに関するパラメータ */
+
+	/**
+	 * 1分間に更新するマスタレコード数
+	 */
+	private static final String MASTER_UPDATE_RECORDS_PER_MIN = "master.update.records.per.min";
+	public int masterUpdateRecordsPerMin;
+
+
+	/**
+	 * 1分間に追加するレコード数
+	 */
+	private static final String MASTER_INSERT_RECCRDS_PER_MIN = "master.insert.reccrds.per.min";
+	public int masterInsertReccrdsPerMin;
+
+
+	/**
+	 * 1分間に追加する通話履歴レコード数
+	 */
+	private static final String HISTORY_UPDATE_RECORDS_PER_MIN = "history.update.records.per.min";
+	public int historyUpdateRecordsPerMin;
+
+
+	/**
+	 * 1分間に発生する通話履歴インサートのトランザクション数
+	 */
+	private static final String HISTORY_INSERT_TRANSACTION_PER_MIN = "history.insert.transaction.per.min";
+	public int historyInsertTransactionPerMin;
+
+
+	/**
+	 * 一回の通話履歴インサートのトランザックションで、インサートするレコード数
+	 */
+	private static final String HISTORY_INSERT_RECORDS_PER_TRANSACTION = "history.insert.records.per.transaction";
+	public int historyInsertRecordsPerTransaction;
+
+
+
 	/* jdbcのパラメータ */
     public String url;
     public String user;
@@ -155,15 +193,20 @@ public class Config {
 		 password = getString(PASSWORD, "phonebill");
 		 isolationLevel = getIsolationLevel(ISOLATION_LEVEL, Connection.TRANSACTION_READ_COMMITTED);
 
-		 /* スレッドに関するパラメータ */
+		 // スレッドに関するパラメータ
 		 threadCount = getInt(THREAD_COUNT, 1);
 		 sharedConnection = getBoolean(SHARED_CONNECTION, true);
 
+		// オンラインアプリケーションに関するパラメータ
+		masterUpdateRecordsPerMin = getInt(MASTER_UPDATE_RECORDS_PER_MIN, 0);
+		masterInsertReccrdsPerMin = getInt(MASTER_INSERT_RECCRDS_PER_MIN, 0);
+		historyUpdateRecordsPerMin = getInt(HISTORY_UPDATE_RECORDS_PER_MIN, 0);
+		historyInsertTransactionPerMin = getInt(HISTORY_INSERT_TRANSACTION_PER_MIN, 0);
+		historyInsertRecordsPerTransaction = getInt(HISTORY_INSERT_RECORDS_PER_TRANSACTION, 1);
+
 		// その他のパラメータ
-		 randomSeed = getLong(RANDOM_SEED, 0);
+		randomSeed = getLong(RANDOM_SEED, 0);
 	}
-
-
 
 
 	/**
@@ -356,6 +399,13 @@ public class Config {
 		sb.append(String.format(format, PASSWORD, password));
 		sb.append(String.format(format, ISOLATION_LEVEL, toIsolationLevelString(isolationLevel)));
 		sb.append(System.lineSeparator());
+		sb.append(String.format(commentFormat, "オンラインアプリケーションに関するパラメータ"));
+		sb.append(String.format(format, MASTER_UPDATE_RECORDS_PER_MIN, masterUpdateRecordsPerMin));
+		sb.append(String.format(format, MASTER_INSERT_RECCRDS_PER_MIN, masterInsertReccrdsPerMin));
+		sb.append(String.format(format, HISTORY_UPDATE_RECORDS_PER_MIN, historyUpdateRecordsPerMin));
+		sb.append(String.format(format, HISTORY_INSERT_TRANSACTION_PER_MIN, historyInsertTransactionPerMin));
+		sb.append(String.format(format, HISTORY_INSERT_RECORDS_PER_TRANSACTION, historyInsertRecordsPerTransaction));
+		sb.append(System.lineSeparator());
 		sb.append(String.format(commentFormat, "スレッドに関するパラメータ"));
 		sb.append(String.format(format, THREAD_COUNT, threadCount));
 		sb.append(String.format(format, SHARED_CONNECTION, sharedConnection));
@@ -363,5 +413,8 @@ public class Config {
 		sb.append(String.format(commentFormat, "その他のパラメータ"));
 		sb.append(String.format(format, RANDOM_SEED, randomSeed));
 		return sb.toString();
+
+
+
 	}
 }

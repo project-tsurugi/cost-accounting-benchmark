@@ -111,6 +111,13 @@ class ConfigTest {
 		assertEquals(true, config.sharedConnection);
 
 
+		 /* オンラインアプリケーションに関するパラメータ */
+		assertEquals(0, config.masterUpdateRecordsPerMin);
+		assertEquals(0, config.masterInsertReccrdsPerMin);
+		assertEquals(0, config.historyUpdateRecordsPerMin);
+		assertEquals(0, config.historyInsertTransactionPerMin);
+		assertEquals(1, config.historyInsertRecordsPerTransaction);
+
 		/* その他のパラメータ */
 		assertEquals(0, config.randomSeed);
 
