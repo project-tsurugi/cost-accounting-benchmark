@@ -6,8 +6,6 @@ import org.seasar.doma.SingletonConfig;
 import org.seasar.doma.jdbc.Config;
 import org.seasar.doma.jdbc.JdbcLogger;
 import org.seasar.doma.jdbc.dialect.Dialect;
-import org.seasar.doma.jdbc.dialect.OracleDialect;
-import org.seasar.doma.jdbc.dialect.PostgresDialect;
 import org.seasar.doma.jdbc.tx.LocalTransactionDataSource;
 import org.seasar.doma.jdbc.tx.LocalTransactionManager;
 import org.seasar.doma.jdbc.tx.TransactionManager;
@@ -26,20 +24,20 @@ public class AppConfig implements Config {
 	private final TransactionManager transactionManager;
 
 	private AppConfig() {
-		String url = BenchConst.jdbcUrl();
-		String user = BenchConst.jdbcUser();
-		String password = BenchConst.jdbcPassword();
+		JdbcConfigFactory configFactory = createConfigFactory(BenchConst.jdbcUrl());
 
-		this.dialect = createDialect(url);
-		this.dataSource = new LocalTransactionDataSource(url, user, password);
+		this.dialect = configFactory.createDialect();
+		this.dataSource = new LocalTransactionDataSource(configFactory.createDataSource());
 		this.transactionManager = new LocalTransactionManager(dataSource.getLocalTransaction(getJdbcLogger()));
 	}
 
-	private Dialect createDialect(String url) {
+	private JdbcConfigFactory createConfigFactory(String url) {
 		if (url.contains("oracle")) {
-			return new OracleDialect();
+			return new OracleConfigFactory();
+		} else if (url.contains("postgresql")) {
+			return new PostgresConfigFactory();
 		} else {
-			return new PostgresDialect();
+			throw new UnsupportedOperationException("unsupported jdbc url: " + url);
 		}
 	}
 
