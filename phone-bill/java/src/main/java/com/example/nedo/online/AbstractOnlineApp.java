@@ -1,5 +1,6 @@
 package com.example.nedo.online;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,8 +47,9 @@ public abstract class AbstractOnlineApp implements Runnable{
 
 	/**
 	 * 派生クラスが実装するスジェジュールに従い呼び出されるオンラインアプリの処理
+	 * @throws SQLException
 	 */
-	abstract void exec();
+	abstract void exec() throws SQLException;
 
 
 	@Override
@@ -67,15 +69,29 @@ public abstract class AbstractOnlineApp implements Runnable{
 			}
 			LOG.info("{} terminated.", name);
 		} catch (Exception e) {
-			LOG.error("{} aborted by exception", name, e);
+			LOG.error("{} aborted due to exception", name, e);
+		} finally {
+			try {
+				cleanup();
+			} catch (Exception e) {
+				LOG.error("{} cleanup failure due to exception.", name, e);
+			}
 		}
 	}
 
 
 	/**
-	 * スケジュールに従いexec()を呼び出す
+	 * 終了時のクリーンナップ処理
+	 * @throws SQLException
 	 */
-	private void schedule() {
+	protected abstract void cleanup() throws SQLException;
+
+
+	/**
+	 * スケジュールに従いexec()を呼び出す
+	 * @throws SQLException
+	 */
+	private void schedule() throws SQLException {
 		Long schedule = scheduleList.get(0);
 		// 処理の開始時刻になっていなければ、10ミリ秒スリープしてリターンする
 		if (System.currentTimeMillis() < schedule ) {

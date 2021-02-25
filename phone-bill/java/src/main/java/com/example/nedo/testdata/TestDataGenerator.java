@@ -352,7 +352,7 @@ public class TestDataGenerator {
 	 * @param n
 	 * @return
 	 */
-	String getPhoneNumber(long n) {
+	public String getPhoneNumber(long n) {
 		if (n < 0 || MAX_PHNE_NUMBER <= n) {
 			throw new RuntimeException("Out of phone number range: " + n);
 		}
@@ -373,7 +373,7 @@ public class TestDataGenerator {
 	 * @param n
 	 * @return
 	 */
-	Duration getDuration(long n) {
+	public Duration getDuration(long n) {
 		return durationList.get((int) (n % durationList.size()));
 	}
 

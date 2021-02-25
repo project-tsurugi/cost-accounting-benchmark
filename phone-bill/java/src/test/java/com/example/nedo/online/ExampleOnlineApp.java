@@ -46,4 +46,9 @@ public class ExampleOnlineApp extends AbstractOnlineApp {
 		}
 	}
 
+	@Override
+	protected void cleanup() {
+		LOG.info("Cleanup called");
+		throw new RuntimeException(); // cleanup()でExceptionが起きたときの動作を見る
+	}
 }
