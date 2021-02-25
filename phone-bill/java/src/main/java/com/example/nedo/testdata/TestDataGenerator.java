@@ -14,6 +14,7 @@ import java.util.Random;
 import java.util.Set;
 
 import com.example.nedo.app.Config;
+import com.example.nedo.db.Contract;
 import com.example.nedo.db.DBUtils;
 import com.example.nedo.db.Duration;
 import com.example.nedo.db.History;
@@ -39,6 +40,17 @@ public class TestDataGenerator {
 	 * 一度にインサートする行数
 	 */
 	private static final long SQL_BATCH_EXEC_SIZE = 300000;
+
+	/**
+	 * 契約マスタにレコードをインサートするためのSQL
+	 */
+	public static final String SQL_INSERT_TO_CONTRACT = "insert into contracts("
+			+ "phone_number,"
+			+ "start_date,"
+			+ "end_date,"
+			+ "charge_rule"
+			+ ") values(?, ?, ?, ?)";
+
 
 	/**
 	 * 契約期間のパターンを記録するリスト
@@ -76,26 +88,16 @@ public class TestDataGenerator {
 	 *
 	 * @throws SQLException
 	 */
-	public void generateContract() throws SQLException {
+	public void generateContracts() throws SQLException {
 		try (Connection conn = DBUtils.getConnection(config)) {
 			Statement stmt = conn.createStatement();
 			stmt.executeUpdate("truncate table contracts");
 
-			PreparedStatement ps = conn.prepareStatement("insert into contracts("
-					+ "phone_number,"
-					+ "start_date,"
-					+ "end_date,"
-					+ "charge_rule"
-					+ ") values(?, ?, ?, ?)");
+			PreparedStatement ps = conn.prepareStatement(SQL_INSERT_TO_CONTRACT);
 			int batchSize = 0;
 
 			for (long n = 0; n < config.numberOfContractsRecords; n++) {
-				Duration d = getDuration(n);
-				String rule = "Simple";
-				ps.setString(1, getPhoneNumber(n));
-				ps.setDate(2, d.start);
-				ps.setDate(3, d.end);
-				ps.setString(4, rule);
+				setContract(ps, n);
 				ps.addBatch();
 				if (++batchSize == SQL_BATCH_EXEC_SIZE) {
 					execBatch(ps);
@@ -104,6 +106,21 @@ public class TestDataGenerator {
 			}
 			execBatch(ps);
 		}
+	}
+
+	/**
+	 * psにn番目の契約レコードの値をセットする
+	 *
+	 * @return セットした契約レコード
+	 * @throws SQLException
+	 */
+	public Contract setContract(PreparedStatement ps, long n) throws SQLException {
+		Contract c = getContract(n);
+		ps.setString(1, c.phoneNumber);
+		ps.setDate(2, c.startDate);
+		ps.setDate(3, c.endDate);
+		ps.setString(4, c.rule);
+		return c;
 	}
 
 	/**
@@ -352,7 +369,7 @@ public class TestDataGenerator {
 	 * @param n
 	 * @return
 	 */
-	public String getPhoneNumber(long n) {
+	String getPhoneNumber(long n) {
 		if (n < 0 || MAX_PHNE_NUMBER <= n) {
 			throw new RuntimeException("Out of phone number range: " + n);
 		}
@@ -373,7 +390,7 @@ public class TestDataGenerator {
 	 * @param n
 	 * @return
 	 */
-	public Duration getDuration(long n) {
+	Duration getDuration(long n) {
 		return durationList.get((int) (n % durationList.size()));
 	}
 
@@ -387,4 +404,22 @@ public class TestDataGenerator {
 	private long getRandomLong(long min, long max) {
 		return min + (long) (random.nextDouble() * (max - min));
 	}
+
+	/**
+	 * n番目の契約レコードを返す
+	 *
+	 * @param n
+	 * @return
+	 */
+	private Contract getContract(long n) {
+		Contract contract = new Contract();
+		contract.phoneNumber = getPhoneNumber(n);
+		contract.rule = "sample";
+		Duration d = getDuration(n);
+		contract.startDate = d.start;
+		contract.endDate = d.end;
+		return contract;
+	}
 }
+
+

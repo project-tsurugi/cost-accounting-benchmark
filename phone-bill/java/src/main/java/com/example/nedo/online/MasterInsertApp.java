@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Random;
 
 import com.example.nedo.app.Config;
+import com.example.nedo.db.Contract;
 import com.example.nedo.db.DBUtils;
-import com.example.nedo.db.Duration;
 import com.example.nedo.testdata.TestDataGenerator;
 
 /**
@@ -18,7 +18,7 @@ import com.example.nedo.testdata.TestDataGenerator;
 public class MasterInsertApp extends AbstractOnlineApp {
 	private Connection conn;
 	private TestDataGenerator testDataGenerator;
-	ContractKeyHolder contractKeyHolder;
+	private ContractKeyHolder contractKeyHolder;
 
 	public MasterInsertApp(ContractKeyHolder contractKeyHolder, Config config, Random random) throws SQLException {
 		super(config.masterInsertReccrdsPerMin, random);
@@ -30,22 +30,11 @@ public class MasterInsertApp extends AbstractOnlineApp {
 
 	@Override
 	void exec() throws SQLException {
-		PreparedStatement ps = conn.prepareStatement("insert into contracts("
-				+ "phone_number,"
-				+ "start_date,"
-				+ "end_date,"
-				+ "charge_rule"
-				+ ") values(?, ?, ?, ?)");
+		PreparedStatement ps = conn.prepareStatement(TestDataGenerator.SQL_INSERT_TO_CONTRACT);
 		int n = contractKeyHolder.size();
-		String phoneNumber = testDataGenerator.getPhoneNumber(n);
-		Duration d = testDataGenerator.getDuration(n);
-		String rule = "Simple";
-		ps.setString(1, phoneNumber);
-		ps.setDate(2, d.start);
-		ps.setDate(3, d.end);
-		ps.setString(4, rule);
+		Contract c = testDataGenerator.setContract(ps, n);
 		ps.executeUpdate();
-		contractKeyHolder.add(ContractKeyHolder.createKey(phoneNumber, d.start));
+		contractKeyHolder.add(ContractKeyHolder.createKey(c.phoneNumber, c.startDate));
 	}
 
 

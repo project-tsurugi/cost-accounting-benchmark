@@ -33,7 +33,7 @@ class MasterInsertAppTest extends AbstractDbTestCase {
 		new CreateTable().execute(config);
 		truncateTable("contracts");
 		TestDataGenerator generator = new TestDataGenerator(config);
-		generator.generateContract();
+		generator.generateContracts();
 		List<Contract> expectedList = getContracts();
 
 		// MasterInsertAppで5レコード生成し、Generatorで生成したレコードと一致することを確認

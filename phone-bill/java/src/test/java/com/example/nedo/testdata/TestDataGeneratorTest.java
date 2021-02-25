@@ -144,7 +144,7 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 //		Date end = DBUtils.toDate("2020-12-21");
 //		TestDataGenerator generator = new TestDataGenerator(0, 10000, 0, 2, 5, 11, start, end );
 		TestDataGenerator generator = new TestDataGenerator(config);
-		generator.generateContract();
+		generator.generateContracts();
 
 		String sql;
 

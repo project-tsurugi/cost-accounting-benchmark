@@ -23,7 +23,7 @@ public class CreateTestData implements ExecutableCommand {
 
 		// 契約マスタのテストデータ生成
 		long startTime = System.currentTimeMillis();
-		generator.generateContract();
+		generator.generateContracts();
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		String format = "%,d records generated to contracts table in %,.3f sec ";
 		LOG.info(String.format(format, config.numberOfContractsRecords, elapsedTime / 1000d));
