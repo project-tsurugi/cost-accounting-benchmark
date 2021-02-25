@@ -1,5 +1,7 @@
 package com.example.nedo.online;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -12,6 +14,8 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.example.nedo.app.Config;
+
 /**
  * AbstractOnlineAppの動作確認用サンプルアプリ
  *
@@ -20,8 +24,8 @@ public class ExampleOnlineApp extends AbstractOnlineApp {
     private static final Logger LOG = LoggerFactory.getLogger(ExampleOnlineApp.class);
 	private static final DateFormat DF = new SimpleDateFormat("HH:mm:ss.SSS");
 
-	public ExampleOnlineApp() {
-		super(20, new Random());
+	public ExampleOnlineApp() throws SQLException, IOException {
+		super(20, Config.getConfig(), new Random());
 	}
 
 	@Override
@@ -29,7 +33,7 @@ public class ExampleOnlineApp extends AbstractOnlineApp {
 		LOG.info("executed.");
 	}
 
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws InterruptedException, SQLException, IOException {
 		ExampleOnlineApp app = new ExampleOnlineApp();
 		ExecutorService service = Executors.newSingleThreadExecutor();
 		service.submit(app);
@@ -44,11 +48,5 @@ public class ExampleOnlineApp extends AbstractOnlineApp {
 		for(long schedule: scheduleList) {
 			LOG.info("Scheduled at {}", DF.format(new Date(schedule)));
 		}
-	}
-
-	@Override
-	protected void cleanup() {
-		LOG.info("Cleanup called");
-		throw new RuntimeException(); // cleanup()でExceptionが起きたときの動作を見る
 	}
 }

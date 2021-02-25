@@ -1,5 +1,6 @@
 package com.example.nedo.online;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -9,8 +10,12 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.example.nedo.app.Config;
+import com.example.nedo.db.DBUtils;
+
 public abstract class AbstractOnlineApp implements Runnable{
     private static final Logger LOG = LoggerFactory.getLogger(AbstractOnlineApp.class);
+	private Connection conn;
 
 
 	/**
@@ -39,9 +44,11 @@ public abstract class AbstractOnlineApp implements Runnable{
 	private List<Long> scheduleList = new LinkedList<Long>();
 
 
-	public AbstractOnlineApp(int recordsPerMin, Random random) {
+	public AbstractOnlineApp(int recordsPerMin, Config config, Random random) throws SQLException {
 		this.recordsPerMin = recordsPerMin;
 		this.random = random;
+		conn = DBUtils.getConnection(config);
+		conn.setAutoCommit(true);
 	}
 
 
@@ -72,19 +79,14 @@ public abstract class AbstractOnlineApp implements Runnable{
 			LOG.error("{} aborted due to exception", name, e);
 		} finally {
 			try {
-				cleanup();
+				if (conn != null & !conn.isClosed()) {
+					conn.close();
+				}
 			} catch (Exception e) {
 				LOG.error("{} cleanup failure due to exception.", name, e);
 			}
 		}
 	}
-
-
-	/**
-	 * 終了時のクリーンナップ処理
-	 * @throws SQLException
-	 */
-	protected abstract void cleanup() throws SQLException;
 
 
 	/**
@@ -141,4 +143,14 @@ public abstract class AbstractOnlineApp implements Runnable{
 	public void terminate() {
 		terminationRequest = true;
 	}
+
+
+	/**
+	 * @return DBコネクション
+	 */
+	protected Connection getConnection() {
+		return conn;
+	}
+
+
 }

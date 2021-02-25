@@ -8,7 +8,6 @@ import java.util.Random;
 
 import com.example.nedo.app.Config;
 import com.example.nedo.db.Contract;
-import com.example.nedo.db.DBUtils;
 import com.example.nedo.testdata.TestDataGenerator;
 
 /**
@@ -16,20 +15,18 @@ import com.example.nedo.testdata.TestDataGenerator;
  *
  */
 public class MasterInsertApp extends AbstractOnlineApp {
-	private Connection conn;
 	private TestDataGenerator testDataGenerator;
 	private ContractKeyHolder contractKeyHolder;
 
 	public MasterInsertApp(ContractKeyHolder contractKeyHolder, Config config, Random random) throws SQLException {
-		super(config.masterInsertReccrdsPerMin, random);
-		conn = DBUtils.getConnection(config);
-		conn.setAutoCommit(true);
+		super(config.masterInsertReccrdsPerMin, config, random);
 		testDataGenerator = new TestDataGenerator(config);
 		this.contractKeyHolder = contractKeyHolder;
 	}
 
 	@Override
 	void exec() throws SQLException {
+		Connection conn = getConnection();
 		PreparedStatement ps = conn.prepareStatement(TestDataGenerator.SQL_INSERT_TO_CONTRACT);
 		int n = contractKeyHolder.size();
 		Contract c = testDataGenerator.setContract(ps, n);
@@ -41,13 +38,6 @@ public class MasterInsertApp extends AbstractOnlineApp {
 	@Override
 	protected void atScheduleListCreated(List<Long> scheduleList) {
 		// Nothing to do
-	}
-
-	@Override
-	protected void cleanup() throws SQLException {
-		if (conn != null & !conn.isClosed()) {
-			conn.close();
-		}
 	}
 
 }
