@@ -39,25 +39,31 @@ class MasterUpdateAppTest extends AbstractDbTestCase {
 		List<Contract> expected = getContracts();
 
 		app.exec();
+		app.getConnection().commit();
 		expected.get(0).endDate = DBUtils.toDate("2019-01-25");
 		testContracts(expected);
 
 		app.exec();
+		app.getConnection().commit();
 		expected.get(17).endDate = DBUtils.toDate("2020-09-12");
 		testContracts(expected);
 
 		app.exec();
+		app.getConnection().commit();
 		testContracts(expected);
 
 		app.exec();
+		app.getConnection().commit();
 		expected.get(9).endDate = DBUtils.toDate("2021-02-17");
 		testContracts(expected);
 
 		app.exec();
+		app.getConnection().commit();
 		expected.get(17).endDate = null;
 		testContracts(expected);
 
 		app.exec();
+		app.getConnection().commit();
 		expected.get(22).endDate = DBUtils.toDate("2021-02-26");
 		testContracts(expected);
 
@@ -112,12 +118,14 @@ class MasterUpdateAppTest extends AbstractDbTestCase {
 
 		// getContractのテスト
 		Contract contract11 = app.getContract(keyHolder.get(11));
+		app.getConnection().commit();
 		assertEquals("00000000011", contract11.phoneNumber);
 		assertEquals(DBUtils.toDate("2010-08-28"), contract11.startDate);
 		assertEquals(DBUtils.toDate("2014-02-22"), contract11.endDate);
 		assertEquals("sample", contract11.rule);
 
 		Contract contract42 = app.getContract(keyHolder.get(42));
+		app.getConnection().commit();
 		assertEquals("00000000042", contract42.phoneNumber);
 		assertEquals(DBUtils.toDate("2016-09-07"), contract42.startDate);
 		assertNull(contract42.endDate);
@@ -127,12 +135,14 @@ class MasterUpdateAppTest extends AbstractDbTestCase {
 		Key key = keyHolder.get(10);
 		key.startDate = DBUtils.nextDate(key.startDate);
 		RuntimeException e1 = assertThrows(RuntimeException.class, () -> app.getContract(key));
+		app.getConnection().commit();
 		assertEquals("No records selected.", e1.getMessage());
 
 		// updateDatabaseのテスト
 		contract42.endDate = DBUtils.toDate("2016-05-18");
 		contract42.rule = "another rule";
 		app.updateDatabase(contract42);
+		app.getConnection().commit();
 		assertEquals(contract42, app.getContract(keyHolder.get(42)));
 
 		// キーが一致するレコードが存在しない場合
@@ -140,6 +150,7 @@ class MasterUpdateAppTest extends AbstractDbTestCase {
 		contract42.endDate = null;
 		contract42.rule = "sample";
 		RuntimeException e2 = assertThrows(RuntimeException.class, () -> app.updateDatabase(contract42));
+		app.getConnection().commit();
 		assertEquals(
 				"Fail to update contracts: "
 				+ "Contract [phone_number=NotExists, start_date=2016-09-07, end_date=null, rule=sample]",

@@ -5,7 +5,6 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Random;
 
 import com.example.nedo.app.Config;
@@ -22,7 +21,7 @@ public class MasterUpdateApp extends AbstractOnlineApp {
 
 
 	public MasterUpdateApp(ContractKeyHolder contractKeyHolder, Config config, Random random) throws SQLException {
-		super(config.masterInsertReccrdsPerMin, config, random);
+		super(config.masterUpdateRecordsPerMin, config, random);
 		this.config = config;
 		this.random = random;
 		this.contractKeyHolder = contractKeyHolder;
@@ -41,12 +40,6 @@ public class MasterUpdateApp extends AbstractOnlineApp {
 		updater.update(contract);
 		updateDatabase(contract);
 	}
-
-	@Override
-	protected void atScheduleListCreated(List<Long> scheduleList) {
-		// Nothing to do
-	}
-
 
 	/**
 	 * 指定のKEYの契約を取得する

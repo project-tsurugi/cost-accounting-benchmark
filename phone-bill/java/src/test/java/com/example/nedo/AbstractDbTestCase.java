@@ -1,6 +1,8 @@
 package com.example.nedo;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.junit.jupiter.api.AfterAll;
@@ -27,5 +29,20 @@ public abstract class AbstractDbTestCase {
 	@AfterAll
 	static void tearDownAfterClass() throws Exception {
 		conn.close();
+	}
+
+	protected void truncateTable(String tableName) throws SQLException {
+		String sql = "truncate table " + tableName;
+		stmt.executeUpdate(sql);
+	}
+
+	protected int countRecords(String tableName) throws SQLException {
+		String sql = "select count(*) from " + tableName;
+		ResultSet rs = stmt.executeQuery(sql);
+		if (rs.next()) {
+			return rs.getInt(1);
+		} else {
+			throw new RuntimeException("No records selected.");
+		}
 	}
 }

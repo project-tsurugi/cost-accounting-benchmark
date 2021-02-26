@@ -1,5 +1,8 @@
 package com.example.nedo.testdata;
 
+import java.sql.Connection;
+import java.sql.Statement;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +33,13 @@ public class CreateTestData implements ExecutableCommand {
 
 		// 通話履歴のテストデータを作成
 		startTime = System.currentTimeMillis();
-		generator.generateHistory(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2021-01-10"));
+		try (Connection conn = DBUtils.getConnection(config)) {
+			Statement stmt = conn.createStatement();
+			stmt.executeUpdate("truncate table history");
+		}
+		// TODO 日付をハードコードしているが、configで指定可能にする。
+		generator.generateHistory(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2021-01-10"),
+				config.numberOfHistoryRecords);
 		elapsedTime = System.currentTimeMillis() - startTime;
 		format = "%,d records generated to history table in %,.3f sec ";
 		LOG.info(String.format(format, config.numberOfHistoryRecords, elapsedTime / 1000d));

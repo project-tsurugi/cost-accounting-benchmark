@@ -46,18 +46,19 @@ class MasterInsertAppTest extends AbstractDbTestCase {
 		app.exec();
 		app.exec();
 		app.exec();
+		app.getConnection().commit();
 		List<Contract> list = getContracts();
 		assertEquals(5, list.size());
 		for (int i = 0; i < 5; i++) {
 			assertEquals(expectedList.get(i), list.get(i));
 		}
-		// 別のインスタンスを生成しさらに追加で5レコード生成して、Generatorで生成したレコードと一致することを確認
-		MasterInsertApp anotherApp = new MasterInsertApp(contractKeyHolder, config, random);
-		anotherApp.exec();
-		anotherApp.exec();
-		anotherApp.exec();
-		anotherApp.exec();
-		anotherApp.exec();
+		// 追加で5レコード生成して、Generatorで生成したレコードと一致することを確認
+		app.exec();
+		app.exec();
+		app.exec();
+		app.exec();
+		app.exec();
+		app.getConnection().commit();
 		list = getContracts();
 		assertEquals(10, list.size());
 		assertEquals(expectedList, list);
@@ -78,11 +79,6 @@ class MasterInsertAppTest extends AbstractDbTestCase {
 			list.add(c);
 		}
 		return list;
-	}
-
-	protected void truncateTable(String name) throws SQLException {
-		String sql = "truncate table " + name;
-		stmt.executeUpdate(sql);
 	}
 
 }

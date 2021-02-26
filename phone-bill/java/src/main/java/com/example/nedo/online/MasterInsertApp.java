@@ -3,7 +3,6 @@ package com.example.nedo.online;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Random;
 
 import com.example.nedo.app.Config;
@@ -20,7 +19,7 @@ public class MasterInsertApp extends AbstractOnlineApp {
 
 	public MasterInsertApp(ContractKeyHolder contractKeyHolder, Config config, Random random) throws SQLException {
 		super(config.masterInsertReccrdsPerMin, config, random);
-		testDataGenerator = new TestDataGenerator(config);
+		testDataGenerator = new TestDataGenerator(config, random);
 		this.contractKeyHolder = contractKeyHolder;
 	}
 
@@ -33,11 +32,4 @@ public class MasterInsertApp extends AbstractOnlineApp {
 		ps.executeUpdate();
 		contractKeyHolder.add(ContractKeyHolder.createKey(c.phoneNumber, c.startDate));
 	}
-
-
-	@Override
-	protected void atScheduleListCreated(List<Long> scheduleList) {
-		// Nothing to do
-	}
-
 }

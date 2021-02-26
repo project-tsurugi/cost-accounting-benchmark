@@ -62,26 +62,30 @@ public class TestDataGenerator {
 	/**
 	 * テストデータ生成のためのパラメータを指定してContractsGeneratorのインスタンスを生成する.
 	 *
-	 *
-	 * @param seed 乱数のシード
-	 * @param numberOfContractsRecords 契約マスタのレコード数
-	 * @param numberOfHistoryRecords 通話履歴のレコード数
-	 * @param duplicatePhoneNumberRatio 電話番号が重複する割合
-	 * @param expirationDateRate 契約終了日がある電話番号の割合
-	 * @param noExpirationDateRate 契約終了日がない電話番号の割合
-	 * @param minDate 契約開始日の最小値
-	 * @param maxDate 契約終了日の最大値
+	 * @param config
 	 */
 	public TestDataGenerator(Config config) {
+		this(config, new Random(config.randomSeed));
+	}
+
+	/**
+	 * 使用する乱数発生器を指定可能なコンストラクタ
+	 *
+	 * @param config
+	 * @param random
+	 */
+	public TestDataGenerator(Config config, Random random) {
 		this.config = config;
 		if (config.minDate.getTime() >= config.maxDate.getTime()) {
 			new RuntimeException("maxDate is less than or equal to minDate, minDate =" + config.minDate + ", maxDate = "
 					+ config.maxDate);
 		}
-		this.random = new Random(config.randomSeed);
+		this.random = random;
 		this.startTimeSet = new HashSet<Long>(config.numberOfHistoryRecords);
 		initDurationList();
 	}
+
+
 
 	/**
 	 * 契約マスタのテストデータを生成する
@@ -158,9 +162,12 @@ public class TestDataGenerator {
 	 *
 	 * 生成する通話履歴の通話開始時刻は、minDate以上、maxDate未満の値にする。
 	 *
+	 * @param minDate
+	 * @param maxDate
+	 * @param n 生成するレコード数
 	 * @throws SQLException
 	 */
-	public void generateHistory(Date minDate, Date maxDate) throws SQLException {
+	public void generateHistory(Date minDate, Date maxDate, int n) throws SQLException {
 		if (!isValidDurationList(durationList, minDate, maxDate)) {
 			throw new RuntimeException("Invalid duration list.");
 		}
@@ -168,8 +175,6 @@ public class TestDataGenerator {
 		Duration targetDuration = new Duration(minDate, maxDate);
 
 		try (Connection conn = DBUtils.getConnection(config)) {
-			Statement stmt = conn.createStatement();
-			stmt.executeUpdate("truncate table history");
 
 			PreparedStatement ps = conn.prepareStatement("insert into history("
 					+ "caller_phone_number,"
@@ -182,7 +187,7 @@ public class TestDataGenerator {
 					+ ") values(?, ?, ?, ?, ?, ?, ? )");
 			int batchSize = 0;
 			// numberOfHistoryRecords だけレコードを生成する
-			for (long n = 0; n < config.numberOfHistoryRecords; n++) {
+			for (long i = 0; i < n; i++) {
 				History h = createHistoryRecord(targetDuration);
 				ps.setString(1, h.callerPhoneNumber);
 				ps.setString(2, h.recipientPhoneNumber);
@@ -402,7 +407,7 @@ public class TestDataGenerator {
 	 * @return
 	 */
 	private long getRandomLong(long min, long max) {
-		return min + (long) (random.nextDouble() * (max - min));
+		return min + (long) (random.nextDouble() * (max - min - 1));
 	}
 
 	/**

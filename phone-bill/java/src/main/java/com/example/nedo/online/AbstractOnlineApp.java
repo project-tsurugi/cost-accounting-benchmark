@@ -141,7 +141,9 @@ public abstract class AbstractOnlineApp implements Runnable{
 	 *
 	 * @param scheduleList
 	 */
-	protected abstract void atScheduleListCreated(List<Long> scheduleList);
+	protected void atScheduleListCreated(List<Long> scheduleList) {
+		// デフォルト実装ではなにもしない
+	}
 
 
 	/**
