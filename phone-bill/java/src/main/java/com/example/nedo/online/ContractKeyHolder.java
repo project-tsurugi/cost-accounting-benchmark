@@ -26,7 +26,7 @@ public class ContractKeyHolder {
 		try (Connection conn = DBUtils.getConnection(config);
 				Statement stmt = conn.createStatement()) {
 			ResultSet rs = stmt.executeQuery(sql);
-			while(rs.next()) {
+			while (rs.next()) {
 				String phoneNumber = rs.getString(1);
 				Date startDate = rs.getDate(2);
 				keyList.add(createKey(phoneNumber, startDate));

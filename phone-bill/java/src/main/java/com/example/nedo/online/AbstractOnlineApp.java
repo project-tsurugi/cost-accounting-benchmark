@@ -48,7 +48,6 @@ public abstract class AbstractOnlineApp implements Runnable{
 		this.recordsPerMin = recordsPerMin;
 		this.random = random;
 		conn = DBUtils.getConnection(config);
-		conn.setAutoCommit(true);
 	}
 
 
@@ -76,6 +75,13 @@ public abstract class AbstractOnlineApp implements Runnable{
 			}
 			LOG.info("{} terminated.", name);
 		} catch (Exception e) {
+			try {
+				if (conn != null & !conn.isClosed()) {
+					conn.rollback();
+				}
+			} catch (SQLException e1) {
+				throw new RuntimeException(e1);
+			}
 			LOG.error("{} aborted due to exception", name, e);
 		} finally {
 			try {
@@ -111,6 +117,7 @@ public abstract class AbstractOnlineApp implements Runnable{
 			creatScheduleList(schedule);
 		} else {
 			exec();
+			conn.commit();
 		}
 	}
 
