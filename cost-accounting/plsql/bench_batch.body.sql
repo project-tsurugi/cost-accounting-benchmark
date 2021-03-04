@@ -37,6 +37,8 @@ is
     denominator number
   );
 
+  type result_tables is table of result_table%rowtype;
+
   -- factory list
   function bb_get_factory_list(factories varchar2) return bb_factory_id_list
   is
@@ -335,6 +337,7 @@ is
     i int;
     j int;
     result result_table%rowtype;
+    results result_tables := result_tables();
   begin
     if manufact.im_manufacturing_quantity = 0 then
       return;
@@ -397,8 +400,12 @@ is
       result.r_manufacturing_cost       := node.manufacturing_cost;
       result.r_total_manufacturing_cost := node.total_manufacturing_cost;
 
-      insert into result_table values result;
+      results.extend();
+      results(results.last) := result;
     end loop;
+
+    forall i in 1..results.count
+      insert into result_table values results(i);
   end;
 
   function bb_execute(context bb_context) return number
