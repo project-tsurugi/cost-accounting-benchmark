@@ -24,9 +24,9 @@ import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 /**
  * 新規開発商品の追加
  */
-public class BenchOnlineInsertItemTask extends BenchOnlineTask {
+public class BenchOnlineNewItemTask extends BenchOnlineTask {
 
-	public BenchOnlineInsertItemTask() {
+	public BenchOnlineNewItemTask() {
 		super("new-item");
 	}
 
@@ -118,7 +118,7 @@ public class BenchOnlineInsertItemTask extends BenchOnlineTask {
 
 	// for test
 	public static void main(String[] args) {
-		BenchOnlineInsertItemTask task = new BenchOnlineInsertItemTask();
+		BenchOnlineNewItemTask task = new BenchOnlineNewItemTask();
 
 		TransactionManager tm = AppConfig.singleton().getTransactionManager();
 		task.setDao(tm, new ItemManufacturingMasterDaoImpl(), new FactoryMasterDaoImpl(), new ItemMasterDaoImpl(),

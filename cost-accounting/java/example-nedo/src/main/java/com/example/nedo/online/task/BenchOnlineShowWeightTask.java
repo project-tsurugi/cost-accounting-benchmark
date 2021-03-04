@@ -17,10 +17,10 @@ import com.example.nedo.jdbc.doma2.entity.ResultTable;
 /**
  * 重量の照会
  */
-public class BenchOnlineSelectWeightTask extends BenchOnlineTask {
+public class BenchOnlineShowWeightTask extends BenchOnlineTask {
 
-	public BenchOnlineSelectWeightTask() {
-		super("weight");
+	public BenchOnlineShowWeightTask() {
+		super("show-weight");
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class BenchOnlineSelectWeightTask extends BenchOnlineTask {
 
 	// for test
 	public static void main(String[] args) {
-		BenchOnlineSelectWeightTask task = new BenchOnlineSelectWeightTask();
+		BenchOnlineShowWeightTask task = new BenchOnlineShowWeightTask();
 
 		TransactionManager tm = AppConfig.singleton().getTransactionManager();
 		task.setDao(tm, new ItemManufacturingMasterDaoImpl(), new FactoryMasterDaoImpl(), new ItemMasterDaoImpl(), null,

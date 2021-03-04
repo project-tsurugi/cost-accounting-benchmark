@@ -19,6 +19,7 @@ public class BenchOnline {
 
 	public static void main(String[] args) {
 		List<BenchOnlineThread> threadList = new ArrayList<>();
+		// TODO argsから工場IDと日付を取得
 		create1(threadList, 1, 2, InitialData.DEFAULT_BATCH_DATE);
 		create1(threadList, 3, 4, InitialData.DEFAULT_BATCH_DATE);
 		create1(threadList, 5, 6, InitialData.DEFAULT_BATCH_DATE);

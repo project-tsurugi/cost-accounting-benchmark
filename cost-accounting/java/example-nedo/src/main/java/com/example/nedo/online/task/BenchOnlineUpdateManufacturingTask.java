@@ -23,7 +23,7 @@ import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
 public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
 
 	public BenchOnlineUpdateManufacturingTask() {
-		super("update-manu");
+		super("update-manufacturing");
 	}
 
 	@Override

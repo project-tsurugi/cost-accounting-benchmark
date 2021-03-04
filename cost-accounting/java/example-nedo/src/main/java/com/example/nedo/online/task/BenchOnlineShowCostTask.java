@@ -15,12 +15,12 @@ import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 import com.example.nedo.jdbc.doma2.entity.ResultTable;
 
 /**
- * 所要量の照会
+ * 原価の照会
  */
-public class BenchOnlineSelectRequiredQuantityTask extends BenchOnlineTask {
+public class BenchOnlineShowCostTask extends BenchOnlineTask {
 
-	public BenchOnlineSelectRequiredQuantityTask() {
-		super("required");
+	public BenchOnlineShowCostTask() {
+		super("show-cost");
 	}
 
 	@Override
@@ -37,18 +37,19 @@ public class BenchOnlineSelectRequiredQuantityTask extends BenchOnlineTask {
 	protected void executeMain() {
 		FactoryMaster factory = factoryMasterDao.selectById(factoryId);
 
-		try (Stream<ResultTable> stream = resultTableDao.selectRequiredQuantity(factoryId, date)) {
+		try (Stream<ResultTable> stream = resultTableDao.selectCost(factoryId, date)) {
 			stream.forEach(result -> {
 				ItemMaster item = itemMasterDao.selectById(result.getRIId(), date);
-				console("factory=%s, item=%s, required_quantity=%s %s", factory.getFName(), item.getIName(),
-						result.getRRequiredQuantity(), result.getRRequiredQuantityUnit());
+				console("factory=%s, product=%s, total=%s, quantity=%s, cost=%s", factory.getFName(), item.getIName(),
+						result.getRTotalManufacturingCost(), result.getRManufacturingQuantity(),
+						result.getRManufacturingCost());
 			});
 		}
 	}
 
 	// for test
 	public static void main(String[] args) {
-		BenchOnlineSelectRequiredQuantityTask task = new BenchOnlineSelectRequiredQuantityTask();
+		BenchOnlineShowCostTask task = new BenchOnlineShowCostTask();
 
 		TransactionManager tm = AppConfig.singleton().getTransactionManager();
 		task.setDao(tm, new ItemManufacturingMasterDaoImpl(), new FactoryMasterDaoImpl(), new ItemMasterDaoImpl(), null,

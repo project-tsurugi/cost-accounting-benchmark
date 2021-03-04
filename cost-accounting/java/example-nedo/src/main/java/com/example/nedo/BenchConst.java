@@ -42,6 +42,7 @@ public class BenchConst {
 	public static final String PACKAGE_DOMAIN = "com.example.nedo.jdbc.doma2.domain";
 	public static final String PACKAGE_ENTITY = "com.example.nedo.jdbc.doma2.entity";
 
+	// batch
 	public static int batchExecuteType() {
 		return getPropertyInt("batch.execute.type", 2);
 	}
@@ -51,6 +52,11 @@ public class BenchConst {
 	}
 
 	public static int DECIMAL_SCALE = getPropertyInt("decimal.scale", 20);
+
+	// online
+	public static int onlineTaskRatio(String taskName) {
+		return getPropertyInt("online.task.ratio." + taskName);
+	}
 
 	// initial data
 	public static LocalDate initBatchDate() {

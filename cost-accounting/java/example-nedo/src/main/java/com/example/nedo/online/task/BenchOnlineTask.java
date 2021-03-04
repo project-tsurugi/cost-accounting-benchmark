@@ -34,6 +34,10 @@ public abstract class BenchOnlineTask {
 		this.title = title;
 	}
 
+	public String getTitle() {
+		return title;
+	}
+
 	public void setDao(TransactionManager tm, ItemManufacturingMasterDao itemManufacturingMasterDao,
 			FactoryMasterDao factoryMasterDao, ItemMasterDao itemMasterDao,
 			ItemConstructionMasterDao itemCostructionMasterDao, CostMasterDao costMasterDao,
