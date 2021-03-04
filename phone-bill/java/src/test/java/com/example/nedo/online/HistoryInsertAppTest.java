@@ -28,9 +28,6 @@ class HistoryInsertAppTest extends AbstractDbTestCase {
 			expected+= config.historyInsertRecordsPerTransaction;
 			assertEquals(expected, countRecords("history"));
 		}
-
-
-
 	}
 
 }

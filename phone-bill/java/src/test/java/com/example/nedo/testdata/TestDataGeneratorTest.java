@@ -432,8 +432,4 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 		}
 		assertEquals(expected, actual);
 	}
-
-
-
-
 }

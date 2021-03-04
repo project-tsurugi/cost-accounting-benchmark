@@ -94,7 +94,7 @@ public class MasterUpdateApp extends AbstractOnlineApp {
 
 	interface Updater {
 		/**
-		 * Contactの値を更新後の値にする
+		 * Contactの値を更新する
 		 *
 		 * @param contract
 		 */

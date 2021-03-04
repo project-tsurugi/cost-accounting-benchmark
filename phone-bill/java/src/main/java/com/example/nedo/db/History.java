@@ -2,7 +2,7 @@ package com.example.nedo.db;
 
 import java.sql.Timestamp;
 
-public class History {
+public class History implements Cloneable{
 	/**
 	 * 発信者電話番号
 	 */
@@ -114,4 +114,14 @@ public class History {
 			return false;
 		return true;
 	}
+
+	@Override
+	public History clone()  {
+		try {
+			return (History) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new InternalError(e);
+		}
+	}
+
 }

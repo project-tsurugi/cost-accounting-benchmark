@@ -262,11 +262,22 @@ public class TestDataGenerator {
 		history.paymentCategorty = random.nextInt(2) == 0 ? "C" : "R";
 
 		// 通話時間
-		// TODO 分布関数を指定可能にする
-		history.timeSecs = random.nextInt(3600) + 1;
+		history.timeSecs = getTimeSecs(random);
 
 		return history;
 	}
+
+	/**
+	 * 指定の乱数発生器を使用して、ランダムな通話時間を生成する
+	 *
+	 * @param random
+	 * @return
+	 */
+	static public int getTimeSecs(Random random) {
+		// TODO 分布関数を指定可能にする
+		return random.nextInt(3600) + 1;
+	}
+
 
 	/**
 	 * 指定の通話開始時刻が契約範囲に含まれる選択する。

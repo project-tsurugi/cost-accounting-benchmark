@@ -2,21 +2,18 @@ package com.example.nedo.app.billing;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.example.nedo.AbstractDbTestCase;
 import com.example.nedo.app.Config;
 import com.example.nedo.app.CreateTable;
 import com.example.nedo.db.Billing;
@@ -25,27 +22,8 @@ import com.example.nedo.db.Duration;
 import com.example.nedo.db.History;
 import com.example.nedo.testdata.CreateTestData;
 
-class PhoneBillTest {
+class PhoneBillTest extends AbstractDbTestCase {
     private static final Logger LOG = LoggerFactory.getLogger(PhoneBillTest.class);
-
-	Connection conn;
-	Statement stmt;
-
-	@BeforeEach
-	void beforeEach() throws Exception {
-		Config config = Config.getConfig();
-		new CreateTable().execute(config);  // 既存データの削除
-		conn = DBUtils.getConnection(config);
-		conn.setAutoCommit(true);
-		stmt = conn.createStatement();
-	}
-
-	@AfterEach
-	void afterEach() throws SQLException{
-		if (conn != null && !conn.isClosed() ) {
-			conn.close();
-		}
-	}
 
 	@Test
 	void test() throws Exception {
@@ -185,30 +163,6 @@ class PhoneBillTest {
 	}
 
 
-	private List<History> getHistories() throws SQLException {
-		List<History> list = new ArrayList<History>();
-		String sql = "select caller_phone_number, recipient_phone_number,"
-				+ " payment_categorty, start_time,time_secs,charge, df"
-				+ " from history order by caller_phone_number, start_time";
-		ResultSet rs = stmt.executeQuery(sql);
-		while (rs.next()) {
-			History history = new History();
-			history.callerPhoneNumber= rs.getString(1);
-			history.recipientPhoneNumber= rs.getString(2);
-			history.paymentCategorty= rs.getString(3);
-			history.startTime= rs.getTimestamp(4);
-			history.timeSecs= rs.getInt(5);
-			history.charge= rs.getInt(6);
-			if (rs.wasNull()) {
-				history.charge = null;
-			}
-			history.df= rs.getBoolean(7);
-			list.add(history);
-		}
-		return list;
-	}
-
-
 	private List<Billing> getBillings() throws SQLException {
 		List<Billing> list = new ArrayList<Billing>();
 		String sql = "select phone_number, target_month, basic_charge, metered_charge, billing_amount"
@@ -237,20 +191,6 @@ class PhoneBillTest {
 		billing.billingAmount = billingAmount;
 		return billing;
 	}
-
-	private History toHistory(String caller_phone_number, String recipient_phone_number, String payment_categorty,
-			String start_time, int time_secs, Integer charge, boolean df) {
-		History history = new History();
-			history.callerPhoneNumber = caller_phone_number;
-			history.recipientPhoneNumber = recipient_phone_number;
-			history.paymentCategorty = payment_categorty;
-			history.startTime = DBUtils.toTimestamp(start_time);
-			history.timeSecs = time_secs;
-			history.charge = charge;
-			history.df = df;
-		return history;
-	}
-
 
 	/**
 	 * 契約マスタにレコードを追加する
