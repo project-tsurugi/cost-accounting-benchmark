@@ -64,8 +64,10 @@ public class BenchOnlineThread implements Runnable, Callable<Void> {
 		for (BenchOnlineTask task : taskList) {
 			String title = task.getTitle();
 			int ratio = BenchConst.onlineTaskRatio(title);
-			sum += ratio;
-			taskRatioMap.put(sum, task);
+			if (ratio > 0) {
+				sum += ratio;
+				taskRatioMap.put(sum, task);
+			}
 		}
 		return sum;
 	}
@@ -99,7 +101,14 @@ public class BenchOnlineThread implements Runnable, Callable<Void> {
 				break;
 			}
 
-			// TODO sleep入れる？
+			long sleepTime = task.getSleepTime();
+			if (sleepTime > 0) {
+				try {
+					Thread.sleep(sleepTime);
+				} catch (InterruptedException e) {
+					break;
+				}
+			}
 		}
 
 		System.out.println("thread-end");

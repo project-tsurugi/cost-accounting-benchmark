@@ -58,6 +58,10 @@ public class BenchConst {
 		return getPropertyInt("online.task.ratio." + taskName);
 	}
 
+	public static int onlineTaskSleepTime(String taskName) {
+		return getPropertyInt("online.task.sleep." + taskName, 0);
+	}
+
 	// initial data
 	public static LocalDate initBatchDate() {
 		return getPropertyDate("init.batch.date");

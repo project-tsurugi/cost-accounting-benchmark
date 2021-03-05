@@ -2,9 +2,11 @@ package com.example.nedo.online.task;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 import org.seasar.doma.jdbc.tx.TransactionManager;
 
+import com.example.nedo.BenchConst;
 import com.example.nedo.init.BenchRandom;
 import com.example.nedo.jdbc.doma2.dao.CostMasterDao;
 import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
@@ -57,6 +59,15 @@ public abstract class BenchOnlineTask {
 	}
 
 	public abstract void execute();
+
+	private long sleepTime = Integer.MIN_VALUE;
+
+	public long getSleepTime() {
+		if (sleepTime < 0) {
+			this.sleepTime = TimeUnit.SECONDS.toMillis(BenchConst.onlineTaskSleepTime(title));
+		}
+		return sleepTime;
+	}
 
 	protected void logStart(String format, Object... args) {
 		String s = String.format(format, args);
