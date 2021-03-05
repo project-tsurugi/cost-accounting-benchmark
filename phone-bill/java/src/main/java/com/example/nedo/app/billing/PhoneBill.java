@@ -10,6 +10,7 @@ import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
@@ -29,10 +30,21 @@ import com.example.nedo.app.ExecutableCommand;
 import com.example.nedo.db.Contract;
 import com.example.nedo.db.DBUtils;
 import com.example.nedo.db.Duration;
+import com.example.nedo.online.AbstractOnlineApp;
+import com.example.nedo.online.ContractKeyHolder;
+import com.example.nedo.online.HistoryInsertApp;
+import com.example.nedo.online.HistoryUpdateApp;
+import com.example.nedo.online.MasterInsertApp;
+import com.example.nedo.online.MasterUpdateApp;
 
+/**
+ * @author umega
+ *
+ */
 public class PhoneBill implements ExecutableCommand {
     private static final Logger LOG = LoggerFactory.getLogger(PhoneBill.class);
-
+	private ContractKeyHolder contractKeyHolder = null;
+	Config config;
 
 	public static void main(String[] args) throws Exception {
 		Config config = Config.getConfig(args);
@@ -42,9 +54,61 @@ public class PhoneBill implements ExecutableCommand {
 
 	@Override
 	public void execute(Config config) throws Exception {
+		this.config = config;
+		// オンラインアプリを実行する
+		List<AbstractOnlineApp> list = createOnlineApps();
+		final ExecutorService service = list.isEmpty() ? null :Executors.newFixedThreadPool(list.size());
+		list.parallelStream().forEach(task -> service.submit(task));
+
+		// バッチを実行する
 		Duration d = toDuration(config.targetMonth);
-		doCalc(config, d.start, d.end);
+		doCalc(d.start, d.end);
+
+		// オンラインアプリを終了する
+		list.stream().forEach(task -> task.terminate());
+		if (service != null) {
+			service.awaitTermination(1, TimeUnit.MINUTES);
+		}
 	}
+
+
+	/**
+	 * Configに従ってオンラインアプリのインスタンスを生成する
+	 *
+	 * @return オンラインアプリのインスタンスのリスト
+	 * @throws SQLException
+	 */
+	List<AbstractOnlineApp> createOnlineApps() throws SQLException {
+		Random random = new Random(config.randomSeed);
+		List<AbstractOnlineApp> list = new ArrayList<AbstractOnlineApp>();
+		if (config.historyInsertTransactionPerMin > 0) {
+			list.add(new HistoryInsertApp(config, new Random(random.nextLong())));
+		}
+		if (config.historyUpdateRecordsPerMin > 0) {
+			list.add(new HistoryUpdateApp(getContractKeyHolder(), config, new Random(random.nextLong())));
+		}
+		if (config.masterInsertReccrdsPerMin > 0) {
+			list.add(new MasterInsertApp(getContractKeyHolder(), config, new Random(random.nextLong())));
+		}
+		if (config.masterUpdateRecordsPerMin > 0) {
+			list.add(new MasterUpdateApp(getContractKeyHolder(), config, new Random(random.nextLong())));
+		}
+		return list;
+	}
+
+	/**
+	 * 必要に応じてContractKeyHolderを初期化し、ContractKeyHolderを返す。
+	 *
+	 * @return
+	 * @throws SQLException
+	 */
+	ContractKeyHolder getContractKeyHolder() throws SQLException {
+		if (contractKeyHolder == null) {
+			contractKeyHolder = new ContractKeyHolder(config);
+		}
+		return contractKeyHolder;
+	}
+
 
 	/**
 	 * 指定の日付の一日から翌月の一日までのDurationを作成する
@@ -71,7 +135,7 @@ public class PhoneBill implements ExecutableCommand {
 	 * @param end
 	 * @throws Exception
 	 */
-	void doCalc(Config config, Date start, Date end) throws SQLException {
+	void doCalc(Date start, Date end) throws SQLException {
 		String batchExecId = UUID.randomUUID().toString();
 		int threadCount = config.threadCount;
 		boolean sharedConnection = config.sharedConnection;
