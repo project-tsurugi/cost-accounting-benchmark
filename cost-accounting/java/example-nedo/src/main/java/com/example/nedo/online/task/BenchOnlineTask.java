@@ -58,16 +58,15 @@ public abstract class BenchOnlineTask {
 		this.date = date;
 	}
 
-	public abstract void execute();
+	public final void execute() {
+		logStart("factory=%d, date=%s", factoryId, date);
 
-	private long sleepTime = Integer.MIN_VALUE;
+		execute1();
 
-	public long getSleepTime() {
-		if (sleepTime < 0) {
-			this.sleepTime = TimeUnit.SECONDS.toMillis(BenchConst.onlineTaskSleepTime(title));
-		}
-		return sleepTime;
+		logEnd("factory=%d, date=%s", factoryId, date);
 	}
+
+	protected abstract void execute1();
 
 	protected void logStart(String format, Object... args) {
 		String s = String.format(format, args);
@@ -101,5 +100,14 @@ public abstract class BenchOnlineTask {
 	protected void console(String format, Object... args) {
 		String s = String.format(format, args);
 		System.out.println(s);
+	}
+
+	private long sleepTime = Integer.MIN_VALUE;
+
+	public long getSleepTime() {
+		if (sleepTime < 0) {
+			this.sleepTime = TimeUnit.SECONDS.toMillis(BenchConst.onlineTaskSleepTime(title));
+		}
+		return sleepTime;
 	}
 }

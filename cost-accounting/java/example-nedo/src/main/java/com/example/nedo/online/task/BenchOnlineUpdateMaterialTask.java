@@ -29,9 +29,7 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 	}
 
 	@Override
-	public void execute() {
-		logStart("factory=%d, date=%s", factoryId, date);
-
+	protected void execute1() {
 		tm.required(() -> {
 			int select = random.random(0, 1);
 			if (select == 0) {
@@ -40,8 +38,6 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 				executeRemove();
 			}
 		});
-
-		logEnd("factory=%d, date=%s", factoryId, date);
 	}
 
 	protected void executeAdd() {

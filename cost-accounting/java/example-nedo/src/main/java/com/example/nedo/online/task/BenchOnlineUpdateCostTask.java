@@ -27,9 +27,7 @@ public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
 	}
 
 	@Override
-	public void execute() {
-		logStart("factory=%d, date=%s", factoryId, date);
-
+	protected void execute1() {
 		tm.required(() -> {
 			CostMaster cost = selectRandomItem();
 
@@ -40,8 +38,6 @@ public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
 				executeDecrease(cost);
 			}
 		});
-
-		logEnd("factory=%d, date=%s", factoryId, date);
 	}
 
 	private CostMaster selectRandomItem() {

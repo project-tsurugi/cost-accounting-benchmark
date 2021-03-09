@@ -24,17 +24,13 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
 	}
 
 	@Override
-	public void execute() {
-		logStart("factory=%d, date=%s", factoryId, date);
-
+	protected void execute1() {
 		tm.required(() -> {
 			int productId = selectRandomItemId();
 
 			logTarget("factory=%d, date=%s, product=%d", factoryId, date, productId);
 			executeMain(productId);
 		});
-
-		logEnd("factory=%d, date=%s", factoryId, date);
 	}
 
 	protected int selectRandomItemId() {

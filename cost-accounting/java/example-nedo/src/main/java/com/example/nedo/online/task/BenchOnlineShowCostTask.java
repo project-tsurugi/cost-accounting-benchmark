@@ -24,14 +24,10 @@ public class BenchOnlineShowCostTask extends BenchOnlineTask {
 	}
 
 	@Override
-	public void execute() {
-		logStart("factory=%d, date=%s", factoryId, date);
-
+	protected void execute1() {
 		tm.required(() -> {
 			executeMain();
 		});
-
-		logEnd("factory=%d, date=%s", factoryId, date);
 	}
 
 	protected void executeMain() {

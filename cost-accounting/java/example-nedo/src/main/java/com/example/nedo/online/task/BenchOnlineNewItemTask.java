@@ -31,9 +31,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 	}
 
 	@Override
-	public void execute() {
-		logStart("factory=%d, date=%s", factoryId, date);
-
+	protected void execute1() {
 		ItemMaster item;
 		for (;;) {
 			ItemMaster i = tm.required(() -> {
@@ -47,8 +45,6 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 		tm.required(() -> {
 			executeMain2(item);
 		});
-
-		logEnd("factory=%d, date=%s", factoryId, date);
 	}
 
 	protected ItemMaster executeMain() {
