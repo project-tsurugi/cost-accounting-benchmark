@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.example.nedo.AbstractDbTestCase;
 import com.example.nedo.app.Config;
+import com.example.nedo.app.Config.TransactionScope;
 import com.example.nedo.app.CreateTable;
 import com.example.nedo.db.Billing;
 import com.example.nedo.db.DBUtils;
@@ -33,7 +34,7 @@ class PhoneBillTest extends AbstractDbTestCase {
 		phoneBill.config = Config.getConfig();
 
 		// データが存在しない状態での料金計算
-		phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
+		phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"), TransactionScope.WHOLE);
 		assertEquals(0, getBillings().size());
 
 		// 契約マスタにテストデータをセット
@@ -49,7 +50,7 @@ class PhoneBillTest extends AbstractDbTestCase {
 
 
 		// 通話履歴がない状態での料金計算
-		phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
+		phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"), TransactionScope.WHOLE);
 		List<Billing> billings = getBillings();
 		assertEquals(5, billings.size());
 		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 0, 3000), billings.get(0));
@@ -70,7 +71,7 @@ class PhoneBillTest extends AbstractDbTestCase {
 		insertToHistory("Phone-0005", "Phone-0001", "C", "2020-11-10 00:00:00.000", 250, false);  	// 計算対象
 		insertToHistory("Phone-0005", "Phone-0008", "R", "2020-11-30 00:00:00.000", 30, false);  	// 計算対象(受信者負担)
 
-		phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
+		phoneBill.doCalc(DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"), TransactionScope.WHOLE);
 		billings = getBillings();
 		assertEquals(5, billings.size());
 		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 30, 3000), billings.get(0));
@@ -93,7 +94,7 @@ class PhoneBillTest extends AbstractDbTestCase {
         // Phone-0001が先に処理されテーブルが更新されるが、Phone-005の処理でExceptionが発生し、処理全体がロールバックされる
 		insertToHistory("Phone-0001", "Phone-0008", "C", "2020-11-01 00:30:00.000", 30, false);  	// 計算対象
 		insertToHistory("Phone-0005", "Phone-0001", "C", "2020-11-10 01:00:00.000", -1, false);  	// 通話時間が負数なのでExceptionがスローされる
-		phoneBill.doCalc( DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
+		phoneBill.doCalc( DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"), TransactionScope.WHOLE);
 		billings = getBillings();
 		assertEquals(5, billings.size());
 		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 30, 3000), billings.get(0));
@@ -118,7 +119,7 @@ class PhoneBillTest extends AbstractDbTestCase {
 		// Exceptionの原因となるレコードを削除して再実行
 		String sql = "delete from history where caller_phone_number = 'Phone-0005' and start_time = '2020-11-10 01:00:00'";
 		stmt.execute(sql);
-		phoneBill.doCalc( DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
+		phoneBill.doCalc( DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"), TransactionScope.WHOLE);
 		billings = getBillings();
 		assertEquals(5, billings.size());
 		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 40, 3000), billings.get(0));
@@ -142,7 +143,7 @@ class PhoneBillTest extends AbstractDbTestCase {
 		// 論理削除フラグを立てたレコードが計算対象外になることの確認
 		sql = "update history set df = 1 where caller_phone_number = 'Phone-0001' and start_time = '2020-11-30 23:59:59.999'";
 		stmt.execute(sql);
-		phoneBill.doCalc( DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"));
+		phoneBill.doCalc( DBUtils.toDate("2020-11-01"), DBUtils.toDate("2020-11-30"), TransactionScope.WHOLE);
 		billings = getBillings();
 		assertEquals(5, billings.size());
 		assertEquals(toBilling("Phone-0001", "2020-11-01", 3000, 20, 3000), billings.get(0));

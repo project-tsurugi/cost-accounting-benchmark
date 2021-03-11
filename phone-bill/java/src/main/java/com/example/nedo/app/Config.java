@@ -15,9 +15,7 @@ import com.example.nedo.db.DBUtils;
 
 public class Config {
 
-
 	private Properties prop;
-
 
 	/* 料金計算に関するパラメータ */
 
@@ -73,7 +71,6 @@ public class Config {
 	private static final String NUMBER_OF_HISTORY_RECORDS = "number.of.history.records";
 	public int numberOfHistoryRecords;
 
-
 	/* オンラインアプリケーションに関するパラメータ */
 
 	/**
@@ -82,13 +79,11 @@ public class Config {
 	private static final String MASTER_UPDATE_RECORDS_PER_MIN = "master.update.records.per.min";
 	public int masterUpdateRecordsPerMin;
 
-
 	/**
 	 * 1分間に追加するレコード数
 	 */
 	private static final String MASTER_INSERT_RECCRDS_PER_MIN = "master.insert.reccrds.per.min";
 	public int masterInsertReccrdsPerMin;
-
 
 	/**
 	 * 1分間に追加する通話履歴レコード数
@@ -96,13 +91,11 @@ public class Config {
 	private static final String HISTORY_UPDATE_RECORDS_PER_MIN = "history.update.records.per.min";
 	public int historyUpdateRecordsPerMin;
 
-
 	/**
 	 * 1分間に発生する通話履歴インサートのトランザクション数
 	 */
 	private static final String HISTORY_INSERT_TRANSACTION_PER_MIN = "history.insert.transaction.per.min";
 	public int historyInsertTransactionPerMin;
-
 
 	/**
 	 * 一回の通話履歴インサートのトランザックションで、インサートするレコード数
@@ -110,13 +103,11 @@ public class Config {
 	private static final String HISTORY_INSERT_RECORDS_PER_TRANSACTION = "history.insert.records.per.transaction";
 	public int historyInsertRecordsPerTransaction;
 
-
-
 	/* jdbcのパラメータ */
-    public String url;
-    public String user;
-    public String password;
-    public int isolationLevel;
+	public String url;
+	public String user;
+	public String password;
+	public int isolationLevel;
 	private static final String URL = "url";
 	private static final String USER = "user";
 	private static final String PASSWORD = "password";
@@ -132,14 +123,11 @@ public class Config {
 	 */
 	public int threadCount;
 
-
 	/**
 	 * 料金計算のスレッドが、メインスレッドとJDBC Connectionを共有することを示すフラグ
 	 */
 	public boolean sharedConnection;
 	private static final String SHARED_CONNECTION = "shared.connection";
-
-
 
 	/* その他のパラメータ */
 
@@ -148,6 +136,12 @@ public class Config {
 	 */
 	public long randomSeed;
 	private static final String RANDOM_SEED = "random.seed";
+
+	/**
+	 * トランザクションのスコープ
+	 */
+	public TransactionScope transactionScope;
+	private static final String TRANSACTION_SCOPE = "transaction.scope";
 
 	/**
 	 * コンストラクタ
@@ -172,32 +166,31 @@ public class Config {
 	 */
 	private void init() {
 		// 料金計算に関するパラメータ
-		 targetMonth = getDate(TARGET_MONTH, DBUtils.toDate("2020-12-01"));
+		targetMonth = getDate(TARGET_MONTH, DBUtils.toDate("2020-12-01"));
 
 		// 契約マスタ生成に関するパラメータ
-		 numberOfContractsRecords =
-				 getInt(NUMBER_OF_CONTRACTS_RECORDS, 1000);
-		 duplicatePhoneNumberRatio = getInt(DUPLICATE_PHONE_NUMBER_RATIO, 10);
-		 expirationDateRate = getInt(EXPIRATION_DATE_RATE, 30);
-		 noExpirationDateRate = getInt(NO_EXPIRATION_DATE_RATE, 50);
-		 minDate = getDate(MIN_DATE, DBUtils.toDate("2010-11-11"));
-		 maxDate = getDate(MAX_DATE, DBUtils.toDate("2021-03-01"));
+		numberOfContractsRecords = getInt(NUMBER_OF_CONTRACTS_RECORDS, 1000);
+		duplicatePhoneNumberRatio = getInt(DUPLICATE_PHONE_NUMBER_RATIO, 10);
+		expirationDateRate = getInt(EXPIRATION_DATE_RATE, 30);
+		noExpirationDateRate = getInt(NO_EXPIRATION_DATE_RATE, 50);
+		minDate = getDate(MIN_DATE, DBUtils.toDate("2010-11-11"));
+		maxDate = getDate(MAX_DATE, DBUtils.toDate("2021-03-01"));
 
 		// 通話履歴生成に関するパラメータ
-		 numberOfHistoryRecords = getInt(NUMBER_OF_HISTORY_RECORDS, 1000);
+		numberOfHistoryRecords = getInt(NUMBER_OF_HISTORY_RECORDS, 1000);
 
 		// JDBCに関するパラメータ
-		 url = getString(URL, "jdbc:postgresql://127.0.0.1/phonebill");
-//		 url = getString(URL, "jdbc:oracle:thin:@localhost:1521:ORCL");
-		 user = getString(USER, "phonebill");
-		 password = getString(PASSWORD, "phonebill");
-		 isolationLevel = getIsolationLevel(ISOLATION_LEVEL, Connection.TRANSACTION_READ_COMMITTED);
+		url = getString(URL, "jdbc:postgresql://127.0.0.1/phonebill");
+		//		 url = getString(URL, "jdbc:oracle:thin:@localhost:1521:ORCL");
+		user = getString(USER, "phonebill");
+		password = getString(PASSWORD, "phonebill");
+		isolationLevel = getIsolationLevel(ISOLATION_LEVEL, Connection.TRANSACTION_READ_COMMITTED);
 
-		 // スレッドに関するパラメータ
-		 threadCount = getInt(THREAD_COUNT, 1);
-		 sharedConnection = getBoolean(SHARED_CONNECTION, true);
+		// スレッドに関するパラメータ
+		threadCount = getInt(THREAD_COUNT, 1);
+		sharedConnection = getBoolean(SHARED_CONNECTION, true);
 
-		 // オンラインアプリケーションに関するパラメータ
+		// オンラインアプリケーションに関するパラメータ
 		masterUpdateRecordsPerMin = getInt(MASTER_UPDATE_RECORDS_PER_MIN, 0);
 		masterInsertReccrdsPerMin = getInt(MASTER_INSERT_RECCRDS_PER_MIN, 0);
 		historyUpdateRecordsPerMin = getInt(HISTORY_UPDATE_RECORDS_PER_MIN, 0);
@@ -205,11 +198,38 @@ public class Config {
 		historyInsertRecordsPerTransaction = getInt(HISTORY_INSERT_RECORDS_PER_TRANSACTION, 1);
 
 		// その他のパラメータ
-		 randomSeed = getLong(RANDOM_SEED, 0);
+		randomSeed = getLong(RANDOM_SEED, 0);
+		transactionScope = gettransactionScope(TRANSACTION_SCOPE, TransactionScope.WHOLE);
+
+		// パラメータ間の矛盾のチェック
+		if (transactionScope == TransactionScope.CONTRACT && sharedConnection) {
+			// トランザクションのスコープが契約単位で、コネクション共有は許されない
+			throw new RuntimeException("TransactionScope Contract and sharedConnection cannot be specified at the same time.");
+		}
+
 	}
 
+	/**
+	 * トランザックションスコープを取得する
+	 *
+	 * @param transactionScope
+	 * @param whole
+	 * @return
+	 */
+	private TransactionScope gettransactionScope(String key, TransactionScope defaultValue) {
+		if (!prop.containsKey(key)) {
+			return defaultValue;
+		}
 
-
+		if (prop.getProperty(key).equalsIgnoreCase(TransactionScope.CONTRACT.toString())) {
+			return TransactionScope.CONTRACT;
+		} else if (prop.getProperty(key).equalsIgnoreCase(TransactionScope.WHOLE.toString())) {
+			return TransactionScope.WHOLE;
+		} else {
+			throw new RuntimeException("Unsupported transaction scope: " + prop.getProperty(key) + ", only '"
+					+ TransactionScope.CONTRACT + "' or '" + TransactionScope.WHOLE + "' are supported.");
+		}
+	}
 
 	/**
 	 * Transaction Isolation Levelを取得する
@@ -318,7 +338,6 @@ public class Config {
 		}
 	}
 
-
 	/**
 	 * Stringのプロパティの値を取得する
 	 *
@@ -350,7 +369,6 @@ public class Config {
 		return value;
 	}
 
-
 	/**
 	 * configオブジェクトの生成.
 	 * <br>
@@ -372,8 +390,6 @@ public class Config {
 	public static Config getConfig() throws IOException {
 		return getConfig(new String[0]);
 	}
-
-
 
 	@Override
 	public String toString() {
@@ -414,9 +430,11 @@ public class Config {
 		sb.append(System.lineSeparator());
 		sb.append(String.format(commentFormat, "その他のパラメータ"));
 		sb.append(String.format(format, RANDOM_SEED, randomSeed));
+		sb.append(String.format(format, TRANSACTION_SCOPE, transactionScope));
 		return sb.toString();
+	}
 
-
-
+	public static enum TransactionScope {
+		WHOLE, CONTRACT
 	}
 }

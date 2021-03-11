@@ -14,11 +14,14 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com.example.nedo.app.Config.TransactionScope;
 import com.example.nedo.db.DBUtils;
 
 class ConfigTest {
 	private static String NOT_DEFALUT_CONFIG_PATH = "src/test/config/not-default.properties";
 	private static String DEFALUT_CONFIG_PATH = "src/test/config/default.properties";
+	private static String INCONSISTENT_CONFIG_PATH = "src/test/config/inconsistent.properties";
+
 
 	/**
 	 * 設定ファイルを指定しないケースのテスト
@@ -32,7 +35,7 @@ class ConfigTest {
 		Config defaultConfig = Config.getConfig();
 		checkDefault(defaultConfig);
 
-		String[] args = {NOT_DEFALUT_CONFIG_PATH};
+		String[] args = { NOT_DEFALUT_CONFIG_PATH };
 		Config config = Config.getConfig(args);
 		checkConfig(config);
 
@@ -42,6 +45,19 @@ class ConfigTest {
 		// テストケースの作成漏れ確認のため、configにデフォルト値以外が指定されていることを確認する
 		checkDifferent(defaultConfig, config);
 	}
+
+	/**
+	 * パラメータの指定に矛盾がある設定ファイルを指定したときのテスト
+	 * @throws IOException
+	 */
+	@Test
+	void inconsistentTest() throws IOException {
+		String[] args = { INCONSISTENT_CONFIG_PATH };
+		Exception e = assertThrows(RuntimeException.class, () -> Config.getConfig(args));
+		assertEquals("TransactionScope Contract and sharedConnection cannot be specified at the same time.",
+				e.getMessage());
+	}
+
 
 	private void checkDifferent(Config defaultConfig, Config config) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		Map<String, Object> defaultMap = describe(defaultConfig);
@@ -120,6 +136,7 @@ class ConfigTest {
 
 		/* その他のパラメータ */
 		assertEquals(0, config.randomSeed);
+		assertEquals(TransactionScope.WHOLE, config.transactionScope);
 
 		// toStringのチェック
 		Path path = Paths.get(DEFALUT_CONFIG_PATH);
@@ -150,6 +167,7 @@ class ConfigTest {
 
 		/* その他のパラメータ */
 		assertEquals(1969, config.randomSeed);
+		assertEquals(TransactionScope.CONTRACT, config.transactionScope);
 
 		/* スレッドに関するパラメータ */
 		assertEquals(10, config.threadCount);

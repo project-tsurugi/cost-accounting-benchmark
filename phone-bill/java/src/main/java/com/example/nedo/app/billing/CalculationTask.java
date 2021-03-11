@@ -12,6 +12,7 @@ import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.example.nedo.app.Config.TransactionScope;
 import com.example.nedo.db.Contract;
 import com.example.nedo.db.DBUtils;
 
@@ -21,7 +22,7 @@ import com.example.nedo.db.DBUtils;
  */
 public class CalculationTask implements Callable<Exception> {
     private static final Logger LOG = LoggerFactory.getLogger(CalculationTask.class);
-
+    private TransactionScope transactionScope;
     private String batchExecId;
 
 
@@ -43,9 +44,11 @@ public class CalculationTask implements Callable<Exception> {
 	 * @param queue
 	 * @param conn
 	 */
-	public CalculationTask(BlockingQueue<CalculationTarget> queue, Connection conn, String batchExecId) {
+	public CalculationTask(BlockingQueue<CalculationTarget> queue, Connection conn, TransactionScope transactionScope,
+			String batchExecId) {
 		this.queue = queue;
 		this.conn = conn;
+		this.transactionScope = transactionScope;
 		this.batchExecId = batchExecId;
 	}
 
@@ -53,6 +56,7 @@ public class CalculationTask implements Callable<Exception> {
 	@Override
 	public Exception call() throws Exception {
 		try {
+			LOG.info("Calculation task started.");
 			for(;;) {
 				CalculationTarget target;
 				try {
@@ -62,11 +66,13 @@ public class CalculationTask implements Callable<Exception> {
 					continue;
 				}
 				if (target.isEndOfTask()) {
+					LOG.info("Calculation task finished normally.");
 					return null;
 				}
 				doCalc(target);
 			}
 		} catch (Exception e) {
+			LOG.info("Calculation task finished with a exception.", e);
 			return e;
 		}
 	}
@@ -79,6 +85,9 @@ public class CalculationTask implements Callable<Exception> {
 	 */
 	private void doCalc(CalculationTarget target) throws SQLException {
 		Contract contract = target.getContract();
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Start calcuration for  contract: {}.", contract);
+		}
 		Date start = target.getStart();
 		Date end = target.getEnd();
 		CallChargeCalculator callChargeCalculator = target.getCallChargeCalculator();
@@ -99,6 +108,12 @@ public class CalculationTask implements Callable<Exception> {
 			}
 		}
 		updateBilling(conn, contract, billingCalculator, start);
+		if (transactionScope == TransactionScope.CONTRACT) {
+			conn.commit();
+		}
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("End calcuration for  contract: {}.", contract);
+		}
 	}
 
 	/**

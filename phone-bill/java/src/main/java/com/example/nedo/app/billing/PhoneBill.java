@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.example.nedo.app.Config;
+import com.example.nedo.app.Config.TransactionScope;
 import com.example.nedo.app.ExecutableCommand;
 import com.example.nedo.db.Contract;
 import com.example.nedo.db.DBUtils;
@@ -62,7 +63,7 @@ public class PhoneBill implements ExecutableCommand {
 
 		// バッチを実行する
 		Duration d = toDuration(config.targetMonth);
-		doCalc(d.start, d.end);
+		doCalc(d.start, d.end, config.transactionScope);
 
 		// オンラインアプリを終了する
 		list.stream().forEach(task -> task.terminate());
@@ -135,7 +136,7 @@ public class PhoneBill implements ExecutableCommand {
 	 * @param end
 	 * @throws Exception
 	 */
-	void doCalc(Date start, Date end) throws SQLException {
+	void doCalc(Date start, Date end, TransactionScope transactionScope) throws SQLException {
 		String batchExecId = UUID.randomUUID().toString();
 		int threadCount = config.threadCount;
 		boolean sharedConnection = config.sharedConnection;
@@ -153,11 +154,12 @@ public class PhoneBill implements ExecutableCommand {
 			service = Executors.newFixedThreadPool(threadCount);
 			for(int i =0; i < threadCount; i++) {
 				if (sharedConnection) {
-					futures.add( service.submit(new CalculationTask(queue, conn, batchExecId)));
+					futures.add(service.submit(new CalculationTask(queue, conn, transactionScope, batchExecId)));
 				} else {
 					Connection newConnection = DBUtils.getConnection(config);
 					connections.add(newConnection);
-					futures.add( service.submit(new CalculationTask(queue, newConnection, batchExecId)));
+					futures.add(
+							service.submit(new CalculationTask(queue, newConnection, transactionScope, batchExecId)));
 				}
 			}
 
