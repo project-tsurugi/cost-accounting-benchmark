@@ -5,6 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.example.nedo.app.Config;
 import com.example.nedo.db.Contract;
 import com.example.nedo.testdata.TestDataGenerator;
@@ -14,6 +17,8 @@ import com.example.nedo.testdata.TestDataGenerator;
  *
  */
 public class MasterInsertApp extends AbstractOnlineApp {
+    private static final Logger LOG = LoggerFactory.getLogger(MasterInsertApp.class);
+
 	private TestDataGenerator testDataGenerator;
 	private ContractKeyHolder contractKeyHolder;
 
@@ -31,5 +36,6 @@ public class MasterInsertApp extends AbstractOnlineApp {
 		Contract c = testDataGenerator.setContract(ps, n);
 		ps.executeUpdate();
 		contractKeyHolder.add(ContractKeyHolder.createKey(c.phoneNumber, c.startDate));
+		LOG.info("ONLINE APP: Insert 1 record to contracs.");
 	}
 }

@@ -21,12 +21,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.example.nedo.app.Config;
-import com.example.nedo.app.Config.TransactionScope;
 import com.example.nedo.app.ExecutableCommand;
 import com.example.nedo.db.Contract;
 import com.example.nedo.db.DBUtils;
@@ -63,12 +63,13 @@ public class PhoneBill implements ExecutableCommand {
 
 		// バッチを実行する
 		Duration d = toDuration(config.targetMonth);
-		doCalc(d.start, d.end, config.transactionScope);
+		doCalc(d.start, d.end);
 
 		// オンラインアプリを終了する
 		list.stream().forEach(task -> task.terminate());
 		if (service != null) {
-			service.awaitTermination(1, TimeUnit.MINUTES);
+			service.shutdown();
+			service.awaitTermination(5, TimeUnit.MINUTES);
 		}
 	}
 
@@ -136,7 +137,8 @@ public class PhoneBill implements ExecutableCommand {
 	 * @param end
 	 * @throws Exception
 	 */
-	void doCalc(Date start, Date end, TransactionScope transactionScope) throws SQLException {
+	void doCalc(Date start, Date end) throws SQLException {
+		AtomicBoolean abortRequested = new AtomicBoolean(false);
 		String batchExecId = UUID.randomUUID().toString();
 		int threadCount = config.threadCount;
 		boolean sharedConnection = config.sharedConnection;
@@ -154,12 +156,12 @@ public class PhoneBill implements ExecutableCommand {
 			service = Executors.newFixedThreadPool(threadCount);
 			for(int i =0; i < threadCount; i++) {
 				if (sharedConnection) {
-					futures.add(service.submit(new CalculationTask(queue, conn, transactionScope, batchExecId)));
+					futures.add(service.submit(new CalculationTask(queue, conn, config, batchExecId, abortRequested)));
 				} else {
 					Connection newConnection = DBUtils.getConnection(config);
 					connections.add(newConnection);
-					futures.add(
-							service.submit(new CalculationTask(queue, newConnection, transactionScope, batchExecId)));
+					futures.add(service
+							.submit(new CalculationTask(queue, newConnection, config, batchExecId, abortRequested)));
 				}
 			}
 
@@ -186,7 +188,7 @@ public class PhoneBill implements ExecutableCommand {
 			if (service != null && !service.isTerminated()) {
 				service.shutdown();
 			}
-			cleanup(futures, connections);
+			cleanup(futures, connections, abortRequested);
 		}
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		String format = "Billings calculated in %,.3f sec ";
@@ -197,10 +199,11 @@ public class PhoneBill implements ExecutableCommand {
 	 * @param conn
 	 * @param futures
 	 * @param connections
+	 * @param abortRequested
 	 * @throws SQLException
 	 */
-	private void cleanup(Set<Future<Exception>> futures, List<Connection> connections) throws SQLException {
-		// TODO 適切なログを出力する
+	private void cleanup(Set<Future<Exception>> futures, List<Connection> connections, AtomicBoolean abortRequested)
+			throws SQLException {
 		boolean needRollback = false;
 		while (!futures.isEmpty()) {
 			try {
@@ -216,7 +219,9 @@ public class PhoneBill implements ExecutableCommand {
 					if (future.isDone()) {
 						it.remove();
 						try {
-							e = future.get(0, TimeUnit.SECONDS);
+							if (!future.isCancelled()) {
+								e = future.get(0, TimeUnit.SECONDS);
+							}
 						} catch (InterruptedException e1) {
 							continue;
 						} catch (ExecutionException e1) {
@@ -229,21 +234,20 @@ public class PhoneBill implements ExecutableCommand {
 				if (e != null) {
 					LOG.error("Exception cought", e);
 					needRollback = true;
-					for(Future<Exception> future: futures) {
-						future.cancel(true);
-					}
+					abortRequested.set(true);
 				}
 			}
 		}
+
 		if (needRollback) {
-			for (Connection c: connections) {
+			for (Connection c : connections) {
 				if (c != null && !c.isClosed()) {
 					c.rollback();
 					c.close();
 				}
 			}
 		} else {
-			for (Connection c: connections) {
+			for (Connection c : connections) {
 				if (c != null && !c.isClosed()) {
 					c.commit();
 					c.close();

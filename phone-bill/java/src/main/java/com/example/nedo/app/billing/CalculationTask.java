@@ -8,10 +8,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.example.nedo.app.Config;
 import com.example.nedo.app.Config.TransactionScope;
 import com.example.nedo.db.Contract;
 import com.example.nedo.db.DBUtils;
@@ -22,8 +24,9 @@ import com.example.nedo.db.DBUtils;
  */
 public class CalculationTask implements Callable<Exception> {
     private static final Logger LOG = LoggerFactory.getLogger(CalculationTask.class);
-    private TransactionScope transactionScope;
+    private Config config;
     private String batchExecId;
+    private AtomicBoolean abortRequested;
 
 
 	/**
@@ -44,12 +47,13 @@ public class CalculationTask implements Callable<Exception> {
 	 * @param queue
 	 * @param conn
 	 */
-	public CalculationTask(BlockingQueue<CalculationTarget> queue, Connection conn, TransactionScope transactionScope,
-			String batchExecId) {
+	public CalculationTask(BlockingQueue<CalculationTarget> queue, Connection conn, Config config,
+			String batchExecId, AtomicBoolean abortRequested) {
 		this.queue = queue;
 		this.conn = conn;
-		this.transactionScope = transactionScope;
+		this.config = config;
 		this.batchExecId = batchExecId;
+		this.abortRequested = abortRequested;
 	}
 
 
@@ -61,11 +65,12 @@ public class CalculationTask implements Callable<Exception> {
 				CalculationTarget target;
 				try {
 					target = queue.take();
+					LOG.info("{} contracts remains in the queue.", queue.size());
 				} catch (InterruptedException e) {
 					LOG.debug("InterruptedException caught and continue taking calculation_target", e);
 					continue;
 				}
-				if (target.isEndOfTask()) {
+				if (target.isEndOfTask() || abortRequested.get() == true) {
 					LOG.info("Calculation task finished normally.");
 					return null;
 				}
@@ -108,7 +113,7 @@ public class CalculationTask implements Callable<Exception> {
 			}
 		}
 		updateBilling(conn, contract, billingCalculator, start);
-		if (transactionScope == TransactionScope.CONTRACT) {
+		if (config.transactionScope == TransactionScope.CONTRACT) {
 			conn.commit();
 		}
 		if (LOG.isDebugEnabled()) {
@@ -154,6 +159,10 @@ public class CalculationTask implements Callable<Exception> {
 	 */
 	private void updateBilling(Connection conn, Contract contract, BillingCalculator billingCalculator,
 			Date targetMonth) throws SQLException {
+		LOG.info("Inserting to billing table: phone_number = {}, target_month = {}"
+				+ ", basic_charge = {}, metered_charge = {}, billing_amount = {}, batch_exec_id = {} "
+				, contract.phoneNumber, targetMonth, billingCalculator.getBasicCharge(),
+				billingCalculator.getMeteredCharge(), billingCalculator.getBillingAmount(), batchExecId);
 		String sql = "insert into billing("
 				+ "phone_number, target_month, basic_charge, metered_charge, billing_amount, batch_exec_id)"
 				+ " values(?, ?, ?, ?, ?, ?)";

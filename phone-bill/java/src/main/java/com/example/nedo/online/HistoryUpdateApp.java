@@ -10,12 +10,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.example.nedo.app.Config;
 import com.example.nedo.db.History;
 import com.example.nedo.online.ContractKeyHolder.Key;
 import com.example.nedo.testdata.TestDataGenerator;
 
 public class HistoryUpdateApp extends AbstractOnlineApp {
+    private static final Logger LOG = LoggerFactory.getLogger(HistoryUpdateApp.class);
+
 	private ContractKeyHolder contractKeyHolder;
 	private Random random;
 	private Updater[] updaters = {new Updater1(), new Updater2()};
@@ -47,7 +52,7 @@ public class HistoryUpdateApp extends AbstractOnlineApp {
 		Updater updater = updaters[random.nextInt(updaters.length)];
 		updater.update(history);
 		updateDatabase(history);
-
+		LOG.info("ONLINE APP: Update 1 record from history.");
 	}
 
 

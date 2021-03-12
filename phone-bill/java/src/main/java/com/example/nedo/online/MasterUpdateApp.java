@@ -7,11 +7,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.example.nedo.app.Config;
 import com.example.nedo.db.Contract;
 import com.example.nedo.online.ContractKeyHolder.Key;
 
 public class MasterUpdateApp extends AbstractOnlineApp {
+    private static final Logger LOG = LoggerFactory.getLogger(MasterUpdateApp.class);
+
 	private static final long DAY_IN_MILLS = 24 * 3600 * 1000;
 
 	private ContractKeyHolder contractKeyHolder;
@@ -39,6 +44,7 @@ public class MasterUpdateApp extends AbstractOnlineApp {
 		Updater updater = updaters[random.nextInt(updaters.length)];
 		updater.update(contract);
 		updateDatabase(contract);
+		LOG.info("ONLINE APP: Update 1 record from contracs.");
 	}
 
 	/**
