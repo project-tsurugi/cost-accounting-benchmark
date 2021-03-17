@@ -49,7 +49,7 @@ public class BenchBatchJdbcFactoryTask extends BenchBatchFactoryTask {
 				commitOrRollback(count);
 			} catch (Throwable t) {
 				try {
-					connection.rollback();
+					doRollback();
 				} catch (Throwable s) {
 					t.addSuppressed(s);
 				}
@@ -127,19 +127,15 @@ public class BenchBatchJdbcFactoryTask extends BenchBatchFactoryTask {
 
 	@Override
 	protected void doCommit() {
-		try {
-			connection.commit();
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
+		LocalTransactionDataSource dataSource = AppConfig.singleton().getDataSource();
+		LocalTransaction transaction = dataSource.getLocalTransaction(AppConfig.singleton().getJdbcLogger());
+		transaction.commit();
 	}
 
 	@Override
 	protected void doRollback() {
-		try {
-			connection.rollback();
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
+		LocalTransactionDataSource dataSource = AppConfig.singleton().getDataSource();
+		LocalTransaction transaction = dataSource.getLocalTransaction(AppConfig.singleton().getJdbcLogger());
+		transaction.rollback();
 	}
 }
