@@ -2,7 +2,7 @@ package com.example.nedo.db;
 
 import java.sql.Date;
 
-public class Contract {
+public class Contract implements Cloneable {
 	/**
 	 * 電話番号
 	 */
@@ -79,5 +79,14 @@ public class Contract {
 		} else if (!startDate.equals(other.startDate))
 			return false;
 		return true;
+	}
+
+	@Override
+	public Contract clone()  {
+		try {
+			return (Contract) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new InternalError(e);
+		}
 	}
 }

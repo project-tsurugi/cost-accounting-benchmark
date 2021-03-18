@@ -58,7 +58,7 @@ class HistoryUpdateAppTest extends AbstractDbTestCase {
 
 		app.exec();
 		app.getConnection().commit();
-		expected.get(495).timeSecs = 2055;
+		expected.get(496).timeSecs = 2055;
 		testExecSub(expected);
 
 		app.exec();
@@ -124,34 +124,28 @@ class HistoryUpdateAppTest extends AbstractDbTestCase {
 		expected.clear();
 		assertEquals(expected, actual);
 
-		key = ContractKeyHolder.createKey("00000000391", DBUtils.toDate("2020-03-22"));
+		key = ContractKeyHolder.createKey("00000000391", DBUtils.toDate("2014-10-16"));
 		actual = new HashSet<History>(app.getHistories(key));
 		expected.clear();
-		expected.add(toHistory("00000000391", "00000000105", "R", "2020-11-02 06:25:57.430", 1688, null, false));
-		expected.add(toHistory("00000000391", "00000000626", "R", "2020-11-24 20:33:31.285", 2978, null, false));
 		expected.add(toHistory("00000000391", "00000000265", "R", "2020-12-27 03:59:18.746", 2492, null, false));
 		expected.add(toHistory("00000000391", "00000000273", "R", "2021-01-04 06:46:59.250", 951, null, false));
-		expected.add(toHistory("00000000391", "00000000373", "C", "2021-01-04 23:34:17.936", 80, null, false));
 		assertEquals(expected, actual);
 
 		// 二つの契約両方にマッチする履歴があるケース
 		executeSql("update history set start_time = to_timestamp('2011-11-12 06:25:57.430','YYYY-MM-DD HH24:MI:SS.MS')"
 				+ " where caller_phone_number = '00000000391'"
-				+ " and start_time = to_timestamp('2020-11-02 06:25:57.430','YYYY-MM-DD HH24:MI:SS.MS')");
+				+ " and start_time = to_timestamp('2020-12-27 03:59:18.746','YYYY-MM-DD HH24:MI:SS.MS')");
 
 		key = ContractKeyHolder.createKey("00000000391", DBUtils.toDate("2010-11-11"));
 		actual = new HashSet<History>(app.getHistories(key));
 		expected.clear();
-		expected.add(toHistory("00000000391", "00000000105", "R", "2011-11-12 06:25:57.430", 1688, null, false));
+		expected.add(toHistory("00000000391", "00000000265", "R", "2011-11-12 06:25:57.430", 2492, null, false));
 		assertEquals(expected, actual);
 
-		key = ContractKeyHolder.createKey("00000000391", DBUtils.toDate("2020-03-22"));
+		key = ContractKeyHolder.createKey("00000000391", DBUtils.toDate("2014-10-16"));
 		actual = new HashSet<History>(app.getHistories(key));
 		expected.clear();
-		expected.add(toHistory("00000000391", "00000000626", "R", "2020-11-24 20:33:31.285", 2978, null, false));
-		expected.add(toHistory("00000000391", "00000000265", "R", "2020-12-27 03:59:18.746", 2492, null, false));
 		expected.add(toHistory("00000000391", "00000000273", "R", "2021-01-04 06:46:59.250", 951, null, false));
-		expected.add(toHistory("00000000391", "00000000373", "C", "2021-01-04 23:34:17.936", 80, null, false));
 		assertEquals(expected, actual);
 	}
 
@@ -162,19 +156,16 @@ class HistoryUpdateAppTest extends AbstractDbTestCase {
 	@Test
 	void testUpdateDatabase() throws Exception {
 		// 指定のキーで通話履歴を検索した値が想定通りであることの確認
-		Key key = ContractKeyHolder.createKey("00000000391", DBUtils.toDate("2020-03-22"));
+		Key key = ContractKeyHolder.createKey("00000000391", DBUtils.toDate("2014-10-16"));
 		HashSet<History> actual;
 		Set<History> expected = new HashSet<History>();
-		expected.add(toHistory("00000000391", "00000000105", "R", "2020-11-02 06:25:57.430", 1688, null, false));
-		expected.add(toHistory("00000000391", "00000000626", "R", "2020-11-24 20:33:31.285", 2978, null, false));
 		expected.add(toHistory("00000000391", "00000000265", "R", "2020-12-27 03:59:18.746", 2492, null, false));
 		expected.add(toHistory("00000000391", "00000000273", "R", "2021-01-04 06:46:59.250", 951, null, false));
-		expected.add(toHistory("00000000391", "00000000373", "C", "2021-01-04 23:34:17.936", 80, null, false));
 		actual = new HashSet<History>(app.getHistories(key));
 		assertEquals(expected, actual);
 
 		// 更新する履歴データ
-		History history = toHistory("00000000391", "00000000105", "R", "2020-11-02 06:25:57.430", 1688, null, false);
+		History history = toHistory("00000000391", "00000000273", "R", "2021-01-04 06:46:59.250", 951, null, false);
 
 		// 更新されていることの確認
 		expected.remove(history);

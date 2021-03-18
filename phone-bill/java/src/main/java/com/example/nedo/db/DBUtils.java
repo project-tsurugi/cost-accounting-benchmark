@@ -8,6 +8,7 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 
 import com.example.nedo.app.Config;
 
@@ -56,6 +57,32 @@ public class DBUtils {
 	 */
 	public static Date nextDate(Date date) {
 		return new Date(date.getTime() + DBUtils.A_DAY_IN_MILLISECONDS);
+	}
+
+	/**
+	 * 指定のdateの次の月の１日を返す
+	 *
+	 * @param date
+	 * @return
+	 */
+	public static Date nextMonth(Date date) {
+		LocalDate localDate = date.toLocalDate();
+		localDate = localDate.withDayOfMonth(1);
+		localDate = localDate.plusMonths(1);
+		return Date.valueOf(localDate);
+	}
+
+	/**
+	 * 指定のdateの前の月の最終日を返す
+	 *
+	 * @param date
+	 * @return
+	 */
+	public static Date previousMonthLastDay(Date date) {
+		LocalDate localDate = date.toLocalDate();
+		localDate = localDate.withDayOfMonth(1);
+		localDate = localDate.minusDays(1);
+		return Date.valueOf(localDate);
 	}
 
 }

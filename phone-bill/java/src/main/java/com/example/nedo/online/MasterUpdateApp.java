@@ -5,16 +5,22 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.example.nedo.app.Config;
 import com.example.nedo.db.Contract;
-import com.example.nedo.online.ContractKeyHolder.Key;
 
 public class MasterUpdateApp extends AbstractOnlineApp {
+	// TODO 更新した結果、マスタが矛盾した状態になる可能性があるので、矛盾が起きないように修正する。
+
     private static final Logger LOG = LoggerFactory.getLogger(MasterUpdateApp.class);
 
 	private static final long DAY_IN_MILLS = 24 * 3600 * 1000;
@@ -36,42 +42,90 @@ public class MasterUpdateApp extends AbstractOnlineApp {
 
 	@Override
 	void exec() throws SQLException {
-		// 更新対象レコードを選択
+		// 更新対象の電話番号を取得
 		int n = random.nextInt(contractKeyHolder.size());
-		Key key = contractKeyHolder.get(n);
-		Contract contract = getContract(key);
-		// 更新対象レコードを更新してDBに反映する
-		Updater updater = updaters[random.nextInt(updaters.length)];
-		updater.update(contract);
-		updateDatabase(contract);
-		LOG.info("ONLINE APP: Update 1 record from contracs.");
+		String phoneNumber = contractKeyHolder.get(n).phoneNumber;
+		List<Contract> contracts = getContracts(phoneNumber);
+		// 契約を変更する
+		updateContracts(contracts);
 	}
 
 	/**
-	 * 指定のKEYの契約を取得する
+	 * 同一の電話番号の契約のリストから、任意の契約を一つ選択し契約内容を更新する
 	 *
-	 * @param key
+	 * @param contracts 同一の電話番号の契約のリスト
+	 * @return 更新した契約
+	 * @throws SQLException
+	 */
+	private void updateContracts(List<Contract> contracts) throws SQLException {
+		for (int i = 0; i < 100; i++) {
+			// 契約を一つ選択して更新する
+			Set<Contract> set = new HashSet<Contract>();
+			Contract contract = contracts.get(random.nextInt(contracts.size()));
+			set.remove(contract);
+			contract = contract.clone();
+			Updater updater = updaters[random.nextInt(updaters.length)];
+			updater.update(contract);
+			// 契約期間の重複がなければDBを更新する
+			if (!commonDuration(contract, set)) {
+				updateDatabase(contract);
+				LOG.info("ONLINE APP: Update 1 record from contracs.");
+				return;
+			}
+		}
+		LOG.warn("Fail to create valid update contracts for phone number: {}", contracts.get(0).phoneNumber);
+	}
+
+
+	/**
+	 * 指定の契約と、契約のコレクションの契約期間に共通の月がないかを調べる
+	 *
+	 * @param c
+	 * @param contracts
+	 * @return 共通の月があるときtrue
+	 */
+	static boolean commonDuration(Contract contract, Collection<Contract> contracts) {
+		long start = toEpochMonth(contract.startDate);
+		long end = toEpochMonth(contract.endDate);
+		for(Contract target: contracts) {
+			long targetStart = toEpochMonth(target.startDate);
+			long targetEnd = toEpochMonth(target.endDate);
+			if (start <= targetEnd && targetStart <= end) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static long toEpochMonth(Date date) {
+		return date == null ? Long.MAX_VALUE : date.toLocalDate().withDayOfMonth(1).toEpochDay();
+	}
+
+
+	/**
+	 * 指定の電話番号の契約を取得する
+	 *
+	 * @param phoneNumber
 	 * @return
 	 * @throws SQLException
 	 */
-	Contract getContract(Key key) throws SQLException {
+	List<Contract> getContracts(String phoneNumber) throws SQLException {
+		List<Contract> list = new ArrayList<Contract>();
 		Connection conn = getConnection();
-		String sql = "select end_date, charge_rule from contracts where phone_number = ? and start_date = ?";
+		String sql = "select start_date, end_date, charge_rule from contracts where phone_number = ?";
 		try (PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setString(1, key.phoneNumber);
-			ps.setDate(2, key.startDate);
+			ps.setString(1, phoneNumber);
 			ResultSet rs = ps.executeQuery();
-			if (rs.next()) {
+			while (rs.next()) {
 				Contract c = new Contract();
-				c.phoneNumber = key.phoneNumber;
-				c.startDate = key.startDate;
-				c.endDate = rs.getDate(1);
-				c.rule = rs.getString(2);
-				return c;
-			} else {
-				throw new RuntimeException("No records selected.");
+				c.phoneNumber = phoneNumber;
+				c.startDate = rs.getDate(1);
+				c.endDate = rs.getDate(2);
+				c.rule = rs.getString(3);
+				list.add(c);
 			}
 		}
+		return list;
 	}
 
 	/**
@@ -131,5 +185,4 @@ public class MasterUpdateApp extends AbstractOnlineApp {
 			contract.endDate = new Date(startTime + r * DAY_IN_MILLS);
 		}
 	}
-
 }

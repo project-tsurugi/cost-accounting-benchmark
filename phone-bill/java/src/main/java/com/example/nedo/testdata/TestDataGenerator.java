@@ -349,11 +349,10 @@ public class TestDataGenerator {
 		}
 		// 同一電話番号の契約が複数あるパターン用のduration
 		for (int i = 0; i < config.duplicatePhoneNumberRatio; i++) {
-			Date end = getDate(config.minDate, config.maxDate);
-			Date start = getDate(end, config.maxDate);
-			;
+			Date end = getDate(config.minDate, DBUtils.previousMonthLastDay(config.maxDate));
+			Date start = getDate(DBUtils.nextMonth(end), config.maxDate);
 			durationList.add(new Duration(config.minDate, end));
-			durationList.add(new Duration(DBUtils.nextDate(start), null));
+			durationList.add(new Duration(start, null));
 		}
 	}
 

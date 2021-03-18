@@ -47,4 +47,26 @@ class DBUtilsTest {
 	void testNextDate() {
 		assertEquals(DBUtils.toDate("2020-11-11"), DBUtils.nextDate(DBUtils.toDate("2020-11-10")));
 	}
+
+
+	/**
+	 * nextDate()のテスト
+	 */
+	@Test
+	void testNextMonth() {
+		assertEquals(DBUtils.toDate("2020-12-01"), DBUtils.nextMonth(DBUtils.toDate("2020-11-10")));
+		assertEquals(DBUtils.toDate("2021-01-01"), DBUtils.nextMonth(DBUtils.toDate("2020-12-31")));
+		assertEquals(DBUtils.toDate("2021-02-01"), DBUtils.nextMonth(DBUtils.toDate("2021-01-01")));
+	}
+
+	/**
+	 * previousMonthLastDay()のテスト
+	 */
+	@Test
+	void testPreviousMonthLastDay() {
+		assertEquals(DBUtils.toDate("2020-10-31"), DBUtils.previousMonthLastDay(DBUtils.toDate("2020-11-10")));
+		assertEquals(DBUtils.toDate("2020-11-30"), DBUtils.previousMonthLastDay(DBUtils.toDate("2020-12-31")));
+		assertEquals(DBUtils.toDate("2020-12-31"), DBUtils.previousMonthLastDay(DBUtils.toDate("2021-01-01")));
+	}
+
 }

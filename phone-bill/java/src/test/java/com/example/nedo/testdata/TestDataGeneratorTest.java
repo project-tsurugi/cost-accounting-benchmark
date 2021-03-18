@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -191,7 +190,7 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 		testInitDurationLisSubt(3, 0, 0, DBUtils.toDate("2010-11-11"), DBUtils.toDate("2020-01-01"));
 		testInitDurationLisSubt(0, 0, 5, DBUtils.toDate("2010-11-11"), DBUtils.toDate("2020-01-01"));
 		// startの翌日=endのケース
-		testInitDurationLisSubt(13, 5, 2, DBUtils.toDate("2020-01-01"), DBUtils.toDate("2020-01-02"));
+		testInitDurationLisSubt(13, 5, 2, DBUtils.toDate("2019-12-31"), DBUtils.toDate("2020-01-01"));
 
 	}
 
@@ -365,34 +364,13 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 	 * @throws IOException
 	 */
 	@Test
-	void tesGetDate1() throws IOException {
-		Date start = DBUtils.toDate("2020-11-11");
-		Date end = DBUtils.toDate("2020-11-11");
-		Set<Date> expected = Collections.singleton(DBUtils.toDate("2020-11-11"));
-		Set<Date> actual = new TreeSet<>();
-		Config config = Config.getConfig();
-		config.minDate = start;
-		config.maxDate = end;
-
-		TestDataGenerator generator = new TestDataGenerator(config);
-		for(int i = 0; i < 100; i++) {
-			actual.add(generator.getDate(start, end));
-		}
-		assertEquals(expected, actual);
-	}
-
-	/**
-	 * getDate()で得られる値が、start ～ endの範囲に収まることのテスト
-	 * @throws IOException
-	 */
-	@Test
 	void tesGetDate3() throws IOException {
-		Date start = DBUtils.toDate("2020-11-11");
-		Date end = DBUtils.toDate("2020-11-13");
+		Date start = DBUtils.toDate("2020-11-30");
+		Date end = DBUtils.toDate("2020-12-02");
 		Set<Date> expected = new TreeSet<>(Arrays.asList(
-				DBUtils.toDate("2020-11-11"),
-				DBUtils.toDate("2020-11-12"),
-				DBUtils.toDate("2020-11-13")));
+				DBUtils.toDate("2020-11-30"),
+				DBUtils.toDate("2020-12-01"),
+				DBUtils.toDate("2020-12-02")));
 		Set<Date> actual = new TreeSet<>();
 
 		Config config = Config.getConfig();
@@ -411,16 +389,16 @@ class TestDataGeneratorTest extends AbstractDbTestCase {
 	 */
 	@Test
 	void tesGetDate7() throws IOException {
-		Date start = DBUtils.toDate("2020-11-11");
-		Date end = DBUtils.toDate("2020-11-17");
+		Date start = DBUtils.toDate("2020-11-30");
+		Date end = DBUtils.toDate("2020-12-06");
 		Set<Date> expected = new TreeSet<>(Arrays.asList(
-				DBUtils.toDate("2020-11-11"),
-				DBUtils.toDate("2020-11-12"),
-				DBUtils.toDate("2020-11-13"),
-				DBUtils.toDate("2020-11-14"),
-				DBUtils.toDate("2020-11-15"),
-				DBUtils.toDate("2020-11-16"),
-				DBUtils.toDate("2020-11-17")));
+				DBUtils.toDate("2020-11-30"),
+				DBUtils.toDate("2020-12-01"),
+				DBUtils.toDate("2020-12-02"),
+				DBUtils.toDate("2020-12-03"),
+				DBUtils.toDate("2020-12-04"),
+				DBUtils.toDate("2020-12-05"),
+				DBUtils.toDate("2020-12-06")));
 		Set<Date> actual = new TreeSet<>();
 
 		Config config = Config.getConfig();
