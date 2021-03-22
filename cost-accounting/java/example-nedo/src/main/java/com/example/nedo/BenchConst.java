@@ -51,6 +51,10 @@ public class BenchConst {
 		return getPropertyInt("batch.factory-task.type", 1);
 	}
 
+	public static int batchParallelism() {
+		return getPropertyInt("batch.parallelism", 0);
+	}
+
 	public static int DECIMAL_SCALE = getPropertyInt("decimal.scale", 20);
 
 	// online

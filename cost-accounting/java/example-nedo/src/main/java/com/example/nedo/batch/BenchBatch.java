@@ -142,7 +142,12 @@ public class BenchBatch {
 		List<BenchBatchFactoryTask> threadList = factoryList.stream()
 				.map(factoryId -> newBenchBatchFactoryThread(batchDate, factoryId)).collect(Collectors.toList());
 
-		ExecutorService pool = Executors.newFixedThreadPool(factoryList.size());
+		int batchParallelism = BenchConst.batchParallelism();
+		if (batchParallelism <= 0) {
+			batchParallelism = factoryList.size();
+		}
+
+		ExecutorService pool = Executors.newFixedThreadPool(batchParallelism);
 		List<Future<Void>> resultList = Collections.emptyList();
 		try {
 			resultList = pool.invokeAll(threadList);
