@@ -5,8 +5,8 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -113,18 +113,15 @@ public class PhoneBill implements ExecutableCommand {
 
 
 	/**
-	 * 指定の日付の一日から翌月の一日までのDurationを作成する
+	 * 指定の日付の一日から月の最終日までのDurationを作成する
 	 *
 	 * @param date
 	 * @return
 	 */
 	static Duration toDuration(Date date) {
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(date);
-		calendar.set(Calendar.DAY_OF_MONTH, 1);
-		Date start = new Date(calendar.getTimeInMillis());
-		calendar.add(Calendar.MONTH, 1);
-		Date end = new Date(calendar.getTimeInMillis());
+		LocalDate localDate = date.toLocalDate();
+		Date start = Date.valueOf(localDate.withDayOfMonth(1));
+		Date end = Date.valueOf(localDate.withDayOfMonth(1).plusMonths(1).minusDays(1));
 		return new Duration(start, end);
 	}
 

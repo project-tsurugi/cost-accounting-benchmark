@@ -242,6 +242,7 @@ public class TestDataGenerator {
 	}
 
 	private History createHistoryRecord(Duration targetDuration) {
+		// TODO 通話開始時刻が同じレコードが作成される可能性がある。その可能性を排除する。
 		History history = new History();
 		// 通話開始時刻
 		long startTime;

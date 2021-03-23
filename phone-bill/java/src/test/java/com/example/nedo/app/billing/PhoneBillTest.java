@@ -255,15 +255,15 @@ class PhoneBillTest extends AbstractDbTestCase {
 
 		d = PhoneBill.toDuration(DBUtils.toDate("2020-12-01"));
 		assertEquals(DBUtils.toDate("2020-12-01"), d.start);
-		assertEquals(DBUtils.toDate("2021-01-01"), d.end);
+		assertEquals(DBUtils.toDate("2020-12-31"), d.end);
 
 		d = PhoneBill.toDuration(DBUtils.toDate("2020-12-31"));
 		assertEquals(DBUtils.toDate("2020-12-01"), d.start);
-		assertEquals(DBUtils.toDate("2021-01-01"), d.end);
+		assertEquals(DBUtils.toDate("2020-12-31"), d.end);
 
-		d = PhoneBill.toDuration(DBUtils.toDate("2021-01-01"));
-		assertEquals(DBUtils.toDate("2021-01-01"), d.start);
-		assertEquals(DBUtils.toDate("2021-02-01"), d.end);
+		d = PhoneBill.toDuration(DBUtils.toDate("2021-02-05"));
+		assertEquals(DBUtils.toDate("2021-02-01"), d.start);
+		assertEquals(DBUtils.toDate("2021-02-28"), d.end);
 
 	}
 
