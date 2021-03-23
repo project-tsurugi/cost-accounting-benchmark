@@ -12,7 +12,7 @@ fi
 
 function call_java() {
   echo $1
-  java -cp "$BASEDIR/*:$BASEDIR/lib/*" -Dproperty="$PROPERTY" $1
+  java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $1
 }
 
 call_java com.example.nedo.init.InitialData01MeasurementMaster
