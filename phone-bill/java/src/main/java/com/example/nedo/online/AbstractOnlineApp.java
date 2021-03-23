@@ -14,6 +14,11 @@ import com.example.nedo.app.Config;
 import com.example.nedo.db.DBUtils;
 
 public abstract class AbstractOnlineApp implements Runnable{
+	/**
+	 * スケジュールを生成するインターバル(ミリ秒)
+	 */
+	protected static final int CREATE_SCHEDULE_INTERVAL_MILLS  = 60 * 1000;
+
     private static final Logger LOG = LoggerFactory.getLogger(AbstractOnlineApp.class);
 	private Connection conn;
 
@@ -123,16 +128,16 @@ public abstract class AbstractOnlineApp implements Runnable{
 
 
 	/**
-	 * 今後1分間のスケジュールを作成する
+	 * スケジュールを作成する
 	 */
 	private void creatScheduleList(long base) {
 		for (int i = 0; i < recordsPerMin; i++) {
-			long schedule = base + random.nextInt(60 * 1000);
+			long schedule = base + random.nextInt(CREATE_SCHEDULE_INTERVAL_MILLS);
 			scheduleList.add(schedule);
 		}
 		Collections.sort(scheduleList);
 		// 次にスケジュールを作成する時刻
-		scheduleList.add(base + 60 * 1000L);
+		scheduleList.add(base + CREATE_SCHEDULE_INTERVAL_MILLS);
 		atScheduleListCreated(scheduleList);
 	}
 

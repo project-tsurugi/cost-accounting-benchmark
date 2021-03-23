@@ -15,12 +15,13 @@ class HistoryInsertAppTest extends AbstractDbTestCase {
 
 	@Test
 	void test() throws IOException, SQLException {
+		truncateTable("history");
+
 		Config config = Config.getConfig();
 		config.historyInsertRecordsPerTransaction = 33;
 		Random random = new Random();
 		HistoryInsertApp app = new HistoryInsertApp(config, random);
 
-		truncateTable("history");
 		int expected = 0;
 		for (int i = 0; i < 10; i++) {
 			app.exec();

@@ -135,6 +135,8 @@ public class PhoneBill implements ExecutableCommand {
 	 * @throws Exception
 	 */
 	void doCalc(Date start, Date end) throws SQLException {
+		LOG.info("Phone bill batch started.");
+
 		AtomicBoolean abortRequested = new AtomicBoolean(false);
 		String batchExecId = UUID.randomUUID().toString();
 		int threadCount = config.threadCount;

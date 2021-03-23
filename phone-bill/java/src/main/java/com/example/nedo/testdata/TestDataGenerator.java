@@ -39,7 +39,7 @@ public class TestDataGenerator {
 	/**
 	 * 一度にインサートする行数
 	 */
-	private static final long SQL_BATCH_EXEC_SIZE = 300000;
+	private static final int SQL_BATCH_EXEC_SIZE = 300000;
 
 	/**
 	 * 契約マスタにレコードをインサートするためのSQL
@@ -173,41 +173,46 @@ public class TestDataGenerator {
 		}
 
 		Duration targetDuration = new Duration(minDate, maxDate);
+		List<History> histories = new ArrayList<History>(SQL_BATCH_EXEC_SIZE);
 
 		try (Connection conn = DBUtils.getConnection(config)) {
-
-			PreparedStatement ps = conn.prepareStatement("insert into history("
-					+ "caller_phone_number,"
-					+ "recipient_phone_number,"
-					+ "payment_categorty,"
-					+ "start_time,"
-					+ "time_secs,"
-					+ "charge,"
-					+ "df"
-					+ ") values(?, ?, ?, ?, ?, ?, ? )");
-			int batchSize = 0;
-			// numberOfHistoryRecords だけレコードを生成する
-			for (long i = 0; i < n; i++) {
-				History h = createHistoryRecord(targetDuration);
-				ps.setString(1, h.callerPhoneNumber);
-				ps.setString(2, h.recipientPhoneNumber);
-				ps.setString(3, h.paymentCategorty);
-				ps.setTimestamp(4, h.startTime);
-				ps.setInt(5, h.timeSecs);
-				if (h.charge == null) {
-					ps.setNull(6, Types.INTEGER);
-				} else {
-					ps.setInt(6, h.charge);
-				}
-				ps.setInt(7, h.df ? 1 : 0);
-				ps.addBatch();
-				if (++batchSize == SQL_BATCH_EXEC_SIZE) {
-					execBatch(ps);
-					batchSize = 0;
+			for (int i = 0; i < n; i++) {
+				histories.add(createHistoryRecord(targetDuration));
+				if (histories.size() >= SQL_BATCH_EXEC_SIZE) {
+					insrtHistories(conn, histories);
+					histories.clear();
 				}
 			}
-			execBatch(ps);
+			insrtHistories(conn, histories);
 		}
+	}
+
+
+	public void insrtHistories(Connection conn, List<History> histories) throws SQLException {
+		PreparedStatement ps = conn.prepareStatement("insert into history("
+				+ "caller_phone_number,"
+				+ "recipient_phone_number,"
+				+ "payment_categorty,"
+				+ "start_time,"
+				+ "time_secs,"
+				+ "charge,"
+				+ "df"
+				+ ") values(?, ?, ?, ?, ?, ?, ? )");
+		for (History h : histories) {
+			ps.setString(1, h.callerPhoneNumber);
+			ps.setString(2, h.recipientPhoneNumber);
+			ps.setString(3, h.paymentCategorty);
+			ps.setTimestamp(4, h.startTime);
+			ps.setInt(5, h.timeSecs);
+			if (h.charge == null) {
+				ps.setNull(6, Types.INTEGER);
+			} else {
+				ps.setInt(6, h.charge);
+			}
+			ps.setInt(7, h.df ? 1 : 0);
+			ps.addBatch();
+		}
+		execBatch(ps);
 	}
 
 	/**
@@ -241,15 +246,30 @@ public class TestDataGenerator {
 		return true;
 	}
 
+	/**
+	 * 通話開始時刻が指定の範囲に収まる通話履歴を生成する
+	 *
+	 * @param targetDuration
+	 * @return
+	 */
 	private History createHistoryRecord(Duration targetDuration) {
-		// TODO 通話開始時刻が同じレコードが作成される可能性がある。その可能性を排除する。
-		History history = new History();
 		// 通話開始時刻
 		long startTime;
 		do {
 			startTime = getRandomLong(targetDuration.start.getTime(), targetDuration.end.getTime());
 		} while (startTimeSet.contains(startTime));
 		startTimeSet.add(startTime);
+		return createHistoryRecord(startTime);
+	}
+
+	/**
+	 * 指定の通話開始時刻の通話履歴を生成する
+	 *
+	 * @param startTime
+	 * @return
+	 */
+	public History createHistoryRecord(long startTime) {
+		History history = new History();
 		history.startTime = new Timestamp(startTime);
 
 		// 電話番号の生成
@@ -267,6 +287,9 @@ public class TestDataGenerator {
 
 		return history;
 	}
+
+
+
 
 	/**
 	 * 指定の乱数発生器を使用して、ランダムな通話時間を生成する

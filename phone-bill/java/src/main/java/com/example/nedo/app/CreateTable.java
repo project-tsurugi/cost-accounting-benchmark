@@ -41,8 +41,10 @@ public class CreateTable implements ExecutableCommand{
 				+ ")";
 		stmt.execute(create_table);
 
-		String create_index = "CREATE INDEX IDX_DF ON HISTORY(DF)";
-		stmt.execute(create_index);
+		String create_index_df = "create index idx_df on history(df)";
+		stmt.execute(create_index_df);
+		String create_index_st = "create index idx_st on history(start_time)";
+		stmt.execute(create_index_st);
 	}
 
 	void createContractsTable(Statement stmt) throws SQLException {
