@@ -90,7 +90,7 @@ public class HistoryUpdateApp extends AbstractOnlineApp {
 				+ " from history h"
 				+ " inner join contracts c on c.phone_number = h.caller_phone_number"
 				+ " where c.start_date < h.start_time and"
-				+ " (h.start_time < c.end_date + cast('1 days' as INTERVAL)"
+				+ " (h.start_time < c.end_date + 1"
 				+ " or c.end_date is null)"
 				+ " and c.phone_number = ? and c.start_date = ?";
 		Connection conn = getConnection();
@@ -139,6 +139,7 @@ public class HistoryUpdateApp extends AbstractOnlineApp {
 		@Override
 		public void update(History history) {
 			history.df = true;
+			history.charge = null;
 		}
 	}
 
@@ -149,6 +150,7 @@ public class HistoryUpdateApp extends AbstractOnlineApp {
 		@Override
 		public void update(History history) {
 			history.timeSecs = TestDataGenerator.getTimeSecs(random);
+			history.charge = null;
 		}
 	}
 }

@@ -98,64 +98,7 @@ class MasterUpdateAppTest extends AbstractDbTestCase {
 	}
 
 
-//	@Test
-//	void testGetContractAndUpdateDatabase() throws IOException, Exception {
-//		// テーブルにテストデータを入れる
-//
-//		Config config = Config.getConfig();
-//		config.minDate = DBUtils.toDate("2010-01-11");
-//		config.maxDate = DBUtils.toDate("2020-12-21");
-//		config.numberOfContractsRecords = 100;
-//		config.expirationDateRate =5;
-//		config.noExpirationDateRate = 11;
-//		config.duplicatePhoneNumberRatio = 2;
-//		new CreateTable().execute(config);
-//		TestDataGenerator generator = new TestDataGenerator(config);
-//		generator.generateContracts();
-//
-//		ContractKeyHolder keyHolder = new ContractKeyHolder(config);
-//		MasterUpdateApp app = new MasterUpdateApp(keyHolder, config, null);
-//
-//		// getContractのテスト
-//		Contract contract11 = app.getContract(keyHolder.get(11));
-//		app.getConnection().commit();
-//		assertEquals("00000000011", contract11.phoneNumber);
-//		assertEquals(DBUtils.toDate("2010-08-28"), contract11.startDate);
-//		assertEquals(DBUtils.toDate("2014-02-22"), contract11.endDate);
-//		assertEquals("sample", contract11.rule);
-//
-//		Contract contract42 = app.getContract(keyHolder.get(42));
-//		app.getConnection().commit();
-//		assertEquals("00000000042", contract42.phoneNumber);
-//		assertEquals(DBUtils.toDate("2016-09-07"), contract42.startDate);
-//		assertNull(contract42.endDate);
-//		assertEquals("sample", contract42.rule);
-//
-//		// マッチするレコードがないキーを指定したとき
-//		Key key = keyHolder.get(10);
-//		key.startDate = DBUtils.nextDate(key.startDate);
-//		RuntimeException e1 = assertThrows(RuntimeException.class, () -> app.getContract(key));
-//		app.getConnection().commit();
-//		assertEquals("No records selected.", e1.getMessage());
-//
-//		// updateDatabaseのテスト
-//		contract42.endDate = DBUtils.toDate("2016-05-18");
-//		contract42.rule = "another rule";
-//		app.updateDatabase(contract42);
-//		app.getConnection().commit();
-//		assertEquals(contract42, app.getContract(keyHolder.get(42)));
-//
-//		// キーが一致するレコードが存在しない場合
-//		contract42.phoneNumber = "NotExists";
-//		contract42.endDate = null;
-//		contract42.rule = "sample";
-//		RuntimeException e2 = assertThrows(RuntimeException.class, () -> app.updateDatabase(contract42));
-//		app.getConnection().commit();
-//		assertEquals(
-//				"Fail to update contracts: "
-//				+ "Contract [phone_number=NotExists, start_date=2016-09-07, end_date=null, rule=sample]",
-//				e2.getMessage());
-//	}
+
 
 
 	@Test
@@ -228,6 +171,53 @@ class MasterUpdateAppTest extends AbstractDbTestCase {
 		c2.startDate = DBUtils.toDate("2015-01-10");
 		c2.endDate = DBUtils.toDate("2015-05-01");
 		assertFalse(MasterUpdateApp.commonDuration(c1, contracts));
+
+		// c2のend_dateがnullで、期間の重複があるケース
+		c2.startDate = DBUtils.toDate("2015-01-10");
+		c2.endDate = null;
+		assertTrue(MasterUpdateApp.commonDuration(c1, contracts));
+
+
+
+		// c2のend_dateがnullで、期間の重複がないケース
+		c2.startDate = DBUtils.toDate("2019-01-10");
+		c2.endDate = null;
+		assertFalse(MasterUpdateApp.commonDuration(c1, contracts));
+
+		// c1のend_dateがnullで、期間の重複があるケース
+		c1.startDate = DBUtils.toDate("2013-01-01");
+		c1.endDate = null;
+		c2.startDate = DBUtils.toDate("2015-01-10");
+		c2.endDate = DBUtils.toDate("2015-05-01");
+		assertTrue(MasterUpdateApp.commonDuration(c1, contracts));
+
+		// c1のend_dateがnullで、期間の重複がないケース
+		c2.startDate = DBUtils.toDate("2011-01-10");
+		c2.endDate = DBUtils.toDate("2011-05-01");
+		assertFalse(MasterUpdateApp.commonDuration(c1, contracts));
+
+		// c1,c2のend_dateがともにnullで、c1.start_date < c2_start_dateのケース
+		c1.startDate = DBUtils.toDate("2013-01-01");
+		c1.endDate = null;
+		c2.startDate = DBUtils.toDate("2015-01-10");
+		c2.endDate = null;
+		assertTrue(MasterUpdateApp.commonDuration(c1, contracts));
+
+		// c1,c2のend_dateがともにnullで、c1.start_date < c2_start_dateのケース
+		c1.startDate = DBUtils.toDate("2015-01-01");
+		c1.endDate = null;
+		c2.startDate = DBUtils.toDate("2013-01-10");
+		c2.endDate = null;
+		assertTrue(MasterUpdateApp.commonDuration(c1, contracts));
+
+
+		// c1,c2のend_dateがともにnullで、c1.start_date - c2_start_dateのケース
+		c1.startDate = DBUtils.toDate("2013-01-01");
+		c1.endDate = null;
+		c2.startDate = DBUtils.toDate("2013-01-10");
+		c2.endDate = null;
+		assertTrue(MasterUpdateApp.commonDuration(c1, contracts));
+
 
 		///////////////////////////////////////////////////// contractsに複数の要素があるケース
 

@@ -60,10 +60,10 @@ public class MasterUpdateApp extends AbstractOnlineApp {
 	private void updateContracts(List<Contract> contracts) throws SQLException {
 		for (int i = 0; i < 100; i++) {
 			// 契約を一つ選択して更新する
-			Set<Contract> set = new HashSet<Contract>();
-			Contract contract = contracts.get(random.nextInt(contracts.size()));
-			set.remove(contract);
-			contract = contract.clone();
+			Set<Contract> set = new HashSet<Contract>(contracts);
+			Contract orgContract = contracts.get(random.nextInt(contracts.size()));
+			set.remove(orgContract);
+			Contract contract = orgContract.clone();
 			Updater updater = updaters[random.nextInt(updaters.length)];
 			updater.update(contract);
 			// 契約期間の重複がなければDBを更新する
