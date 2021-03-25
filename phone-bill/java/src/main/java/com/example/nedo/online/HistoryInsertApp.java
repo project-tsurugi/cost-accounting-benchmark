@@ -53,7 +53,9 @@ public class HistoryInsertApp extends AbstractOnlineApp {
 		}
 		testDataGenerator.insrtHistories(conn, histories);
 		conn.commit();
-		LOG.info("ONLINE APP: Insert {} records to history.", historyInsertRecordsPerTransaction);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("ONLINE APP: Insert {} records to history.", historyInsertRecordsPerTransaction);
+		}
 	}
 
 	@Override

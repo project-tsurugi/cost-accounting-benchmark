@@ -36,6 +36,8 @@ public class MasterInsertApp extends AbstractOnlineApp {
 		Contract c = testDataGenerator.setContract(ps, n);
 		ps.executeUpdate();
 		contractKeyHolder.add(ContractKeyHolder.createKey(c.phoneNumber, c.startDate));
-		LOG.info("ONLINE APP: Insert 1 record to contracs.");
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("ONLINE APP: Insert 1 record to contracs.");
+		}
 	}
 }

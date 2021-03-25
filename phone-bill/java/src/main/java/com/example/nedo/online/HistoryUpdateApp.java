@@ -52,7 +52,9 @@ public class HistoryUpdateApp extends AbstractOnlineApp {
 		Updater updater = updaters[random.nextInt(updaters.length)];
 		updater.update(history);
 		updateDatabase(history);
-		LOG.info("ONLINE APP: Update 1 record from history.");
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("ONLINE APP: Update 1 record from history.");
+		}
 	}
 
 

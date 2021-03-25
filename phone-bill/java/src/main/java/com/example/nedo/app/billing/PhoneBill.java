@@ -45,6 +45,7 @@ import com.example.nedo.online.MasterUpdateApp;
 public class PhoneBill implements ExecutableCommand {
     private static final Logger LOG = LoggerFactory.getLogger(PhoneBill.class);
 	private ContractKeyHolder contractKeyHolder = null;
+	private long elapsedTime = 0; // バッチの処理時間
 	Config config;
 
 	public static void main(String[] args) throws Exception {
@@ -189,7 +190,7 @@ public class PhoneBill implements ExecutableCommand {
 			}
 			cleanup(futures, connections, abortRequested);
 		}
-		long elapsedTime = System.currentTimeMillis() - startTime;
+		elapsedTime = System.currentTimeMillis() - startTime;
 		String format = "Billings calculated in %,.3f sec ";
 		LOG.info(String.format(format, elapsedTime / 1000d));
 	}
@@ -311,6 +312,15 @@ public class PhoneBill implements ExecutableCommand {
 		ps.setDate(2, start);
 		ResultSet rs = ps.executeQuery();
 		return rs;
+	}
+
+	/**
+	 * バッチの処理時間を取得する
+	 *
+	 * @return elapsedTime
+	 */
+	public long getElapsedTime() {
+		return elapsedTime;
 	}
 
 }

@@ -69,7 +69,9 @@ public class MasterUpdateApp extends AbstractOnlineApp {
 			// 契約期間の重複がなければDBを更新する
 			if (!commonDuration(contract, set)) {
 				updateDatabase(contract);
-				LOG.info("ONLINE APP: Update 1 record from contracs.");
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("ONLINE APP: Update 1 record from contracs.");
+				}
 				return;
 			}
 		}
