@@ -87,7 +87,8 @@ public abstract class AbstractOnlineApp implements Runnable{
 			} catch (SQLException e1) {
 				throw new RuntimeException(e1);
 			}
-			LOG.error("{} aborted due to exception", name, e);
+			LOG.error("Aborting by exception", e);
+			System.exit(1);
 		} finally {
 			try {
 				if (conn != null & !conn.isClosed()) {
