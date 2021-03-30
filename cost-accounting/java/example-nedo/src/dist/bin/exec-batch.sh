@@ -12,7 +12,7 @@ fi
 
 function call_java() {
   echo $1
-  java -cp "$BASEDIR/*:$BASEDIR/lib/*" -Dproperty="$PROPERTY" $@
+  java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $@
 }
 
 call_java com.example.nedo.batch.BenchBatch 2020-09-15 "all" 100
