@@ -28,7 +28,7 @@ public class HistoryInsertApp extends AbstractOnlineApp {
 	/**
 	 * // 同一の時刻のレコードを生成しないために時刻を記録するためのセット
 	 */
-	private Set<Long> startTimeSet;
+	private Set<Key> startTimeSet;
 
 	public HistoryInsertApp(Config config, Random random) throws SQLException {
 		super(config.historyInsertTransactionPerMin, config, random);
@@ -37,19 +37,24 @@ public class HistoryInsertApp extends AbstractOnlineApp {
 		testDataGenerator = new TestDataGenerator(config, random);
 		baseTime = getMaxStartTime(); // 通話履歴中の最新の通話開始時刻をベースに新規に作成する通話履歴の通話開始時刻を生成する
 		conn = getConnection();
-		startTimeSet = new HashSet<Long>(); // 同一の時刻のレコードを生成しないために時刻を記録するためのセット
+		startTimeSet = new HashSet<Key>(); // 同一の時刻のレコードを生成しないために時刻を記録するためのセット
 	}
 
 	@Override
 	void exec() throws SQLException {
 		List<History> histories = new ArrayList<>();
-		long startTime;
+		History  history;
+		Key key;
 		for (int i = 0; i < historyInsertRecordsPerTransaction; i++) {
 			do {
-				startTime = baseTime + random.nextInt(CREATE_SCHEDULE_INTERVAL_MILLS);
-			} while (startTimeSet.contains(startTime));
-			startTimeSet.add(startTime);
-			histories.add(testDataGenerator.createHistoryRecord(startTime));
+				long startTime = baseTime + random.nextInt(CREATE_SCHEDULE_INTERVAL_MILLS);
+				history = testDataGenerator.createHistoryRecord(startTime);
+				key = new Key();
+				key.phoneNumber = history.callerPhoneNumber;
+				key.startTime = startTime;
+			} while (startTimeSet.contains(key));
+			startTimeSet.add(key);
+			histories.add(history);
 		}
 		testDataGenerator.insrtHistories(conn, histories);
 		conn.commit();
@@ -74,5 +79,41 @@ public class HistoryInsertApp extends AbstractOnlineApp {
 		}
 		conn.commit();
 		throw new IllegalStateException();
+	}
+
+	private static class Key {
+		String phoneNumber;
+		Long startTime;
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((phoneNumber == null) ? 0 : phoneNumber.hashCode());
+			result = prime * result + ((startTime == null) ? 0 : startTime.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Key other = (Key) obj;
+			if (phoneNumber == null) {
+				if (other.phoneNumber != null)
+					return false;
+			} else if (!phoneNumber.equals(other.phoneNumber))
+				return false;
+			if (startTime == null) {
+				if (other.startTime != null)
+					return false;
+			} else if (!startTime.equals(other.startTime))
+				return false;
+			return true;
+		}
 	}
 }
