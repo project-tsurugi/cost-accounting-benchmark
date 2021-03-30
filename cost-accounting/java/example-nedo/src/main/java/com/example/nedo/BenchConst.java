@@ -129,8 +129,13 @@ public class BenchConst {
 	}
 
 	private static String getProperty(String key, boolean requiredFile) {
-		Properties p = getProperties(requiredFile);
-		return p.getProperty(key);
+		String spv = System.getProperty(key);
+		if (spv == null) {
+			Properties p = getProperties(requiredFile);
+			return p.getProperty(key);
+		} else {
+			return spv;
+		}
 	}
 
 	private static String getProperty(String key) {
