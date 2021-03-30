@@ -9,21 +9,24 @@ import java.util.Objects;
 
 import com.example.nedo.BenchConst;
 import com.example.nedo.jdbc.doma2.dao.MeasurementMasterDao;
-import com.example.nedo.jdbc.doma2.dao.MeasurementMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.domain.MeasurementType;
 import com.example.nedo.jdbc.doma2.entity.MeasurementMaster;
 
 public class MeasurementUtil {
 
+	private static MeasurementMasterDao DAO;
 	static Map<String, MeasurementMaster> MAP;
+
+	public static void initialize(MeasurementMasterDao dao) {
+		MeasurementUtil.DAO = dao;
+	}
 
 	private static MeasurementMaster getMeasurementMaster(String unit) {
 		if (MAP == null) {
 			synchronized (MeasurementUtil.class) {
 				Map<String, MeasurementMaster> map = new HashMap<>();
 
-				MeasurementMasterDao dao = new MeasurementMasterDaoImpl();
-				List<MeasurementMaster> list = dao.selectAll();
+				List<MeasurementMaster> list = DAO.selectAll();
 				for (MeasurementMaster entity : list) {
 					map.put(entity.getMUnit(), entity);
 				}

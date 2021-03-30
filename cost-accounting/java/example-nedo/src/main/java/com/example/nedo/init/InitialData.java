@@ -10,10 +10,13 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 
 import com.example.nedo.BenchConst;
+import com.example.nedo.jdbc.CostBenchDbManager;
 import com.example.nedo.jdbc.doma2.entity.HasDateRange;
 
 public class InitialData {
 	public static final LocalDate DEFAULT_BATCH_DATE = BenchConst.initBatchDate();
+
+	protected CostBenchDbManager dbManager;
 
 	protected final LocalDate batchDate;
 
@@ -23,6 +26,18 @@ public class InitialData {
 
 	protected InitialData(LocalDate batchDate) {
 		this.batchDate = batchDate;
+	}
+
+	protected CostBenchDbManager initializeDbManager() {
+		if (dbManager == null) {
+			this.dbManager = createDbManager();
+		}
+		return dbManager;
+	}
+
+	static CostBenchDbManager createDbManager() {
+		int type = BenchConst.initJdbcType();
+		return CostBenchDbManager.createInstance(type);
 	}
 
 	protected void logStart() {

@@ -12,17 +12,13 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-import org.seasar.doma.jdbc.tx.TransactionManager;
-
 import com.example.nedo.BenchConst;
 import com.example.nedo.init.util.AmplificationRecord;
 import com.example.nedo.init.util.DaoListTask;
 import com.example.nedo.init.util.DaoSplitTask;
-import com.example.nedo.jdbc.doma2.config.AppConfig;
+import com.example.nedo.jdbc.CostBenchDbManager;
 import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.domain.ItemType;
 import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemMaster;
@@ -89,69 +85,71 @@ public class InitialData03ItemMaster extends InitialData {
 	private void main() {
 		logStart();
 
-		generateItemMaster();
+		try (CostBenchDbManager manager = initializeDbManager()) {
+			generateItemMaster();
+		}
 
 		logEnd();
 	}
 
 	private void generateItemMaster() {
-		ItemMasterDao dao = new ItemMasterDaoImpl();
-		ItemConstructionMasterDao icDao = new ItemConstructionMasterDaoImpl();
-
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
-		tm.required(() -> {
-			dao.deleteAll();
-			icDao.deleteAll();
+		dbManager.execute(() -> {
+			{
+				ItemMasterDao dao = dbManager.getItemMasterDao();
+				dao.deleteAll();
+			}
+			{
+				ItemConstructionMasterDao dao = dbManager.getItemConstructionMasterDao();
+				dao.deleteAll();
+			}
 		});
 
-		executeTask(new ItemMasterProductTask(getProductStartId(), getProductEndId(), dao));
-		executeTask(new ItemMasterMaterialTask(getMaterialStartId(), getMaterialEndId(), dao));
+		executeTask(new ItemMasterProductTask(getProductStartId(), getProductEndId()));
+		executeTask(new ItemMasterMaterialTask(getMaterialStartId(), getMaterialEndId()));
 		joinAllTask();
-		forkItemMasterWorkInProcess(getWorkStartId(), getWorkEndId(), dao, icDao);
-		executeTask(new ItemConstructionMasterProductTask(getProductStartId(), getProductEndId(), icDao));
+		forkItemMasterWorkInProcess(getWorkStartId(), getWorkEndId());
+		executeTask(new ItemConstructionMasterProductTask(getProductStartId(), getProductEndId()));
 		joinAllTask();
 	}
 
 	private abstract class ItemMasterTask extends DaoSplitTask {
-		protected final ItemMasterDao dao;
-
-		public ItemMasterTask(int startId, int endId, ItemMasterDao dao) {
-			super(startId, endId);
-			this.dao = dao;
+		public ItemMasterTask(int startId, int endId) {
+			super(dbManager, startId, endId);
 		}
 	}
 
 	private class ItemMasterProductTask extends ItemMasterTask {
-		public ItemMasterProductTask(int startId, int endId, ItemMasterDao dao) {
-			super(startId, endId, dao);
+		public ItemMasterProductTask(int startId, int endId) {
+			super(startId, endId);
 		}
 
 		@Override
 		protected ItemMasterTask createTask(int startId, int endId) {
-			return new ItemMasterProductTask(startId, endId, dao);
+			return new ItemMasterProductTask(startId, endId);
 		}
 
 		@Override
 		protected void execute(int iId) {
 			ItemMaster entity = newItemMasterProduct(iId);
-			insertItemMaster(dao, entity, null);
+			insertItemMaster(dbManager.getItemMasterDao(), entity, null);
 		}
 	}
 
 	private class ItemMasterMaterialTask extends ItemMasterTask {
-		public ItemMasterMaterialTask(int startId, int endId, ItemMasterDao dao) {
-			super(startId, endId, dao);
+		public ItemMasterMaterialTask(int startId, int endId) {
+			super(startId, endId);
 		}
 
 		@Override
 		protected ItemMasterTask createTask(int startId, int endId) {
-			return new ItemMasterMaterialTask(startId, endId, dao);
+			return new ItemMasterMaterialTask(startId, endId);
 		}
 
 		@Override
 		protected void execute(int iId) {
 			ItemMaster entity = newItemMasterMaterial(iId);
-			insertItemMaster(dao, entity, InitialData03ItemMaster.this::randomtItemMasterMaterial);
+			insertItemMaster(dbManager.getItemMasterDao(), entity,
+					InitialData03ItemMaster.this::randomtItemMasterMaterial);
 		}
 	}
 
@@ -271,9 +269,8 @@ public class InitialData03ItemMaster extends InitialData {
 
 	private static final int TASK_THRESHOLD = DaoSplitTask.TASK_THRESHOLD;
 
-	private void forkItemMasterWorkInProcess(int startId, int endId, ItemMasterDao dao,
-			ItemConstructionMasterDao icDao) {
-		ItemMasterWorkTask task = new ItemMasterWorkTask(dao, icDao);
+	private void forkItemMasterWorkInProcess(int startId, int endId) {
+		ItemMasterWorkTask task = new ItemMasterWorkTask();
 
 		int id = startId;
 		int count = 0;
@@ -289,7 +286,7 @@ public class InitialData03ItemMaster extends InitialData {
 			task.add(id, id + treeSize);
 			if (task.idSize() >= TASK_THRESHOLD) {
 				executeTask(task);
-				task = new ItemMasterWorkTask(dao, icDao);
+				task = new ItemMasterWorkTask();
 			}
 
 			id += treeSize;
@@ -310,14 +307,10 @@ public class InitialData03ItemMaster extends InitialData {
 	}
 
 	private class ItemMasterWorkTask extends DaoListTask<Range> {
-		private final ItemMasterDao dao;
-		private final ItemConstructionMasterDao icDao;
-
 		private int idSize = 0;
 
-		public ItemMasterWorkTask(ItemMasterDao dao, ItemConstructionMasterDao icDao) {
-			this.dao = dao;
-			this.icDao = icDao;
+		public ItemMasterWorkTask() {
+			super(dbManager);
 		}
 
 		public void add(int startId, int endId) {
@@ -332,7 +325,8 @@ public class InitialData03ItemMaster extends InitialData {
 
 		@Override
 		protected void execute(Range range) {
-			insertItemMasterWorkInProcess(range.startId, range.endId, dao, icDao);
+			insertItemMasterWorkInProcess(range.startId, range.endId, dbManager.getItemMasterDao(),
+					dbManager.getItemConstructionMasterDao());
 		}
 	}
 
@@ -495,16 +489,13 @@ public class InitialData03ItemMaster extends InitialData {
 
 	// 製品品目の品目構成マスター
 	private class ItemConstructionMasterProductTask extends DaoSplitTask {
-		protected final ItemConstructionMasterDao icDao;
-
-		public ItemConstructionMasterProductTask(int startId, int endId, ItemConstructionMasterDao icDao) {
-			super(startId, endId);
-			this.icDao = icDao;
+		public ItemConstructionMasterProductTask(int startId, int endId) {
+			super(dbManager, startId, endId);
 		}
 
 		@Override
 		protected ItemConstructionMasterProductTask createTask(int startId, int endId) {
-			return new ItemConstructionMasterProductTask(startId, endId, icDao);
+			return new ItemConstructionMasterProductTask(startId, endId);
 		}
 
 		@Override
@@ -519,7 +510,7 @@ public class InitialData03ItemMaster extends InitialData {
 				set.add(random(++seed, workStart, workEnd));
 			}
 
-			insertItemConstructionMasterProduct(iId, set, icDao);
+			insertItemConstructionMasterProduct(iId, set, dbManager.getItemConstructionMasterDao());
 		}
 	}
 

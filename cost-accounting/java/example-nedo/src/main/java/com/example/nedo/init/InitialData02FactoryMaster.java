@@ -1,11 +1,8 @@
 package com.example.nedo.init;
 
-import org.seasar.doma.jdbc.tx.TransactionManager;
-
 import com.example.nedo.BenchConst;
-import com.example.nedo.jdbc.doma2.config.AppConfig;
+import com.example.nedo.jdbc.CostBenchDbManager;
 import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.entity.FactoryMaster;
 
 public class InitialData02FactoryMaster extends InitialData {
@@ -22,17 +19,17 @@ public class InitialData02FactoryMaster extends InitialData {
 	private void main(int size) {
 		logStart();
 
-		generateFactoryMaster(size);
+		try (CostBenchDbManager manager = initializeDbManager()) {
+			generateFactoryMaster(size);
+		}
 
 		logEnd();
 	}
 
 	private void generateFactoryMaster(int size) {
-		FactoryMasterDao dao = new FactoryMasterDaoImpl();
+		FactoryMasterDao dao = dbManager.getFactoryMasterDao();
 
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
-
-		tm.required(() -> {
+		dbManager.execute(() -> {
 			dao.deleteAll();
 			insertFactoryMaster(size, dao);
 		});

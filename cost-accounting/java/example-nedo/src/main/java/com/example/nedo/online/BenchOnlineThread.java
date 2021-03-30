@@ -7,23 +7,9 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 
-import org.seasar.doma.jdbc.tx.TransactionManager;
-
 import com.example.nedo.BenchConst;
 import com.example.nedo.init.BenchRandom;
-import com.example.nedo.jdbc.doma2.config.AppConfig;
-import com.example.nedo.jdbc.doma2.dao.CostMasterDao;
-import com.example.nedo.jdbc.doma2.dao.CostMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ResultTableDao;
-import com.example.nedo.jdbc.doma2.dao.ResultTableDaoImpl;
+import com.example.nedo.jdbc.CostBenchDbManager;
 import com.example.nedo.online.task.BenchOnlineNewItemTask;
 import com.example.nedo.online.task.BenchOnlineShowCostTask;
 import com.example.nedo.online.task.BenchOnlineShowQuantityTask;
@@ -35,6 +21,7 @@ import com.example.nedo.online.task.BenchOnlineUpdateMaterialTask;
 
 public class BenchOnlineThread implements Runnable, Callable<Void> {
 
+	private final CostBenchDbManager dbManager;
 	private final List<Integer> factoryList;
 	private final LocalDate date;
 	private final List<BenchOnlineTask> taskList = new ArrayList<>();
@@ -43,7 +30,8 @@ public class BenchOnlineThread implements Runnable, Callable<Void> {
 
 	private final BenchRandom random = new BenchRandom();
 
-	public BenchOnlineThread(List<Integer> factoryList, LocalDate date) {
+	public BenchOnlineThread(CostBenchDbManager dbManager, List<Integer> factoryList, LocalDate date) {
+		this.dbManager = dbManager;
 		this.factoryList = factoryList;
 		this.date = date;
 
@@ -74,18 +62,8 @@ public class BenchOnlineThread implements Runnable, Callable<Void> {
 
 	@Override
 	public void run() {
-		{
-			TransactionManager tm = AppConfig.singleton().getTransactionManager();
-			ItemManufacturingMasterDao itemManufacturingMasterDao = new ItemManufacturingMasterDaoImpl();
-			FactoryMasterDao factoryMasterDao = new FactoryMasterDaoImpl();
-			ItemMasterDao itemMasterDao = new ItemMasterDaoImpl();
-			ItemConstructionMasterDao ItemConstructionMasterDao = new ItemConstructionMasterDaoImpl();
-			CostMasterDao costMasterDao = new CostMasterDaoImpl();
-			ResultTableDao resultTableDao = new ResultTableDaoImpl();
-			for (BenchOnlineTask task : taskList) {
-				task.setDao(tm, itemManufacturingMasterDao, factoryMasterDao, itemMasterDao, ItemConstructionMasterDao,
-						costMasterDao, resultTableDao);
-			}
+		for (BenchOnlineTask task : taskList) {
+			task.setDao(dbManager);
 		}
 
 		for (;;) {

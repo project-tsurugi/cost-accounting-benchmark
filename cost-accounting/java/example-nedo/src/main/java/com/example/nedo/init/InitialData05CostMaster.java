@@ -8,16 +8,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.seasar.doma.jdbc.tx.TransactionManager;
-
 import com.example.nedo.init.util.DaoSplitTask;
-import com.example.nedo.jdbc.doma2.config.AppConfig;
+import com.example.nedo.jdbc.CostBenchDbManager;
 import com.example.nedo.jdbc.doma2.dao.CostMasterDao;
-import com.example.nedo.jdbc.doma2.dao.CostMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.domain.ItemType;
 import com.example.nedo.jdbc.doma2.entity.CostMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemMaster;
@@ -38,17 +33,18 @@ public class InitialData05CostMaster extends InitialData {
 	private void main() {
 		logStart();
 
-		initializeField();
-		generateCostMaster();
+		try (CostBenchDbManager manager = initializeDbManager()) {
+			initializeField();
+			generateCostMaster();
+		}
 
 		logEnd();
 	}
 
 	private void initializeField() {
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
 		{
-			FactoryMasterDao dao = new FactoryMasterDaoImpl();
-			tm.required(() -> {
+			FactoryMasterDao dao = dbManager.getFactoryMasterDao();
+			dbManager.execute(() -> {
 				List<Integer> list = dao.selectAllId();
 
 				factoryIdSet.clear();
@@ -58,39 +54,32 @@ public class InitialData05CostMaster extends InitialData {
 	}
 
 	private void generateCostMaster() {
-		CostMasterDao dao = new CostMasterDaoImpl();
-
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
-		tm.required(() -> {
+		dbManager.execute(() -> {
+			CostMasterDao dao = dbManager.getCostMasterDao();
 			dao.deleteAll();
 		});
 
 		InitialData03ItemMaster itemMasterData = InitialData03ItemMaster.getDefaultInstance();
 		int materialStartId = itemMasterData.getMaterialStartId();
 		int materialEndId = itemMasterData.getMaterialEndId();
-		executeTask(new CostMasterTask(materialStartId, materialEndId, new ItemMasterDaoImpl(), dao));
+		executeTask(new CostMasterTask(materialStartId, materialEndId));
 		joinAllTask();
 	}
 
 	@SuppressWarnings("serial")
 	private class CostMasterTask extends DaoSplitTask {
-		private final ItemMasterDao itemDao;
-		private final CostMasterDao dao;
-
-		public CostMasterTask(int startId, int endId, ItemMasterDao itemDao, CostMasterDao dao) {
-			super(startId, endId);
-			this.itemDao = itemDao;
-			this.dao = dao;
+		public CostMasterTask(int startId, int endId) {
+			super(dbManager, startId, endId);
 		}
 
 		@Override
 		protected DaoSplitTask createTask(int startId, int endId) {
-			return new CostMasterTask(startId, endId, itemDao, dao);
+			return new CostMasterTask(startId, endId);
 		}
 
 		@Override
 		protected void execute(int iId) {
-			insertCostMaster(iId, itemDao, dao);
+			insertCostMaster(iId, dbManager.getItemMasterDao(), dbManager.getCostMasterDao());
 		}
 	}
 

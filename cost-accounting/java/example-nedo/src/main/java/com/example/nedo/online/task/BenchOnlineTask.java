@@ -4,28 +4,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
-import org.seasar.doma.jdbc.tx.TransactionManager;
-
 import com.example.nedo.BenchConst;
 import com.example.nedo.init.BenchRandom;
-import com.example.nedo.jdbc.doma2.dao.CostMasterDao;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ResultTableDao;
+import com.example.nedo.jdbc.CostBenchDbManager;
+import com.example.nedo.online.BenchOnline;
 
 public abstract class BenchOnlineTask {
 
 	private final String title;
 
-	protected TransactionManager tm;
-	protected ItemManufacturingMasterDao itemManufacturingMasterDao;
-	protected FactoryMasterDao factoryMasterDao;
-	protected ItemMasterDao itemMasterDao;
-	protected ItemConstructionMasterDao itemCostructionMasterDao;
-	protected CostMasterDao costMasterDao;
-	protected ResultTableDao resultTableDao;
+	protected CostBenchDbManager dbManager;
 
 	protected int factoryId;
 	protected LocalDate date;
@@ -40,17 +28,8 @@ public abstract class BenchOnlineTask {
 		return title;
 	}
 
-	public void setDao(TransactionManager tm, ItemManufacturingMasterDao itemManufacturingMasterDao,
-			FactoryMasterDao factoryMasterDao, ItemMasterDao itemMasterDao,
-			ItemConstructionMasterDao itemCostructionMasterDao, CostMasterDao costMasterDao,
-			ResultTableDao resultTableDao) {
-		this.tm = tm;
-		this.itemManufacturingMasterDao = itemManufacturingMasterDao;
-		this.factoryMasterDao = factoryMasterDao;
-		this.itemMasterDao = itemMasterDao;
-		this.itemCostructionMasterDao = itemCostructionMasterDao;
-		this.costMasterDao = costMasterDao;
-		this.resultTableDao = resultTableDao;
+	public void setDao(CostBenchDbManager dbManager) {
+		this.dbManager = dbManager;
 	}
 
 	public void initialize(int factoryId, LocalDate date) {
@@ -109,5 +88,9 @@ public abstract class BenchOnlineTask {
 			this.sleepTime = TimeUnit.SECONDS.toMillis(BenchConst.onlineTaskSleepTime(title));
 		}
 		return sleepTime;
+	}
+
+	protected static final CostBenchDbManager createCostBenchDbManagerForTest() {
+		return BenchOnline.createCostBenchDbManager();
 	}
 }

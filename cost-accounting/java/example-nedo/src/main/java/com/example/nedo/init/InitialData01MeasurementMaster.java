@@ -8,13 +8,11 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.seasar.doma.jdbc.tx.TransactionManager;
 
 import com.example.nedo.BenchConst;
 import com.example.nedo.ddl.common.SheetWrapper;
-import com.example.nedo.jdbc.doma2.config.AppConfig;
+import com.example.nedo.jdbc.CostBenchDbManager;
 import com.example.nedo.jdbc.doma2.dao.MeasurementMasterDao;
-import com.example.nedo.jdbc.doma2.dao.MeasurementMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.domain.MeasurementType;
 import com.example.nedo.jdbc.doma2.entity.MeasurementMaster;
 
@@ -32,14 +30,16 @@ public class InitialData01MeasurementMaster extends InitialData {
 	private void main(String src) throws IOException {
 		logStart();
 
-		File srcFile = new File(src);
-		System.out.println(srcFile);
+		try (CostBenchDbManager manager = initializeDbManager()) {
+			File srcFile = new File(src);
+			System.out.println(srcFile);
 
-		try (Workbook workbook = WorkbookFactory.create(srcFile)) {
-			Sheet sheet = workbook.getSheet("measurement");
-			TableSheet table = new TableSheet(sheet);
+			try (Workbook workbook = WorkbookFactory.create(srcFile)) {
+				Sheet sheet = workbook.getSheet("measurement");
+				TableSheet table = new TableSheet(sheet);
 
-			generateMeasurementMaster(table);
+				generateMeasurementMaster(table);
+			}
 		}
 
 		logEnd();
@@ -70,11 +70,9 @@ public class InitialData01MeasurementMaster extends InitialData {
 	}
 
 	private void generateMeasurementMaster(TableSheet table) {
-		MeasurementMasterDao dao = new MeasurementMasterDaoImpl();
+		MeasurementMasterDao dao = dbManager.getMeasurementMasterDao();
 
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
-
-		tm.required(() -> {
+		dbManager.execute(() -> {
 			dao.deleteAll();
 			insertMeasureMaster(table, dao);
 		});

@@ -6,17 +6,13 @@ import java.util.List;
 import java.util.Set;
 
 import org.seasar.doma.jdbc.UniqueConstraintException;
-import org.seasar.doma.jdbc.tx.TransactionManager;
 
 import com.example.nedo.init.InitialData;
 import com.example.nedo.init.InitialData03ItemMaster;
 import com.example.nedo.init.InitialData04ItemManufacturingMaster;
-import com.example.nedo.jdbc.doma2.config.AppConfig;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ResultTableDaoImpl;
+import com.example.nedo.jdbc.CostBenchDbManager;
+import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
 import com.example.nedo.jdbc.doma2.domain.ItemType;
 import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemMaster;
@@ -34,7 +30,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 	protected void execute1() {
 		ItemMaster item;
 		for (;;) {
-			ItemMaster i = tm.required(() -> {
+			ItemMaster i = dbManager.execute(() -> {
 				return executeMain();
 			});
 			if (i != null) {
@@ -42,7 +38,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 				break;
 			}
 		}
-		tm.required(() -> {
+		dbManager.execute(() -> {
 			executeMain2(item);
 		});
 	}
@@ -72,6 +68,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 
 		logTarget("product=%s", item.getIName());
 
+		ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
 		List<Integer> workList = itemMasterDao.selectIdByType(date, ItemType.WORK_IN_PROCESS);
 		int s = random.random(1, InitialData03ItemMaster.PRODUCT_TREE_SIZE);
 		Set<Integer> workSet = new HashSet<>(s);
@@ -80,12 +77,14 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 			workSet.add(id);
 		}
 
-		initialData.insertItemConstructionMasterProduct(item.getIId(), workSet, itemCostructionMasterDao);
+		initialData.insertItemConstructionMasterProduct(item.getIId(), workSet,
+				dbManager.getItemConstructionMasterDao());
 
 		return item;
 	}
 
 	private ItemMaster insertItemMaster(InitialData03ItemMaster initialData) {
+		ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
 		int newId = itemMasterDao.selectMaxId();
 
 		ItemMaster entity = initialData.newItemMasterProduct(newId);
@@ -109,6 +108,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 		InitialData04ItemManufacturingMaster initialData = new InitialData04ItemManufacturingMaster(1, date);
 
 		ItemManufacturingMaster entity = initialData.newItemManufacturingMaster(factoryId, item.getIId());
+		ItemManufacturingMasterDao itemManufacturingMasterDao = dbManager.getItemManufacturingMasterDao();
 		itemManufacturingMasterDao.insert(entity);
 	}
 
@@ -116,12 +116,12 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 	public static void main(String[] args) {
 		BenchOnlineNewItemTask task = new BenchOnlineNewItemTask();
 
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
-		task.setDao(tm, new ItemManufacturingMasterDaoImpl(), new FactoryMasterDaoImpl(), new ItemMasterDaoImpl(),
-				new ItemConstructionMasterDaoImpl(), null, new ResultTableDaoImpl());
+		try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
+			task.setDao(manager);
 
-		task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
+			task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
 
-		task.execute();
+			task.execute();
+		}
 	}
 }

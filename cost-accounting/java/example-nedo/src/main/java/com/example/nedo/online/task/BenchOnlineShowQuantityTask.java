@@ -2,14 +2,11 @@ package com.example.nedo.online.task;
 
 import java.util.stream.Stream;
 
-import org.seasar.doma.jdbc.tx.TransactionManager;
-
 import com.example.nedo.init.InitialData;
-import com.example.nedo.jdbc.doma2.config.AppConfig;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ResultTableDaoImpl;
+import com.example.nedo.jdbc.CostBenchDbManager;
+import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ResultTableDao;
 import com.example.nedo.jdbc.doma2.entity.FactoryMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 import com.example.nedo.jdbc.doma2.entity.ResultTable;
@@ -25,16 +22,19 @@ public class BenchOnlineShowQuantityTask extends BenchOnlineTask {
 
 	@Override
 	protected void execute1() {
-		tm.required(() -> {
+		dbManager.execute(() -> {
 			executeMain();
 		});
 	}
 
 	protected void executeMain() {
+		FactoryMasterDao factoryMasterDao = dbManager.getFactoryMasterDao();
 		FactoryMaster factory = factoryMasterDao.selectById(factoryId);
 
+		ResultTableDao resultTableDao = dbManager.getResultTableDao();
 		try (Stream<ResultTable> stream = resultTableDao.selectRequiredQuantity(factoryId, date)) {
 			stream.forEach(result -> {
+				ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
 				ItemMaster item = itemMasterDao.selectById(result.getRIId(), date);
 				console("factory=%s, item=%s, required_quantity=%s %s", factory.getFName(), item.getIName(),
 						result.getRRequiredQuantity(), result.getRRequiredQuantityUnit());
@@ -46,12 +46,12 @@ public class BenchOnlineShowQuantityTask extends BenchOnlineTask {
 	public static void main(String[] args) {
 		BenchOnlineShowQuantityTask task = new BenchOnlineShowQuantityTask();
 
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
-		task.setDao(tm, new ItemManufacturingMasterDaoImpl(), new FactoryMasterDaoImpl(), new ItemMasterDaoImpl(), null,
-				null, new ResultTableDaoImpl());
+		try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
+			task.setDao(manager);
 
-		task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
+			task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
 
-		task.execute();
+			task.execute();
+		}
 	}
 }

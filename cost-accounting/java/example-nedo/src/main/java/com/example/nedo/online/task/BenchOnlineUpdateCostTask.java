@@ -3,17 +3,11 @@ package com.example.nedo.online.task;
 import java.math.BigDecimal;
 import java.util.List;
 
-import org.seasar.doma.jdbc.tx.TransactionManager;
-
 import com.example.nedo.init.InitialData;
 import com.example.nedo.init.MeasurementUtil;
-import com.example.nedo.jdbc.doma2.config.AppConfig;
-import com.example.nedo.jdbc.doma2.dao.CostMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ResultTableDaoImpl;
+import com.example.nedo.jdbc.CostBenchDbManager;
+import com.example.nedo.jdbc.doma2.dao.CostMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
 import com.example.nedo.jdbc.doma2.entity.CostMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 
@@ -28,7 +22,7 @@ public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
 
 	@Override
 	protected void execute1() {
-		tm.required(() -> {
+		dbManager.execute(() -> {
 			CostMaster cost = selectRandomItem();
 
 			int pattern = random.random(0, 1);
@@ -41,6 +35,7 @@ public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
 	}
 
 	private CostMaster selectRandomItem() {
+		CostMasterDao costMasterDao = dbManager.getCostMasterDao();
 		List<CostMaster> list = costMasterDao.selectByFactory(factoryId);
 		int i = random.nextInt(list.size());
 		return list.get(i);
@@ -61,6 +56,7 @@ public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
 		// 増やす金額
 		BigDecimal amount;
 		{
+			ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
 			ItemMaster item = itemMasterDao.selectById(cost.getCIId(), date);
 			BigDecimal price = MeasurementUtil.convertPriceUnit(item.getIPrice(), item.getIPriceUnit(),
 					cost.getCStockUnit());
@@ -68,6 +64,7 @@ public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
 		}
 
 		// 更新
+		CostMasterDao costMasterDao = dbManager.getCostMasterDao();
 		int r = costMasterDao.updateIncrease(cost, quantity, amount);
 		assert r == 1;
 	}
@@ -85,6 +82,7 @@ public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
 		}
 
 		// 更新
+		CostMasterDao costMasterDao = dbManager.getCostMasterDao();
 		int r = costMasterDao.updateDecrease(cost, quantity);
 		assert r == 1;
 	}
@@ -93,12 +91,12 @@ public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
 	public static void main(String[] args) {
 		BenchOnlineUpdateCostTask task = new BenchOnlineUpdateCostTask();
 
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
-		task.setDao(tm, new ItemManufacturingMasterDaoImpl(), new FactoryMasterDaoImpl(), new ItemMasterDaoImpl(),
-				new ItemConstructionMasterDaoImpl(), new CostMasterDaoImpl(), new ResultTableDaoImpl());
+		try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
+			task.setDao(manager);
 
-		task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
+			task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
 
-		task.execute();
+			task.execute();
+		}
 	}
 }

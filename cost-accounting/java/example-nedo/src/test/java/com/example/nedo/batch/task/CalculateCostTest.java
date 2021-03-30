@@ -26,7 +26,7 @@ class CalculateCostTest {
 	@Test
 	void testCalculateCost() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate) {
+		BenchBatchItemTask target = new BenchBatchItemTask(null, batchDate) {
 			@Override
 			protected CostMaster selectCostMaster(int factoryId, int itemId) {
 				CostMaster entity = new CostMaster();

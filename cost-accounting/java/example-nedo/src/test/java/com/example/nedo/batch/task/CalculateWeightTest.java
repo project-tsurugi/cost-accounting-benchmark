@@ -22,7 +22,7 @@ class CalculateWeightTest {
 	@Test
 	void testCalculateWeight0() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate);
+		BenchBatchItemTask target = new BenchBatchItemTask(null, batchDate);
 
 		ItemManufacturingMaster entity = new ItemManufacturingMaster();
 		entity.setImIId(1);
@@ -38,7 +38,7 @@ class CalculateWeightTest {
 	@Test
 	void testCalculateWeight_MaterialVolume_null() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate);
+		BenchBatchItemTask target = new BenchBatchItemTask(null, batchDate);
 
 		ItemConstructionMaster entity = new ItemConstructionMaster();
 		entity.setIcIId(1);
@@ -54,7 +54,7 @@ class CalculateWeightTest {
 	@Test
 	void testCalculateWeight_MaterialUnit_weight() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate);
+		BenchBatchItemTask target = new BenchBatchItemTask(null, batchDate);
 
 		ItemConstructionMaster entity = new ItemConstructionMaster();
 		entity.setIcIId(1);
@@ -72,7 +72,7 @@ class CalculateWeightTest {
 	@Test
 	void testCalculateWeight_MaterialUnit_notWeight() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate) {
+		BenchBatchItemTask target = new BenchBatchItemTask(null, batchDate) {
 			@Override
 			protected ItemMaster selectItemMaster(int itemId) {
 				assertEquals(1, itemId);
@@ -102,7 +102,7 @@ class CalculateWeightTest {
 	@Test
 	void testCalculateWeight_child() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate);
+		BenchBatchItemTask target = new BenchBatchItemTask(null, batchDate);
 
 		BomNode root;
 		{

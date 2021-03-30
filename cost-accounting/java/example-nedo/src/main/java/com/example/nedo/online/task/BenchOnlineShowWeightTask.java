@@ -2,14 +2,12 @@ package com.example.nedo.online.task;
 
 import java.util.List;
 
-import org.seasar.doma.jdbc.tx.TransactionManager;
-
 import com.example.nedo.init.InitialData;
-import com.example.nedo.jdbc.doma2.config.AppConfig;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ResultTableDaoImpl;
+import com.example.nedo.jdbc.CostBenchDbManager;
+import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ResultTableDao;
 import com.example.nedo.jdbc.doma2.entity.FactoryMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 import com.example.nedo.jdbc.doma2.entity.ResultTable;
@@ -25,7 +23,7 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
 
 	@Override
 	protected void execute1() {
-		tm.required(() -> {
+		dbManager.execute(() -> {
 			int productId = selectRandomItemId();
 
 			logTarget("factory=%d, date=%s, product=%d", factoryId, date, productId);
@@ -34,16 +32,20 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
 	}
 
 	protected int selectRandomItemId() {
+		ItemManufacturingMasterDao itemManufacturingMasterDao = dbManager.getItemManufacturingMasterDao();
 		List<Integer> list = itemManufacturingMasterDao.selectIdByFactory(factoryId, date);
 		int i = random.nextInt(list.size());
 		return list.get(i);
 	}
 
 	protected void executeMain(int productId) {
+		ResultTableDao resultTableDao = dbManager.getResultTableDao();
 		List<ResultTable> list = resultTableDao.selectByProductId(factoryId, date, productId);
 
+		FactoryMasterDao factoryMasterDao = dbManager.getFactoryMasterDao();
 		FactoryMaster factory = factoryMasterDao.selectById(factoryId);
 
+		ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
 		ItemMaster product = itemMasterDao.selectById(productId, date);
 		for (ResultTable result : list) {
 			ItemMaster item = itemMasterDao.selectById(result.getRIId(), date);
@@ -57,16 +59,12 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
 	public static void main(String[] args) {
 		BenchOnlineShowWeightTask task = new BenchOnlineShowWeightTask();
 
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
-		task.setDao(tm, new ItemManufacturingMasterDaoImpl(), new FactoryMasterDaoImpl(), new ItemMasterDaoImpl(), null,
-				null, new ResultTableDaoImpl());
+		try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
+			task.setDao(manager);
 
-		task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
+			task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
 
-		task.execute();
-
-//		tm.required(() -> {
-//			task.executeMain(322);
-//		});
+			task.execute();
+		}
 	}
 }

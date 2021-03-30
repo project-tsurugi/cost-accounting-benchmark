@@ -26,7 +26,7 @@ class CalculateRequiredQuantityTest {
 	@Test
 	void testCalculateRequiredQuantity() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate) {
+		BenchBatchItemTask target = new BenchBatchItemTask(null, batchDate) {
 			@Override
 			protected ItemMaster selectItemMaster(int itemId) {
 				ItemMaster entity = new ItemMaster();

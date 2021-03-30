@@ -21,7 +21,7 @@ class CalculateWeightRatioTest {
 	@Test
 	void testCalculateWeightRatio0() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate);
+		BenchBatchItemTask target = new BenchBatchItemTask(null, batchDate);
 
 		ItemManufacturingMaster entity = new ItemManufacturingMaster();
 		entity.setImIId(1);
@@ -36,7 +36,7 @@ class CalculateWeightRatioTest {
 	@Test
 	void testCalculateWeightRatio() {
 		LocalDate batchDate = LocalDate.of(2020, 10, 6);
-		BenchBatchItemTask target = new BenchBatchDoma2ItemTask(batchDate);
+		BenchBatchItemTask target = new BenchBatchItemTask(null, batchDate);
 
 		BomNode root;
 		{

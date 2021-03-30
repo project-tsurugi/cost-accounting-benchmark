@@ -16,27 +16,21 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.seasar.doma.jdbc.tx.TransactionManager;
-
 import com.example.nedo.BenchConst;
-import com.example.nedo.batch.task.BenchBatchDoma2FactoryTask;
 import com.example.nedo.batch.task.BenchBatchFactoryTask;
 import com.example.nedo.batch.task.BenchBatchItemTask;
-import com.example.nedo.batch.task.BenchBatchJdbcFactoryTask;
 import com.example.nedo.init.InitialData;
-import com.example.nedo.jdbc.doma2.config.AppConfig;
+import com.example.nedo.jdbc.CostBenchDbManager;
 import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.dao.ResultTableDao;
-import com.example.nedo.jdbc.doma2.dao.ResultTableDaoImpl;
 import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
 
 public class BenchBatch {
 
 	private int commitRatio;
 
+	private CostBenchDbManager dbManager;
 	private final AtomicInteger commitCount = new AtomicInteger();
 	private final AtomicInteger rollbackCount = new AtomicInteger();
 
@@ -74,36 +68,45 @@ public class BenchBatch {
 	public void main(LocalDate batchDate, List<Integer> factoryList, int commitRatio) {
 		logStart();
 
-		assert batchDate != null;
-		if (factoryList == null || factoryList.isEmpty()) {
-			factoryList = getAllFactory();
-		}
-		this.commitRatio = commitRatio;
+		try (CostBenchDbManager manager = createDbManager()) {
+			this.dbManager = manager;
 
-		System.out.println("batchDate=" + batchDate);
-		System.out.println("factory=" + StringUtil.toString(factoryList));
-		System.out.println("commitRatio=" + commitRatio);
+			assert batchDate != null;
+			if (factoryList == null || factoryList.isEmpty()) {
+				factoryList = getAllFactory();
+			}
+			this.commitRatio = commitRatio;
 
-		int type = BenchConst.batchExecuteType();
-		switch (type) {
-		case 1:
-			executeSequential(batchDate, factoryList);
-			break;
-		case 2:
-			executeParallelFactory(batchDate, factoryList);
-			break;
-		case 3:
-			executeStream(batchDate, factoryList);
-			break;
-		case 4:
-			executeQueue(batchDate, factoryList);
-			break;
-		case 5:
-			executeForDebug1(batchDate);
-			break;
+			System.out.println("batchDate=" + batchDate);
+			System.out.println("factory=" + StringUtil.toString(factoryList));
+			System.out.println("commitRatio=" + commitRatio);
+
+			int type = BenchConst.batchExecuteType();
+			switch (type) {
+			case 1:
+				executeSequential(batchDate, factoryList);
+				break;
+			case 2:
+				executeParallelFactory(batchDate, factoryList);
+				break;
+			case 3:
+				executeStream(batchDate, factoryList);
+				break;
+			case 4:
+				executeQueue(batchDate, factoryList);
+				break;
+			case 5:
+				executeForDebug1(batchDate);
+				break;
+			}
 		}
 
 		logEnd();
+	}
+
+	private CostBenchDbManager createDbManager() {
+		int type = BenchConst.batchJdbcType();
+		return CostBenchDbManager.createInstance(type);
 	}
 
 	private LocalDateTime startTime;
@@ -120,13 +123,9 @@ public class BenchBatch {
 	}
 
 	private List<Integer> getAllFactory() {
-		FactoryMasterDao dao = new FactoryMasterDaoImpl();
+		FactoryMasterDao dao = dbManager.getFactoryMasterDao();
 
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
-
-		return tm.required(() -> {
-			return dao.selectAllId();
-		});
+		return dbManager.execute(dao::selectAllId);
 	}
 
 	private void executeSequential(LocalDate batchDate, List<Integer> factoryList) {
@@ -163,47 +162,29 @@ public class BenchBatch {
 		}
 	}
 
-	private boolean logBenchBatchFactoryTask = false;
-
 	protected BenchBatchFactoryTask newBenchBatchFactoryThread(LocalDate batchDate, int factoryId) {
-		BenchBatchFactoryTask task;
-		{
-			int type = BenchConst.batchFactoryTaskType();
-			switch (type) {
-			default:
-				task = new BenchBatchDoma2FactoryTask(commitRatio, batchDate, factoryId);
-				break;
-			case 2:
-				task = new BenchBatchJdbcFactoryTask(commitRatio, batchDate, factoryId);
-				break;
-			}
-		}
-		if (!logBenchBatchFactoryTask) {
-			System.out.println("using " + task.getClass().getSimpleName());
-			logBenchBatchFactoryTask = true;
-		}
+		BenchBatchFactoryTask task = new BenchBatchFactoryTask(dbManager, commitRatio, batchDate, factoryId);
 		return task;
 	}
 
 	private void executeStream(LocalDate batchDate, List<Integer> factoryList) {
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
-
-		tm.required(() -> {
-			ResultTableDao resultTableDao = new ResultTableDaoImpl();
+		dbManager.execute(() -> {
+			ResultTableDao resultTableDao = dbManager.getResultTableDao();
 			resultTableDao.deleteByFactories(factoryList, batchDate);
 
 			BenchBatchFactoryTask thread = newBenchBatchFactoryThread(batchDate, -1);
-			BenchBatchItemTask itemTask = newBenchBatchItemTask(thread);
+			BenchBatchItemTask itemTask = newBenchBatchItemTask(batchDate);
 
-			ItemManufacturingMasterDao itemManufacturingMasterDao = new ItemManufacturingMasterDaoImpl();
+			ItemManufacturingMasterDao itemManufacturingMasterDao = dbManager.getItemManufacturingMasterDao();
 			int[] count = { 0 };
-			try (Stream<ItemManufacturingMaster> stream0 = itemManufacturingMasterDao.selectByFactories(factoryList,
+			try (Stream<ItemManufacturingMaster> stream = itemManufacturingMasterDao.selectByFactories(factoryList,
 					batchDate)) {
-				Stream<ItemManufacturingMaster> stream = stream0;
-//				Stream<MakeItemMaster> stream = stream0.parallel(); // 効果が無いっぽい
-				stream.parallel().forEach(manufact -> {
+				stream.forEach(manufact -> {
 					count[0]++;
 					itemTask.execute(manufact);
+					if (count[0] % 10 == 0) {
+						System.out.println("executeStream progress " + count[0]);
+					}
 				});
 			}
 
@@ -213,15 +194,13 @@ public class BenchBatch {
 	}
 
 	private void executeQueue(LocalDate batchDate, List<Integer> factoryList) {
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
+		ResultTableDao resultTableDao = dbManager.getResultTableDao();
 
-		ResultTableDao resultTableDao = new ResultTableDaoImpl();
-
-		ConcurrentLinkedDeque<ItemManufacturingMaster> queue = tm.required(() -> {
+		ConcurrentLinkedDeque<ItemManufacturingMaster> queue = dbManager.execute(() -> {
 			ConcurrentLinkedDeque<ItemManufacturingMaster> q;
 			resultTableDao.deleteByFactories(factoryList, batchDate);
 
-			ItemManufacturingMasterDao itemManufacturingMasterDao = new ItemManufacturingMasterDaoImpl();
+			ItemManufacturingMasterDao itemManufacturingMasterDao = dbManager.getItemManufacturingMasterDao();
 			try (Stream<ItemManufacturingMaster> stream = itemManufacturingMasterDao.selectByFactories(factoryList,
 					batchDate)) {
 				q = stream.collect(Collectors.toCollection(ConcurrentLinkedDeque::new));
@@ -236,10 +215,9 @@ public class BenchBatch {
 			@Override
 			public Void call() throws Exception {
 				BenchBatchFactoryTask thread = newBenchBatchFactoryThread(batchDate, -1);
-				BenchBatchItemTask itemTask = newBenchBatchItemTask(thread);
+				BenchBatchItemTask itemTask = newBenchBatchItemTask(batchDate);
 
-				TransactionManager tm = AppConfig.singleton().getTransactionManager();
-				tm.required(() -> {
+				dbManager.execute(() -> {
 					int[] count = { 0 };
 					for (;;) {
 						ItemManufacturingMaster manufact = queue.pollLast();
@@ -270,15 +248,12 @@ public class BenchBatch {
 		int factoryId = 1;
 		int productId = 345859;
 
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
+		ItemManufacturingMasterDao itemManufacturingMasterDao = dbManager.getItemManufacturingMasterDao();
+		ResultTableDao resultTableDao = dbManager.getResultTableDao();
 
-		ResultTableDao resultTableDao = new ResultTableDaoImpl();
-		ItemManufacturingMasterDao itemManufacturingMasterDao = new ItemManufacturingMasterDaoImpl();
+		BenchBatchItemTask itemTask = newBenchBatchItemTask(batchDate);
 
-		BenchBatchFactoryTask thread = newBenchBatchFactoryThread(batchDate, factoryId);
-		BenchBatchItemTask itemTask = newBenchBatchItemTask(thread);
-
-		tm.required(() -> {
+		dbManager.execute(() -> {
 			ItemManufacturingMaster manufact = itemManufacturingMasterDao.selectById(factoryId, productId, batchDate);
 
 			resultTableDao.deleteByProductId(factoryId, batchDate, productId);
@@ -287,8 +262,8 @@ public class BenchBatch {
 		});
 	}
 
-	protected BenchBatchItemTask newBenchBatchItemTask(BenchBatchFactoryTask thread) {
-		return thread.newBenchBatchItemTask();
+	protected BenchBatchItemTask newBenchBatchItemTask(LocalDate batchDate) {
+		return new BenchBatchItemTask(dbManager, batchDate);
 	}
 
 	protected void addCount(BenchBatchFactoryTask thread) {

@@ -1,4 +1,4 @@
-package com.example.nedo.batch.task;
+package com.example.nedo.jdbc.raw.dao;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -9,8 +9,9 @@ import java.sql.Types;
 import java.time.LocalDate;
 
 import com.example.nedo.jdbc.doma2.domain.ItemType;
+import com.example.nedo.jdbc.doma2.domain.MeasurementType;
 
-public class JdbcTaskUtil {
+public class RawJdbcUtil {
 
 	// set to PreparedStatement
 
@@ -42,6 +43,22 @@ public class JdbcTaskUtil {
 		ps.setString(i, value);
 	}
 
+	public static void setMeasurementType(PreparedStatement ps, int i, MeasurementType value) throws SQLException {
+		if (value != null) {
+			ps.setString(i, value.getValue());
+		} else {
+			ps.setString(i, null);
+		}
+	}
+
+	public static void setItemType(PreparedStatement ps, int i, ItemType value) throws SQLException {
+		if (value != null) {
+			ps.setString(i, value.getValue());
+		} else {
+			ps.setString(i, null);
+		}
+	}
+
 	// get from ResultSet
 
 	public static Integer getInt(ResultSet rs, String name) throws SQLException {
@@ -64,6 +81,11 @@ public class JdbcTaskUtil {
 
 	public static String getString(ResultSet rs, String name) throws SQLException {
 		return rs.getString(name);
+	}
+
+	public static MeasurementType getMeasurementType(ResultSet rs, String name) throws SQLException {
+		String value = rs.getString(name);
+		return (value == null) ? null : MeasurementType.of(value);
 	}
 
 	public static ItemType getItemType(ResultSet rs, String name) throws SQLException {

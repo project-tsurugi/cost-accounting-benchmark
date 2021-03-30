@@ -47,13 +47,17 @@ public class BenchConst {
 		return getPropertyInt("batch.execute.type", 2);
 	}
 
-	public static int batchFactoryTaskType() {
-		return getPropertyInt("batch.factory-task.type", 1);
+	public static int batchJdbcType() {
+		return getPropertyInt("batch.jdbc.type", 1);
 	}
 
 	public static int DECIMAL_SCALE = getPropertyInt("decimal.scale", 20);
 
 	// online
+	public static int onlineJdbcType() {
+		return getPropertyInt("online.jdbc.type", 1);
+	}
+
 	public static int onlineTaskRatio(String taskName) {
 		return getPropertyInt("online.task.ratio." + taskName);
 	}
@@ -63,6 +67,10 @@ public class BenchConst {
 	}
 
 	// initial data
+	public static int initJdbcType() {
+		return getPropertyInt("init.jdbc.type", 1);
+	}
+
 	public static LocalDate initBatchDate() {
 		return getPropertyDate("init.batch.date");
 	}

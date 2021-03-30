@@ -4,13 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RecursiveAction;
 
-import org.seasar.doma.jdbc.tx.TransactionManager;
-
-import com.example.nedo.jdbc.doma2.config.AppConfig;
+import com.example.nedo.jdbc.CostBenchDbManager;
 
 @SuppressWarnings("serial")
 public abstract class DaoListTask<T> extends RecursiveAction {
+
+	private final CostBenchDbManager dbManager;
+
 	private final List<T> list = new ArrayList<>();
+
+	public DaoListTask(CostBenchDbManager dbManager) {
+		this.dbManager = dbManager;
+	}
 
 	public void add(T t) {
 		list.add(t);
@@ -22,8 +27,7 @@ public abstract class DaoListTask<T> extends RecursiveAction {
 
 	@Override
 	protected final void compute() {
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
-		tm.required(() -> {
+		dbManager.execute(() -> {
 			for (T t : list) {
 				execute(t);
 			}

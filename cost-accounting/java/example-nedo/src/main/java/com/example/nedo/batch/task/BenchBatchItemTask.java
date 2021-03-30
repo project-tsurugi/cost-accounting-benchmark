@@ -18,20 +18,30 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.example.nedo.BenchConst;
+import com.example.nedo.init.InitialData;
 import com.example.nedo.init.MeasurementUtil;
 import com.example.nedo.init.MeasurementUtil.ValuePair;
 import com.example.nedo.init.MeasurementValue;
+import com.example.nedo.jdbc.CostBenchDbManager;
+import com.example.nedo.jdbc.doma2.CostBenchDbManagerDoma2;
+import com.example.nedo.jdbc.doma2.dao.CostMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ResultTableDao;
 import com.example.nedo.jdbc.doma2.entity.CostMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 import com.example.nedo.jdbc.doma2.entity.ResultTable;
 
-public abstract class BenchBatchItemTask {
+public class BenchBatchItemTask {
 
-	protected final LocalDate batchDate;
+	private final CostBenchDbManager dbManager;
+	private final LocalDate batchDate;
 
-	public BenchBatchItemTask(LocalDate batchDate) {
+	public BenchBatchItemTask(CostBenchDbManager dbManager, LocalDate batchDate) {
+		this.dbManager = dbManager;
 		this.batchDate = batchDate;
 	}
 
@@ -173,7 +183,10 @@ public abstract class BenchBatchItemTask {
 		createBomTree(parentNode, itemId -> selectItemConstructionMaster(itemId, batchDate));
 	}
 
-	protected abstract List<ItemConstructionMaster> selectItemConstructionMaster(int parentItemId, LocalDate batchDate);
+	protected List<ItemConstructionMaster> selectItemConstructionMaster(int parentItemId, LocalDate batchDate) {
+		ItemConstructionMasterDao dao = dbManager.getItemConstructionMasterDao();
+		return dao.selectByParentId(parentItemId, batchDate);
+	}
 
 	protected void createBomTree2(BomNode parentNode) {
 		Map<Integer, List<ItemConstructionMaster>> map = new HashMap<>();
@@ -189,8 +202,11 @@ public abstract class BenchBatchItemTask {
 		createBomTree(parentNode, itemId -> map.getOrDefault(itemId, Collections.emptyList()));
 	}
 
-	protected abstract Stream<ItemConstructionMaster> selectItemConstructionMasterRecursive(int parentItemId,
-			LocalDate batchDate);
+	protected Stream<ItemConstructionMaster> selectItemConstructionMasterRecursive(int parentItemId,
+			LocalDate batchDate) {
+		ItemConstructionMasterDao dao = dbManager.getItemConstructionMasterDao();
+		return dao.selectRecursiveByParentId(parentItemId, batchDate);
+	}
 
 	protected void createBomTree(BomNode parentNode, Function<Integer, List<ItemConstructionMaster>> f) {
 		int itemId = parentNode.itemId;
@@ -203,7 +219,10 @@ public abstract class BenchBatchItemTask {
 		}
 	}
 
-	protected abstract ItemMaster selectItemMaster(int itemId);
+	protected ItemMaster selectItemMaster(int itemId) {
+		ItemMasterDao dao = dbManager.getItemMasterDao();
+		return dao.selectById(itemId, batchDate);
+	}
 
 	void calculateWeight(BomNode node) {
 		try {
@@ -441,7 +460,10 @@ public abstract class BenchBatchItemTask {
 		}
 	}
 
-	protected abstract CostMaster selectCostMaster(int factoryId, int itemId);
+	protected CostMaster selectCostMaster(int factoryId, int itemId) {
+		CostMasterDao dao = dbManager.getCostMasterDao();
+		return dao.selectById(factoryId, itemId);
+	}
 
 	protected void insertResult(BomNode node, int factoryId, int productId, BigInteger manufacturingQuantity) {
 		Collection<ResultTable> list = createResults(node, factoryId, productId, manufacturingQuantity);
@@ -450,15 +472,20 @@ public abstract class BenchBatchItemTask {
 		}
 	}
 
-	protected abstract void insertResultTable(ResultTable entity);
+	protected void insertResultTable(ResultTable entity) {
+		ResultTableDao dao = dbManager.getResultTableDao();
+		dao.insert(entity);
+	}
 
 	protected void insertResultBatch(BomNode node, int factoryId, int productId, BigInteger manufacturingQuantity) {
 		Collection<ResultTable> list = createResults(node, factoryId, productId, manufacturingQuantity);
-
 		insertResultTable(list);
 	}
 
-	protected abstract void insertResultTable(Collection<ResultTable> list);
+	protected void insertResultTable(Collection<ResultTable> list) {
+		ResultTableDao dao = dbManager.getResultTableDao();
+		dao.insertBatch(list);
+	}
 
 	protected Collection<ResultTable> createResults(BomNode node, int factoryId, int productId,
 			BigInteger manufacturingQuantity) {
@@ -599,5 +626,57 @@ public abstract class BenchBatchItemTask {
 		node.totalUnitCost = node.totalUnitCost.add(right.totalUnitCost);
 		node.manufacturingCost = node.manufacturingCost.add(right.manufacturingCost);
 		node.totalManufacturingCost = node.totalManufacturingCost.add(right.totalManufacturingCost);
+	}
+
+	// for test
+	public static void main(String[] args) {
+//		test1();
+		test2();
+	}
+
+	static void test1() {
+		CostBenchDbManager manager = new CostBenchDbManagerDoma2();
+		BenchBatchItemTask task = new BenchBatchItemTask(manager, InitialData.DEFAULT_BATCH_DATE);
+
+		manager.execute(() -> {
+			ItemManufacturingMasterDao itemManufacturingMasterDao = manager.getItemManufacturingMasterDao();
+			ItemManufacturingMaster manufact = itemManufacturingMasterDao.selectById(1, 67586,
+					InitialData.DEFAULT_BATCH_DATE);
+			BomNode root1 = task.new BomNode(manufact);
+			{
+				long s = System.currentTimeMillis();
+				task.createBomTree1(root1);
+				long e = System.currentTimeMillis();
+				System.out.printf("1: %d\n", e - s);
+			}
+			BomNode root2 = task.new BomNode(manufact);
+			{
+				long s = System.currentTimeMillis();
+				task.createBomTree2(root2);
+				long e = System.currentTimeMillis();
+				System.out.printf("2: %d\n", e - s);
+			}
+
+			System.out.println(root1.equalsById(root2));
+		});
+	}
+
+	static void test2() {
+		int itemId = 11649;
+		LocalDate date = InitialData.DEFAULT_BATCH_DATE;
+//		LocalDate date = LocalDate.of(2020, 9, 23);
+
+		CostBenchDbManager manager = new CostBenchDbManagerDoma2();
+		BenchBatchItemTask task = new BenchBatchItemTask(manager, date);
+
+		manager.execute(() -> {
+			ResultTableDao resultTableDao = manager.getResultTableDao();
+			resultTableDao.deleteByProductId(1, date, itemId);
+
+			ItemManufacturingMasterDao itemManufacturingMasterDao = manager.getItemManufacturingMasterDao();
+			ItemManufacturingMaster manufact = itemManufacturingMasterDao.selectById(1, itemId, date);
+
+			task.execute(manufact);
+		});
 	}
 }

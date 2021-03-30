@@ -17,7 +17,9 @@ import java.util.stream.IntStream;
 
 import org.seasar.doma.jdbc.tx.TransactionManager;
 
+import com.example.nedo.BenchConst;
 import com.example.nedo.init.InitialData;
+import com.example.nedo.jdbc.CostBenchDbManager;
 import com.example.nedo.jdbc.doma2.config.AppConfig;
 import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
 import com.example.nedo.jdbc.doma2.dao.FactoryMasterDaoImpl;
@@ -25,6 +27,17 @@ import com.example.nedo.jdbc.doma2.dao.FactoryMasterDaoImpl;
 public class BenchOnline {
 
 	public static void main(String[] args) {
+		try (CostBenchDbManager manager = createCostBenchDbManager()) {
+			main0(args, manager);
+		}
+	}
+
+	public static CostBenchDbManager createCostBenchDbManager() {
+		int type = BenchConst.onlineJdbcType();
+		return CostBenchDbManager.createInstance(type);
+	}
+
+	private static void main0(String[] args, CostBenchDbManager manager) {
 		LocalDate batchDate = InitialData.DEFAULT_BATCH_DATE;
 		if (args.length >= 1) {
 			batchDate = LocalDate.parse(args[0]);
@@ -45,13 +58,13 @@ public class BenchOnline {
 								throw new IllegalArgumentException("duplicate id=" + id);
 							}
 						}
-						create1(threadList, start, end, batchDate);
+						create1(manager, threadList, start, end, batchDate);
 					} else {
 						int id = Integer.parseInt(s.trim());
 						if (!set.add(id)) {
 							throw new IllegalArgumentException("duplicate id=" + id);
 						}
-						create1(threadList, id, id, batchDate);
+						create1(manager, threadList, id, id, batchDate);
 					}
 				}
 			}
@@ -60,7 +73,7 @@ public class BenchOnline {
 			List<Integer> factoryList = getAllFactory();
 			int start = factoryList.stream().mapToInt(n -> n).min().getAsInt();
 			int end = factoryList.stream().mapToInt(n -> n).max().getAsInt();
-			create1(threadList, start, end, batchDate);
+			create1(manager, threadList, start, end, batchDate);
 		}
 
 		ExecutorService pool = newExecutorService(threadList.size());
@@ -96,10 +109,11 @@ public class BenchOnline {
 		});
 	}
 
-	private static void create1(List<BenchOnlineThread> threadList, int start, int end, LocalDate date) {
+	private static void create1(CostBenchDbManager manager, List<BenchOnlineThread> threadList, int start, int end,
+			LocalDate date) {
 		System.out.printf("create thread: factoryId=%d-%d%n", start, end);
 		List<Integer> factoryList = IntStream.rangeClosed(start, end).boxed().collect(Collectors.toList());
-		BenchOnlineThread thread = new BenchOnlineThread(factoryList, date);
+		BenchOnlineThread thread = new BenchOnlineThread(manager, factoryList, date);
 		threadList.add(thread);
 	}
 

@@ -4,16 +4,11 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.seasar.doma.jdbc.tx.TransactionManager;
-
 import com.example.nedo.init.InitialData;
 import com.example.nedo.init.InitialData04ItemManufacturingMaster;
-import com.example.nedo.jdbc.doma2.config.AppConfig;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ResultTableDaoImpl;
+import com.example.nedo.jdbc.CostBenchDbManager;
+import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
+import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
 import com.example.nedo.jdbc.doma2.domain.ItemType;
 import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
 
@@ -28,7 +23,7 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
 
 	@Override
 	protected void execute1() {
-		tm.required(() -> {
+		dbManager.execute(() -> {
 			int productId = selectRandomItemId();
 
 			logTarget("factory=%d, date=%s, product=%d", factoryId, date, productId);
@@ -39,6 +34,7 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
 	protected void executeMain(int productId) {
 		int newQuantity = random.random(0, 500) * 100;
 
+		ItemManufacturingMasterDao itemManufacturingMasterDao = dbManager.getItemManufacturingMasterDao();
 		ItemManufacturingMaster entity = itemManufacturingMasterDao.selectByIdForUpdate(factoryId, productId, date);
 		if (entity == null) {
 			InitialData04ItemManufacturingMaster initialData = new InitialData04ItemManufacturingMaster(1, date);
@@ -63,6 +59,7 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
 	}
 
 	protected int selectRandomItemId() {
+		ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
 		List<Integer> list = itemMasterDao.selectIdByType(date, ItemType.PRODUCT);
 		int i = random.nextInt(list.size());
 		return list.get(i);
@@ -72,15 +69,15 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
 	public static void main(String[] args) {
 		BenchOnlineUpdateManufacturingTask task = new BenchOnlineUpdateManufacturingTask();
 
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
-		task.setDao(tm, new ItemManufacturingMasterDaoImpl(), new FactoryMasterDaoImpl(), new ItemMasterDaoImpl(),
-				new ItemConstructionMasterDaoImpl(), null, new ResultTableDaoImpl());
+		try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
+			task.setDao(manager);
 
-		task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
+			task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
 
-//		task.execute();
-		tm.required(() -> {
-			task.executeMain(49666);
-		});
+			task.execute();
+//			manager.execute(() -> {
+//				task.executeMain(49666);
+//			});
+		}
 	}
 }

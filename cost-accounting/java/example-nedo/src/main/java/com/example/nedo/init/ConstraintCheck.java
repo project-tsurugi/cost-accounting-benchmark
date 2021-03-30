@@ -10,19 +10,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-import org.seasar.doma.jdbc.tx.TransactionManager;
-
-import com.example.nedo.jdbc.doma2.config.AppConfig;
+import com.example.nedo.jdbc.CostBenchDbManager;
 import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDaoImpl;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDaoImpl;
 import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDaoImpl;
+import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
 import com.example.nedo.jdbc.doma2.entity.HasDateRange;
 import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
+import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 
 public class ConstraintCheck {
 
@@ -30,17 +25,21 @@ public class ConstraintCheck {
 		new ConstraintCheck().main();
 	}
 
-	public void main() {
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
+	private CostBenchDbManager dbManager;
 
-		tm.required(() -> {
-			checkDateRange(ItemMasterDao.TABLE_NAME, new ItemMasterDaoImpl().selectAll(), this::getKey);
-			checkDateRange(ItemConstructionMasterDao.TABLE_NAME, new ItemConstructionMasterDaoImpl().selectAll(),
-					this::getKey);
-			checkDateRange(ItemManufacturingMasterDao.TABLE_NAME, new ItemManufacturingMasterDaoImpl().selectAll(),
-					this::getKey);
-			checkBomChild(InitialData.DEFAULT_BATCH_DATE);
-		});
+	public void main() {
+		try (CostBenchDbManager manager = InitialData.createDbManager()) {
+			this.dbManager = manager;
+
+			manager.execute(() -> {
+				checkDateRange(ItemMasterDao.TABLE_NAME, manager.getItemMasterDao().selectAll(), this::getKey);
+				checkDateRange(ItemConstructionMasterDao.TABLE_NAME, manager.getItemConstructionMasterDao().selectAll(),
+						this::getKey);
+				checkDateRange(ItemManufacturingMasterDao.TABLE_NAME,
+						manager.getItemManufacturingMasterDao().selectAll(), this::getKey);
+				checkBomChild(InitialData.DEFAULT_BATCH_DATE);
+			});
+		}
 	}
 
 	protected List<Object> getKey(ItemMaster entity) {
@@ -96,7 +95,7 @@ public class ConstraintCheck {
 	}
 
 	protected void checkBomChild(LocalDate date) {
-		ItemConstructionMasterDao dao = new ItemConstructionMasterDaoImpl();
+		ItemConstructionMasterDao dao = dbManager.getItemConstructionMasterDao();
 		List<ItemConstructionMaster> allList = dao.selectAll(date);
 		Map<List<Object>, List<ItemConstructionMaster>> map = toMap(allList, e -> Arrays.asList(e.getIcParentIId()));
 		map.forEach((key, list) -> {
