@@ -42,41 +42,41 @@ public class OnlineAppBench implements ExecutableCommand {
 		long elapsedTime;
 
 		// オンラインアプリケーションを動かさない場合
-//		config.historyInsertTransactionPerMin = 0;
-//		config.historyUpdateRecordsPerMin = 0;
-//		config.masterInsertReccrdsPerMin = 0;
-//		config.masterUpdateRecordsPerMin = 0;
-//		elapsedTime = execBatch(config);
-//		LOG.info("No online application, elapsed time = {} ms", elapsedTime);
+		config.historyInsertTransactionPerMin = 0;
+		config.historyUpdateRecordsPerMin = 0;
+		config.masterInsertReccrdsPerMin = 0;
+		config.masterUpdateRecordsPerMin = 0;
+		elapsedTime = execBatch(config);
+		LOG.info("No online application, elapsed time = {} ms", elapsedTime);
 
 		// 各オンラインアプリケーションを単独で動かした場合
-//		config.historyInsertTransactionPerMin = historyInsertTransactionPerMin;
-//		config.historyUpdateRecordsPerMin = 0;
-//		config.masterInsertReccrdsPerMin = 0;
-//		config.masterUpdateRecordsPerMin = 0;
-//		elapsedTime = execBatch(config);
-//		LOG.info("History insert online application, elapsed time = {} ms", elapsedTime);
+		config.historyInsertTransactionPerMin = historyInsertTransactionPerMin;
+		config.historyUpdateRecordsPerMin = 0;
+		config.masterInsertReccrdsPerMin = 0;
+		config.masterUpdateRecordsPerMin = 0;
+		elapsedTime = execBatch(config);
+		LOG.info("History insert online application, elapsed time = {} ms", elapsedTime);
 
-//		config.historyInsertTransactionPerMin = 0;
-//		config.historyUpdateRecordsPerMin = historyUpdateRecordsPerMin;
-//		config.masterInsertReccrdsPerMin = 0;
-//		config.masterUpdateRecordsPerMin = 0;
-//		elapsedTime = execBatch(config);
-//		LOG.info("History update online application, elapsed time = {} ms", elapsedTime);
+		config.historyInsertTransactionPerMin = 0;
+		config.historyUpdateRecordsPerMin = historyUpdateRecordsPerMin;
+		config.masterInsertReccrdsPerMin = 0;
+		config.masterUpdateRecordsPerMin = 0;
+		elapsedTime = execBatch(config);
+		LOG.info("History update online application, elapsed time = {} ms", elapsedTime);
 
-//		config.historyInsertTransactionPerMin = 0;
-//		config.historyUpdateRecordsPerMin = 0;
-//		config.masterInsertReccrdsPerMin = masterInsertReccrdsPerMin;
-//		config.masterUpdateRecordsPerMin = 0;
-//		elapsedTime = execBatch(config);
-//		LOG.info("Master insert online application, elapsed time = {} ms", elapsedTime);
+		config.historyInsertTransactionPerMin = 0;
+		config.historyUpdateRecordsPerMin = 0;
+		config.masterInsertReccrdsPerMin = masterInsertReccrdsPerMin;
+		config.masterUpdateRecordsPerMin = 0;
+		elapsedTime = execBatch(config);
+		LOG.info("Master insert online application, elapsed time = {} ms", elapsedTime);
 
-//		config.historyInsertTransactionPerMin = 0;
-//		config.historyUpdateRecordsPerMin = 0;
-//		config.masterInsertReccrdsPerMin = 0;
-//		config.masterUpdateRecordsPerMin = masterUpdateRecordsPerMin;
-//		elapsedTime = execBatch(config);
-//		LOG.info("Master update online application, elapsed time = {} ms", elapsedTime);
+		config.historyInsertTransactionPerMin = 0;
+		config.historyUpdateRecordsPerMin = 0;
+		config.masterInsertReccrdsPerMin = 0;
+		config.masterUpdateRecordsPerMin = masterUpdateRecordsPerMin;
+		elapsedTime = execBatch(config);
+		LOG.info("Master update online application, elapsed time = {} ms", elapsedTime);
 
 		// すべてのオンラインアプリケーションを動かした場合
 		config.historyInsertTransactionPerMin = historyInsertTransactionPerMin;

@@ -37,7 +37,7 @@ repositories {
 
 dependencies {
   // https://mvnrepository.com/artifact/org.postgresql/postgresql
-  runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.2.16'
+  compile group: 'org.postgresql', name: 'postgresql', version: '42.2.16'
   // https://mvnrepository.com/artifact/com.oracle.ojdbc/ojdbc8
   compile group: 'com.oracle.ojdbc', name: 'ojdbc8', version: '19.3.0.0'
 
