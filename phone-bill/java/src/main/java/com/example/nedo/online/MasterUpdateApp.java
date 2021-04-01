@@ -29,6 +29,7 @@ public class MasterUpdateApp extends AbstractOnlineApp {
 	private Config config;
 	private Random random;
 	private Updater[] updaters = {new Updater1(), new Updater2()};
+	private Contract updatingContract;
 
 
 	public MasterUpdateApp(ContractKeyHolder contractKeyHolder, Config config, Random random) throws SQLException {
@@ -40,15 +41,6 @@ public class MasterUpdateApp extends AbstractOnlineApp {
 
 
 
-	@Override
-	void exec() throws SQLException {
-		// 更新対象の電話番号を取得
-		int n = random.nextInt(contractKeyHolder.size());
-		String phoneNumber = contractKeyHolder.get(n).phoneNumber;
-		List<Contract> contracts = getContracts(phoneNumber);
-		// 契約を変更する
-		updateContracts(contracts);
-	}
 
 	/**
 	 * 同一の電話番号の契約のリストから、任意の契約を一つ選択し契約内容を更新する
@@ -57,7 +49,7 @@ public class MasterUpdateApp extends AbstractOnlineApp {
 	 * @return 更新した契約
 	 * @throws SQLException
 	 */
-	private void updateContracts(List<Contract> contracts) throws SQLException {
+	private Contract getUpdatingContract(List<Contract> contracts) throws SQLException {
 		for (int i = 0; i < 100; i++) {
 			// 契約を一つ選択して更新する
 			Set<Contract> set = new HashSet<Contract>(contracts);
@@ -68,14 +60,11 @@ public class MasterUpdateApp extends AbstractOnlineApp {
 			updater.update(contract);
 			// 契約期間の重複がなければDBを更新する
 			if (!commonDuration(contract, set)) {
-				updateDatabase(contract);
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("ONLINE APP: Update 1 record from contracs.");
-				}
-				return;
+				return contract;
 			}
 		}
 		LOG.warn("Fail to create valid update contracts for phone number: {}", contracts.get(0).phoneNumber);
+		return null;
 	}
 
 
@@ -130,30 +119,40 @@ public class MasterUpdateApp extends AbstractOnlineApp {
 		return list;
 	}
 
-	/**
-	 * 契約を更新する
-	 *
-	 * @param key
-	 * @return
-	 * @throws SQLException
-	 */
-	void updateDatabase(Contract contract) throws SQLException {
+	@Override
+	protected void createData() throws SQLException {
+		// 更新対象の電話番号を取得
+		int n = random.nextInt(contractKeyHolder.size());
+		String phoneNumber = contractKeyHolder.get(n).phoneNumber;
+		List<Contract> contracts = getContracts(phoneNumber);
+		// 更新する契約を取得する
+		updatingContract = getUpdatingContract(contracts);
+	}
+
+	@Override
+	protected void updateDatabase() throws SQLException {
+		if (updatingContract == null) {
+			return;
+		}
+
 		Connection conn = getConnection();
 		String sql = "update contracts set end_date = ?, charge_rule = ? where phone_number = ? and start_date = ?";
 		try (PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setDate(1, contract.endDate);
-			ps.setString(2, contract.rule);
-			ps.setString(3, contract.phoneNumber);
-			ps.setDate(4, contract.startDate);
+			ps.setDate(1, updatingContract.endDate);
+			ps.setString(2, updatingContract.rule);
+			ps.setString(3, updatingContract.phoneNumber);
+			ps.setDate(4, updatingContract.startDate);
 			int ret = ps.executeUpdate();
 			if (ret != 1) {
-				throw new RuntimeException("Fail to update contracts: " + contract);
+				throw new RuntimeException("Fail to update contracts: " + updatingContract);
+			}
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("ONLINE APP: Update 1 record from contracs.");
 			}
 		}
 	}
 
 	// 契約を更新するInterfaceと、Interfaceを実装したクラス
-
 	interface Updater {
 		/**
 		 * Contactの値を更新する

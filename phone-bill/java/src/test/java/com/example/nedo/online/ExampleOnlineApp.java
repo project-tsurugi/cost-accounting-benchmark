@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.example.nedo.app.Config;
 
 /**
- * AbstractOnlineAppの動作確認用サンプルアプリ
+ * AbstractOnlineAppのスケジューラの動作確認用サンプルアプリ.
  *
  */
 public class ExampleOnlineApp extends AbstractOnlineApp {
@@ -26,11 +26,6 @@ public class ExampleOnlineApp extends AbstractOnlineApp {
 
 	public ExampleOnlineApp() throws SQLException, IOException {
 		super(20, Config.getConfig(), new Random());
-	}
-
-	@Override
-	void exec() {
-		LOG.info("executed.");
 	}
 
 	public static void main(String[] args) throws InterruptedException, SQLException, IOException {
@@ -48,5 +43,15 @@ public class ExampleOnlineApp extends AbstractOnlineApp {
 		for(long schedule: scheduleList) {
 			LOG.info("Scheduled at {}", DF.format(new Date(schedule)));
 		}
+	}
+
+	@Override
+	protected void createData() {
+		LOG.info("createData called.");
+	}
+
+	@Override
+	protected void updateDatabase() {
+		LOG.info("updateDatabase called.");
 	}
 }

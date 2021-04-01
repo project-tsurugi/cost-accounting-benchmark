@@ -76,13 +76,28 @@ public class CalculationTask implements Callable<Exception> {
 					LOG.debug("Calculation task finished normally.");
 					return null;
 				}
-				doCalc(target);
+				// TODO リトライ可能なException発生時にリトライするコードを入れる => リトライ回数を指定可能にする
+				// TODO トランザクションスコープがwholeの場合、このコードではNG
+				for(;;) {
+					try {
+						doCalc(target);
+						break;
+					} catch (SQLException e) {
+						if (DBUtils.isRetriableSQLException(e)) {
+							LOG.debug("Calculation task caught a retriable exception, ErrorCode = {}, SQLStatus = {}.",
+								e.getErrorCode(), e.getSQLState(), e);
+							conn.rollback();
+						} else {
+							throw e;
+						}
+					}
+				}
 			}
 		} catch (Exception e) {
-			LOG.warn("Calculation task finished with a exception.", e);
 			return e;
 		}
 	}
+
 
 	/**
 	 * 料金計算のメインロジック
@@ -99,7 +114,6 @@ public class CalculationTask implements Callable<Exception> {
 		Date end = target.getEnd();
 		CallChargeCalculator callChargeCalculator = target.getCallChargeCalculator();
 		BillingCalculator billingCalculator = target.getBillingCalculator();
-
 
 		try (ResultSet historyResultSet = getHistoryResultSet(contract, start, end);
 				Statement stmt = historyResultSet.getStatement();) {

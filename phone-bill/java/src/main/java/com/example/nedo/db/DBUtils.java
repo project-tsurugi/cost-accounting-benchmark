@@ -1,5 +1,6 @@
 package com.example.nedo.db;
 
+import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -9,6 +10,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+
+import org.postgresql.util.PSQLException;
 
 import com.example.nedo.app.Config;
 
@@ -83,6 +86,21 @@ public class DBUtils {
 		localDate = localDate.withDayOfMonth(1);
 		localDate = localDate.minusDays(1);
 		return Date.valueOf(localDate);
+	}
+
+	/**
+	 * 引数で指定されたSQLExceptionが、リトライすべきものか調べる.
+	 *
+	 * @param e
+	 * @return リトライすべき場合true
+	 */
+	public static boolean isRetriableSQLException(SQLException e) {
+		Throwable t = e instanceof BatchUpdateException ? e.getCause() : e;
+		// for PostgreSQL
+		if (t instanceof PSQLException && ((PSQLException) t).getSQLState().equals("40001")) {
+			return true;
+		}
+		return false;
 	}
 
 }

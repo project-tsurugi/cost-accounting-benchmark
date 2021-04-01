@@ -57,10 +57,45 @@ public abstract class AbstractOnlineApp implements Runnable{
 
 
 	/**
-	 * 派生クラスが実装するスジェジュールに従い呼び出されるオンラインアプリの処理
+	 * オンラインアプリの処理.
+	 *
+	 * createData()でデータを生成し、updateDatabase()で生成したデータを
+	 * DBに反映する。updateDatabase()でリトライ可能なSQLExceptionが発生した場合、
+	 * updateDatabase()をリトライする。
+	 *
+	 *
 	 * @throws SQLException
 	 */
-	abstract void exec() throws SQLException;
+	final void exec() throws SQLException {
+		createData();
+		for (;;) {
+			try {
+				updateDatabase();
+				conn.commit();
+				break;
+			} catch (SQLException e) {
+				if (DBUtils.isRetriableSQLException(e)) {
+					LOG.debug("HistoryInsertApp caught a retriable exception, ErrorCode = {}, SQLStatus = {}.",
+							e.getErrorCode(), e.getSQLState(), e);
+					conn.rollback();
+				} else {
+					throw e;
+				}
+			}
+		}
+	}
+
+	/**
+	 * DBに入れるデータを生成する
+	 * @throws SQLException
+	 */
+	protected abstract void createData() throws SQLException;
+
+	/**
+	 * createDataで生成したデータをDBに反映する
+	 * @throws SQLException
+	 */
+	protected abstract void updateDatabase() throws SQLException;
 
 
 	@Override
@@ -123,7 +158,6 @@ public abstract class AbstractOnlineApp implements Runnable{
 			creatScheduleList(schedule);
 		} else {
 			exec();
-			conn.commit();
 		}
 	}
 

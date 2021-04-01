@@ -29,7 +29,12 @@ public class MasterInsertApp extends AbstractOnlineApp {
 	}
 
 	@Override
-	void exec() throws SQLException {
+	protected void createData() throws SQLException {
+		// Notihng to do.
+	}
+
+	@Override
+	protected void updateDatabase() throws SQLException {
 		Connection conn = getConnection();
 		PreparedStatement ps = conn.prepareStatement(TestDataGenerator.SQL_INSERT_TO_CONTRACT);
 		int n = contractKeyHolder.size();

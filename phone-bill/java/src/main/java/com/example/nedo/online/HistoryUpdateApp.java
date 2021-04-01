@@ -24,37 +24,13 @@ public class HistoryUpdateApp extends AbstractOnlineApp {
 	private ContractKeyHolder contractKeyHolder;
 	private Random random;
 	private Updater[] updaters = {new Updater1(), new Updater2()};
+	private History history;
 
 
 	public HistoryUpdateApp(ContractKeyHolder contractKeyHolder, Config config, Random random) throws SQLException {
 		super(config.historyUpdateRecordsPerMin, config, random);
 		this.random = random;
 		this.contractKeyHolder = contractKeyHolder;
-	}
-
-	@Override
-	void exec() throws SQLException {
-
-		List<History> histories = Collections.emptyList();
-		while (histories.isEmpty()) {
-			// 更新対象となる契約を選択
-			int n = random.nextInt(contractKeyHolder.size());
-			Key key = contractKeyHolder.get(n);
-
-			// 通話履歴テーブルから、当該契約の有効期間内に当該契約の電話番号で発信した履歴を取り出す
-			 histories = getHistories(key);
-		}
-
-
-		// 取り出した履歴から1レコードを取り出し更新する
-		History history = histories.get(random.nextInt(histories.size()));
-
-		Updater updater = updaters[random.nextInt(updaters.length)];
-		updater.update(history);
-		updateDatabase(history);
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("ONLINE APP: Update 1 record from history.");
-		}
 	}
 
 
@@ -115,9 +91,39 @@ public class HistoryUpdateApp extends AbstractOnlineApp {
 				list.add(h);
 			}
 		}
+		conn.commit();
 		return list;
 	}
 
+
+
+
+	@Override
+	protected void createData() throws SQLException {
+		List<History> histories = Collections.emptyList();
+		while (histories.isEmpty()) {
+			// 更新対象となる契約を選択
+			int n = random.nextInt(contractKeyHolder.size());
+			Key key = contractKeyHolder.get(n);
+
+			// 通話履歴テーブルから、当該契約の有効期間内に当該契約の電話番号で発信した履歴を取り出す
+			histories = getHistories(key);
+		}
+
+		// 取り出した履歴から1レコードを取り出し更新する
+		history = histories.get(random.nextInt(histories.size()));
+
+		Updater updater = updaters[random.nextInt(updaters.length)];
+		updater.update(history);
+	}
+
+	@Override
+	protected void updateDatabase() throws SQLException {
+		updateDatabase(history);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("ONLINE APP: Update 1 record from history.");
+		}
+	}
 
 
 	// 通話履歴を更新するInterfaceと、Interfaceを実装したクラス

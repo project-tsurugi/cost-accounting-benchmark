@@ -25,6 +25,8 @@ public class HistoryInsertApp extends AbstractOnlineApp {
 	private long baseTime;
 	private Random random;
 	private Connection conn;
+	List<History> histories = new ArrayList<>();
+
 	/**
 	 * // 同一の時刻のレコードを生成しないために時刻を記録するためのセット
 	 */
@@ -38,29 +40,6 @@ public class HistoryInsertApp extends AbstractOnlineApp {
 		baseTime = getMaxStartTime(); // 通話履歴中の最新の通話開始時刻をベースに新規に作成する通話履歴の通話開始時刻を生成する
 		conn = getConnection();
 		startTimeSet = new HashSet<Key>(); // 同一の時刻のレコードを生成しないために時刻を記録するためのセット
-	}
-
-	@Override
-	void exec() throws SQLException {
-		List<History> histories = new ArrayList<>();
-		History  history;
-		Key key;
-		for (int i = 0; i < historyInsertRecordsPerTransaction; i++) {
-			do {
-				long startTime = baseTime + random.nextInt(CREATE_SCHEDULE_INTERVAL_MILLS);
-				history = testDataGenerator.createHistoryRecord(startTime);
-				key = new Key();
-				key.phoneNumber = history.callerPhoneNumber;
-				key.startTime = startTime;
-			} while (startTimeSet.contains(key));
-			startTimeSet.add(key);
-			histories.add(history);
-		}
-		testDataGenerator.insrtHistories(conn, histories);
-		conn.commit();
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("ONLINE APP: Insert {} records to history.", historyInsertRecordsPerTransaction);
-		}
 	}
 
 	@Override
@@ -114,6 +93,32 @@ public class HistoryInsertApp extends AbstractOnlineApp {
 			} else if (!startTime.equals(other.startTime))
 				return false;
 			return true;
+		}
+	}
+
+	@Override
+	protected void createData() {
+		histories.clear();
+		History  history;
+		Key key;
+		for (int i = 0; i < historyInsertRecordsPerTransaction; i++) {
+			do {
+				long startTime = baseTime + random.nextInt(CREATE_SCHEDULE_INTERVAL_MILLS);
+				history = testDataGenerator.createHistoryRecord(startTime);
+				key = new Key();
+				key.phoneNumber = history.callerPhoneNumber;
+				key.startTime = startTime;
+			} while (startTimeSet.contains(key));
+			startTimeSet.add(key);
+			histories.add(history);
+		}
+	}
+
+	@Override
+	protected void updateDatabase() throws SQLException {
+		testDataGenerator.insrtHistories(conn, histories);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("ONLINE APP: Insert {} records to history.", historyInsertRecordsPerTransaction);
 		}
 	}
 }
