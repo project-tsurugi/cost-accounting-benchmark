@@ -2,27 +2,25 @@ package com.example.nedo.online;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import org.seasar.doma.jdbc.tx.TransactionManager;
 
 import com.example.nedo.BenchConst;
 import com.example.nedo.init.InitialData;
 import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.config.AppConfig;
 import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDaoImpl;
 
 public class BenchOnline {
 
@@ -70,41 +68,73 @@ public class BenchOnline {
 			}
 		}
 		if (threadList.isEmpty()) {
-			List<Integer> factoryList = getAllFactory();
+			List<Integer> factoryList = getAllFactory(manager);
 			int start = factoryList.stream().mapToInt(n -> n).min().getAsInt();
 			int end = factoryList.stream().mapToInt(n -> n).max().getAsInt();
 			create1(manager, threadList, start, end, batchDate);
 		}
 
 		ExecutorService pool = newExecutorService(threadList.size());
-
-		List<Future<Void>> resultList = Collections.emptyList();
+		AtomicBoolean done = new AtomicBoolean(false);
 		try {
-			resultList = pool.invokeAll(threadList);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} finally {
-			pool.shutdownNow();
-		}
+			Runtime.getRuntime().addShutdownHook(new Thread() {
+				@Override
+				public void run() {
+					System.out.println("shutdown-hook start");
+					pool.shutdownNow();
 
-		for (Future<Void> result : resultList) {
+					// 終了待ち
+					while (!done.get()) {
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException ignore) {
+							// ignore
+						}
+					}
+				}
+			});
+
+			List<Future<Void>> resultList = new ArrayList<>(threadList.size());
+			for (BenchOnlineThread thread : threadList) {
+				Future<Void> future = pool.submit((Callable<Void>) thread);
+				resultList.add(future);
+			}
+
+			// 終了待ち
+			for (Future<Void> result : resultList) {
+				try {
+					result.get();
+				} catch (Exception ignore) {
+					// ignore
+				}
+			}
+
+			// 例外出力
+			for (Future<Void> result : resultList) {
+				try {
+					result.get(); // 例外が発生していた場合にそれを取り出す
+				} catch (CancellationException ignore) {
+					// ignore
+				} catch (Exception e) {
+					System.err.println("----");
+					e.printStackTrace();
+				}
+			}
+		} finally {
 			try {
-				result.get(); // 例外が発生していた場合にそれを取り出す
-			} catch (Exception e) {
-				System.err.println("----");
-				e.printStackTrace();
+				pool.shutdownNow();
+			} finally {
+				done.set(true);
 			}
 		}
 
 		// TODO 処理件数カウンター（バッチの実行中のものだけカウントする、なんて出来るのか？）
 	}
 
-	private static List<Integer> getAllFactory() {
-		FactoryMasterDao dao = new FactoryMasterDaoImpl();
+	private static List<Integer> getAllFactory(CostBenchDbManager manager) {
+		FactoryMasterDao dao = manager.getFactoryMasterDao();
 
-		TransactionManager tm = AppConfig.singleton().getTransactionManager();
-
-		return tm.required(() -> {
+		return manager.execute(() -> {
 			return dao.selectAllId();
 		});
 	}
