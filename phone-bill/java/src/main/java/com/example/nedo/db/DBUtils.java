@@ -100,6 +100,11 @@ public class DBUtils {
 		if (t instanceof PSQLException && ((PSQLException) t).getSQLState().equals("40001")) {
 			return true;
 		}
+		/// ORA-8177のケース TODO: DBMSがOracleかどうかのチェックも必要
+		if (e.getErrorCode() == 8177) {
+			return true;
+		}
+
 		return false;
 	}
 

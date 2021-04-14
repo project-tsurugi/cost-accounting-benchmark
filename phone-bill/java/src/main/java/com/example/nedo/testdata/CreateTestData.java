@@ -21,8 +21,9 @@ public class CreateTestData implements ExecutableCommand {
 
 
 	@Override
-	public void execute(Config config) throws Exception {
+	public void execute(Config c) throws Exception {
 		// テストデータの作成時は、configの指定にかかわらずTRANSACTION_READ_COMMITTEDを使用する。
+		Config config = c.clone();
 		config.isolationLevel = Connection.TRANSACTION_READ_COMMITTED;
 		TestDataGenerator generator = new TestDataGenerator(config);
 

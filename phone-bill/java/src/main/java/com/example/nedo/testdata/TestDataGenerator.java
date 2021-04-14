@@ -189,7 +189,7 @@ public class TestDataGenerator {
 
 
 	public void insrtHistories(Connection conn, List<History> histories) throws SQLException {
-		PreparedStatement ps = conn.prepareStatement("insert into history("
+		try (PreparedStatement ps = conn.prepareStatement("insert into history("
 				+ "caller_phone_number,"
 				+ "recipient_phone_number,"
 				+ "payment_categorty,"
@@ -197,22 +197,23 @@ public class TestDataGenerator {
 				+ "time_secs,"
 				+ "charge,"
 				+ "df"
-				+ ") values(?, ?, ?, ?, ?, ?, ? )");
-		for (History h : histories) {
-			ps.setString(1, h.callerPhoneNumber);
-			ps.setString(2, h.recipientPhoneNumber);
-			ps.setString(3, h.paymentCategorty);
-			ps.setTimestamp(4, h.startTime);
-			ps.setInt(5, h.timeSecs);
-			if (h.charge == null) {
-				ps.setNull(6, Types.INTEGER);
-			} else {
-				ps.setInt(6, h.charge);
+				+ ") values(?, ?, ?, ?, ?, ?, ? )")) {
+			for (History h : histories) {
+				ps.setString(1, h.callerPhoneNumber);
+				ps.setString(2, h.recipientPhoneNumber);
+				ps.setString(3, h.paymentCategorty);
+				ps.setTimestamp(4, h.startTime);
+				ps.setInt(5, h.timeSecs);
+				if (h.charge == null) {
+					ps.setNull(6, Types.INTEGER);
+				} else {
+					ps.setInt(6, h.charge);
+				}
+				ps.setInt(7, h.df ? 1 : 0);
+				ps.addBatch();
 			}
-			ps.setInt(7, h.df ? 1 : 0);
-			ps.addBatch();
+			execBatch(ps);
 		}
-		execBatch(ps);
 	}
 
 	/**

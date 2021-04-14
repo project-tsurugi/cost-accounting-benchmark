@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.example.nedo.db.DBUtils;
 
-public class Config {
+public class Config implements Cloneable {
 
 	private Properties prop;
 
@@ -436,5 +436,14 @@ public class Config {
 
 	public static enum TransactionScope {
 		WHOLE, CONTRACT
+	}
+
+	@Override
+	public Config clone()  {
+		try {
+			return (Config) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new InternalError(e);
+		}
 	}
 }
