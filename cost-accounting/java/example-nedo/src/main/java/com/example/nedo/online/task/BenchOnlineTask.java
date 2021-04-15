@@ -1,5 +1,8 @@
 package com.example.nedo.online.task;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
@@ -14,6 +17,9 @@ public abstract class BenchOnlineTask {
 	private final String title;
 
 	protected CostBenchDbManager dbManager;
+
+	private int threadId;
+	private BufferedWriter writer;
 
 	protected int factoryId;
 	protected LocalDate date;
@@ -32,6 +38,11 @@ public abstract class BenchOnlineTask {
 		this.dbManager = dbManager;
 	}
 
+	public void initialize(int threadId, BufferedWriter writer) {
+		this.threadId = threadId;
+		this.writer = writer;
+	}
+
 	public void initialize(int factoryId, LocalDate date) {
 		this.factoryId = factoryId;
 		this.date = date;
@@ -47,33 +58,36 @@ public abstract class BenchOnlineTask {
 
 	protected abstract void execute1();
 
+	private LocalDateTime startDateTime, nowDateTime;
+
 	protected void logStart(String format, Object... args) {
+		this.startDateTime = LocalDateTime.now();
+		this.nowDateTime = null;
 		String s = String.format(format, args);
 		logTime("start ", s);
 	}
 
 	protected void logTarget(String format, Object... args) {
+		this.nowDateTime = LocalDateTime.now();
 		String s = String.format(format, args);
 		logTime("target", s);
 	}
 
 	protected void logEnd(String format, Object... args) {
+		this.nowDateTime = LocalDateTime.now();
 		String s = String.format(format, args);
 		logTime("end   ", s);
 	}
 
 	protected void logTime(String sub, String message) {
-		String s = title + " " + sub + " " + LocalDateTime.now() + ": " + message;
-		log0(s);
-	}
-
-	protected void log(String message) {
-		String s = title + ": " + message;
-		log0(s);
-	}
-
-	protected void log0(String message) {
-		System.out.println(message); // TODO
+		String start = startDateTime.toString();
+		String now = (nowDateTime != null) ? nowDateTime.toString() : "                       ";
+		String s = "thread" + threadId + " " + title + " " + sub + " " + start + "/" + now + " " + message + "\n";
+		try {
+			writer.write(s);
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 	protected void console(String format, Object... args) {

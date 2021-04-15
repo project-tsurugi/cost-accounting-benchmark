@@ -1,5 +1,10 @@
 package com.example.nedo.online;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +26,7 @@ import com.example.nedo.online.task.BenchOnlineUpdateMaterialTask;
 
 public class BenchOnlineThread implements Runnable, Callable<Void> {
 
+	private final int threadId;
 	private final CostBenchDbManager dbManager;
 	private final List<Integer> factoryList;
 	private final LocalDate date;
@@ -30,7 +36,8 @@ public class BenchOnlineThread implements Runnable, Callable<Void> {
 
 	private final BenchRandom random = new BenchRandom();
 
-	public BenchOnlineThread(CostBenchDbManager dbManager, List<Integer> factoryList, LocalDate date) {
+	public BenchOnlineThread(int id, CostBenchDbManager dbManager, List<Integer> factoryList, LocalDate date) {
+		this.threadId = id;
 		this.dbManager = dbManager;
 		this.factoryList = factoryList;
 		this.date = date;
@@ -66,30 +73,43 @@ public class BenchOnlineThread implements Runnable, Callable<Void> {
 			task.setDao(dbManager);
 		}
 
-		for (;;) {
-			int factoryId = factoryList.get(random.nextInt(factoryList.size()));
-
-			BenchOnlineTask task = getTaskRandom();
-			task.initialize(factoryId, date);
-
-			task.execute();
-
-			// TODO 終了させる方法
-			if (Thread.interrupted()) {
-				break;
-			}
-
-			long sleepTime = task.getSleepTime();
-			if (sleepTime > 0) {
-				try {
-					Thread.sleep(sleepTime);
-				} catch (InterruptedException e) {
+		Path path = BenchConst.onlineLogFilePath(threadId);
+		try (BufferedWriter writer = Files.newBufferedWriter(path)) {
+			for (;;) {
+				if (!execute1(writer)) {
 					break;
 				}
 			}
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
 		}
 
-		System.out.println("thread-end");
+		System.out.println("thread" + threadId + " end");
+	}
+
+	private boolean execute1(BufferedWriter writer) {
+		int factoryId = factoryList.get(random.nextInt(factoryList.size()));
+
+		BenchOnlineTask task = getTaskRandom();
+		task.initialize(threadId, writer);
+		task.initialize(factoryId, date);
+
+		task.execute();
+
+		if (Thread.interrupted()) {
+			return false;
+		}
+
+		long sleepTime = task.getSleepTime();
+		if (sleepTime > 0) {
+			try {
+				Thread.sleep(sleepTime);
+			} catch (InterruptedException e) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private BenchOnlineTask getTaskRandom() {

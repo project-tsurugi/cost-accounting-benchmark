@@ -58,6 +58,12 @@ public class BenchConst {
 	public static int DECIMAL_SCALE = getPropertyInt("decimal.scale", 20);
 
 	// online
+	public static Path onlineLogFilePath(int threadId) {
+		String f = getProperty("online.log.file");
+		String s = String.format(f, threadId);
+		return Paths.get(s);
+	}
+
 	public static int onlineJdbcType() {
 		return getPropertyInt("online.jdbc.type", 1);
 	}
