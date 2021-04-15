@@ -23,18 +23,24 @@ public class RawJdbcColumn<E, V> {
 	private final Function<E, V> entityGetter;
 	private final PsSetter<V> psSetter;
 	private final RsGetter<V> rsGetter;
+	private final boolean primaryKey;
 
 	public RawJdbcColumn(String name, BiConsumer<E, V> entitySetter, Function<E, V> entityGetter, PsSetter<V> psSetter,
-			RsGetter<V> rsGetter) {
+			RsGetter<V> rsGetter, boolean primaryKey) {
 		this.name = name;
 		this.entitySetter = entitySetter;
 		this.entityGetter = entityGetter;
 		this.psSetter = psSetter;
 		this.rsGetter = rsGetter;
+		this.primaryKey = primaryKey;
 	}
 
 	public String getName() {
 		return this.name;
+	}
+
+	public boolean isPrimaryKey() {
+		return primaryKey;
 	}
 
 	// setInt(ps, i++, entity.getFId());

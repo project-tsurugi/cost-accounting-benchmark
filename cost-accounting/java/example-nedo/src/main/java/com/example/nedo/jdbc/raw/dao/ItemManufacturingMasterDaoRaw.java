@@ -28,11 +28,11 @@ public class ItemManufacturingMasterDaoRaw extends RawJdbcDao<ItemManufacturingM
 	static {
 		List<RawJdbcColumn<ItemManufacturingMaster, ?>> list = new ArrayList<>();
 		add(list, "im_f_id", ItemManufacturingMaster::setImFId, ItemManufacturingMaster::getImFId, RawJdbcUtil::setInt,
-				RawJdbcUtil::getInt);
+				RawJdbcUtil::getInt, true);
 		add(list, "im_i_id", ItemManufacturingMaster::setImIId, ItemManufacturingMaster::getImIId, RawJdbcUtil::setInt,
-				RawJdbcUtil::getInt);
+				RawJdbcUtil::getInt, true);
 		add(list, "im_effective_date", ItemManufacturingMaster::setImEffectiveDate,
-				ItemManufacturingMaster::getImEffectiveDate, RawJdbcUtil::setDate, RawJdbcUtil::getDate);
+				ItemManufacturingMaster::getImEffectiveDate, RawJdbcUtil::setDate, RawJdbcUtil::getDate, true);
 		add(list, "im_expired_date", ItemManufacturingMaster::setImExpiredDate,
 				ItemManufacturingMaster::getImExpiredDate, RawJdbcUtil::setDate, RawJdbcUtil::getDate);
 		add(list, "im_manufacturing_quantity", ItemManufacturingMaster::setImManufacturingQuantity,
@@ -125,7 +125,7 @@ public class ItemManufacturingMasterDaoRaw extends RawJdbcDao<ItemManufacturingM
 
 	@Override
 	public int update(ItemManufacturingMaster entity) {
-		throw new InternalError("yet implmented");
+		return doUpdate(entity);
 	}
 
 	@Override

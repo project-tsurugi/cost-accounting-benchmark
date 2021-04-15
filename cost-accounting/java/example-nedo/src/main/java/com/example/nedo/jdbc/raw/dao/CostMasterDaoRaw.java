@@ -18,8 +18,8 @@ public class CostMasterDaoRaw extends RawJdbcDao<CostMaster> implements CostMast
 	private static final List<RawJdbcColumn<CostMaster, ?>> COLUMN_LIST;
 	static {
 		List<RawJdbcColumn<CostMaster, ?>> list = new ArrayList<>();
-		add(list, "c_f_id", CostMaster::setCFId, CostMaster::getCFId, RawJdbcUtil::setInt, RawJdbcUtil::getInt);
-		add(list, "c_i_id", CostMaster::setCIId, CostMaster::getCIId, RawJdbcUtil::setInt, RawJdbcUtil::getInt);
+		add(list, "c_f_id", CostMaster::setCFId, CostMaster::getCFId, RawJdbcUtil::setInt, RawJdbcUtil::getInt, true);
+		add(list, "c_i_id", CostMaster::setCIId, CostMaster::getCIId, RawJdbcUtil::setInt, RawJdbcUtil::getInt, true);
 		add(list, "c_stock_unit", CostMaster::setCStockUnit, CostMaster::getCStockUnit, RawJdbcUtil::setString,
 				RawJdbcUtil::getString);
 		add(list, "c_stock_quantity", CostMaster::setCStockQuantity, CostMaster::getCStockQuantity,

@@ -24,11 +24,11 @@ public class ItemConstructionMasterDaoRaw extends RawJdbcDao<ItemConstructionMas
 	static {
 		List<RawJdbcColumn<ItemConstructionMaster, ?>> list = new ArrayList<>();
 		add(list, "ic_parent_i_id", ItemConstructionMaster::setIcParentIId, ItemConstructionMaster::getIcParentIId,
-				RawJdbcUtil::setInt, RawJdbcUtil::getInt);
+				RawJdbcUtil::setInt, RawJdbcUtil::getInt, true);
 		add(list, "ic_i_id", ItemConstructionMaster::setIcIId, ItemConstructionMaster::getIcIId, RawJdbcUtil::setInt,
-				RawJdbcUtil::getInt);
+				RawJdbcUtil::getInt, true);
 		add(list, "ic_effective_date", ItemConstructionMaster::setIcEffectiveDate,
-				ItemConstructionMaster::getIcEffectiveDate, RawJdbcUtil::setDate, RawJdbcUtil::getDate);
+				ItemConstructionMaster::getIcEffectiveDate, RawJdbcUtil::setDate, RawJdbcUtil::getDate, true);
 		add(list, "ic_expired_date", ItemConstructionMaster::setIcExpiredDate, ItemConstructionMaster::getIcExpiredDate,
 				RawJdbcUtil::setDate, RawJdbcUtil::getDate);
 		add(list, "ic_material_unit", ItemConstructionMaster::setIcMaterialUnit,

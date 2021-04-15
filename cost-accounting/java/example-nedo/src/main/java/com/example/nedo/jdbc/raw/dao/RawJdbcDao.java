@@ -36,7 +36,12 @@ public abstract class RawJdbcDao<E> {
 
 	protected static <E, V> void add(List<RawJdbcColumn<E, ?>> list, String name, BiConsumer<E, V> entitySetter,
 			Function<E, V> entityGetter, PsSetter<V> psSetter, RsGetter<V> rsGetter) {
-		list.add(new RawJdbcColumn<>(name, entitySetter, entityGetter, psSetter, rsGetter));
+		add(list, name, entitySetter, entityGetter, psSetter, rsGetter, false);
+	}
+
+	protected static <E, V> void add(List<RawJdbcColumn<E, ?>> list, String name, BiConsumer<E, V> entitySetter,
+			Function<E, V> entityGetter, PsSetter<V> psSetter, RsGetter<V> rsGetter, boolean primaryKey) {
+		list.add(new RawJdbcColumn<>(name, entitySetter, entityGetter, psSetter, rsGetter, primaryKey));
 	}
 
 	public RawJdbcDao(CostBenchDbManagerJdbc dbManager, String tableName, List<RawJdbcColumn<E, ?>> columnList) {
@@ -307,5 +312,35 @@ public abstract class RawJdbcDao<E> {
 		for (RawJdbcColumn<E, ?> column : columnList) {
 			column.fillEntity(entity, rs);
 		}
+	}
+
+	private String updateSql;
+
+	protected final int doUpdate(E entity) {
+		if (updateSql == null) {
+			this.updateSql = getUpdateSql(tableName, columnList);
+		}
+		return executeUpdate(updateSql, ps -> {
+			int i = 1;
+			for (RawJdbcColumn<E, ?> column : columnList) {
+				if (!column.isPrimaryKey()) {
+					column.setPs(ps, i++, entity);
+				}
+			}
+			for (RawJdbcColumn<E, ?> column : columnList) {
+				if (column.isPrimaryKey()) {
+					column.setPs(ps, i++, entity);
+				}
+			}
+		});
+	}
+
+	private static <E> String getUpdateSql(String tableName, List<RawJdbcColumn<E, ?>> columnList) {
+		String set = columnList.stream().filter(c -> !c.isPrimaryKey()).map(c -> c.getName() + "=?")
+				.collect(Collectors.joining(","));
+		String where = columnList.stream().filter(c -> c.isPrimaryKey()).map(c -> c.getName() + "=?")
+				.collect(Collectors.joining(" and "));
+		String sql = "update " + tableName + " set " + set + " where " + where;
+		return sql;
 	}
 }

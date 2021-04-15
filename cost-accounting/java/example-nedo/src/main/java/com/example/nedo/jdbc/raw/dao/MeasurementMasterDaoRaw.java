@@ -13,7 +13,7 @@ public class MeasurementMasterDaoRaw extends RawJdbcDao<MeasurementMaster> imple
 	static {
 		List<RawJdbcColumn<MeasurementMaster, ?>> list = new ArrayList<>();
 		add(list, "m_unit", MeasurementMaster::setMUnit, MeasurementMaster::getMUnit, RawJdbcUtil::setString,
-				RawJdbcUtil::getString);
+				RawJdbcUtil::getString, true);
 		add(list, "m_name", MeasurementMaster::setMName, MeasurementMaster::getMName, RawJdbcUtil::setString,
 				RawJdbcUtil::getString);
 		add(list, "m_type", MeasurementMaster::setMType, MeasurementMaster::getMType, RawJdbcUtil::setMeasurementType,

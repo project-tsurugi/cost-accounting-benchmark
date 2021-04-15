@@ -21,9 +21,9 @@ public class ItemMasterDaoRaw extends RawJdbcDao<ItemMaster> implements ItemMast
 	private static final List<RawJdbcColumn<ItemMaster, ?>> COLUMN_LIST;
 	static {
 		List<RawJdbcColumn<ItemMaster, ?>> list = new ArrayList<>();
-		add(list, "i_id", ItemMaster::setIId, ItemMaster::getIId, RawJdbcUtil::setInt, RawJdbcUtil::getInt);
+		add(list, "i_id", ItemMaster::setIId, ItemMaster::getIId, RawJdbcUtil::setInt, RawJdbcUtil::getInt, true);
 		add(list, "i_effective_date", ItemMaster::setIEffectiveDate, ItemMaster::getIEffectiveDate,
-				RawJdbcUtil::setDate, RawJdbcUtil::getDate);
+				RawJdbcUtil::setDate, RawJdbcUtil::getDate, true);
 		add(list, "i_expired_date", ItemMaster::setIExpiredDate, ItemMaster::getIExpiredDate, RawJdbcUtil::setDate,
 				RawJdbcUtil::getDate);
 		add(list, "i_name", ItemMaster::setIName, ItemMaster::getIName, RawJdbcUtil::setString, RawJdbcUtil::getString);

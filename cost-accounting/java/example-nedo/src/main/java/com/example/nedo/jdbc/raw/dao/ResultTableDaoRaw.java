@@ -21,14 +21,14 @@ public class ResultTableDaoRaw extends RawJdbcDao<ResultTable> implements Result
 	private static final List<RawJdbcColumn<ResultTable, ?>> COLUMN_LIST;
 	static {
 		List<RawJdbcColumn<ResultTable, ?>> list = new ArrayList<>();
-		add(list, "r_f_id", ResultTable::setRFId, ResultTable::getRFId, RawJdbcUtil::setInt, RawJdbcUtil::getInt);
+		add(list, "r_f_id", ResultTable::setRFId, ResultTable::getRFId, RawJdbcUtil::setInt, RawJdbcUtil::getInt, true);
 		add(list, "r_manufacturing_date", ResultTable::setRManufacturingDate, ResultTable::getRManufacturingDate,
-				RawJdbcUtil::setDate, RawJdbcUtil::getDate);
+				RawJdbcUtil::setDate, RawJdbcUtil::getDate, true);
 		add(list, "r_product_i_id", ResultTable::setRProductIId, ResultTable::getRProductIId, RawJdbcUtil::setInt,
-				RawJdbcUtil::getInt);
+				RawJdbcUtil::getInt, true);
 		add(list, "r_parent_i_id", ResultTable::setRParentIId, ResultTable::getRParentIId, RawJdbcUtil::setInt,
-				RawJdbcUtil::getInt);
-		add(list, "r_i_id", ResultTable::setRIId, ResultTable::getRIId, RawJdbcUtil::setInt, RawJdbcUtil::getInt);
+				RawJdbcUtil::getInt, true);
+		add(list, "r_i_id", ResultTable::setRIId, ResultTable::getRIId, RawJdbcUtil::setInt, RawJdbcUtil::getInt, true);
 		add(list, "r_manufacturing_quantity", ResultTable::setRManufacturingQuantity,
 				ResultTable::getRManufacturingQuantity, RawJdbcUtil::setBigInt, RawJdbcUtil::getBigInt);
 		add(list, "r_weight_unit", ResultTable::setRWeightUnit, ResultTable::getRWeightUnit, RawJdbcUtil::setString,

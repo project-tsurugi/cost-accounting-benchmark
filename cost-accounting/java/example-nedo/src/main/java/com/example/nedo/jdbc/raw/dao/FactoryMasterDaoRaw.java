@@ -17,7 +17,7 @@ public class FactoryMasterDaoRaw extends RawJdbcDao<FactoryMaster> implements Fa
 	private static final List<RawJdbcColumn<FactoryMaster, ?>> COLUMN_LIST;
 	static {
 		List<RawJdbcColumn<FactoryMaster, ?>> list = new ArrayList<>();
-		add(list, "f_id", FactoryMaster::setFId, FactoryMaster::getFId, RawJdbcUtil::setInt, RawJdbcUtil::getInt);
+		add(list, "f_id", FactoryMaster::setFId, FactoryMaster::getFId, RawJdbcUtil::setInt, RawJdbcUtil::getInt, true);
 		add(list, "f_name", FactoryMaster::setFName, FactoryMaster::getFName, RawJdbcUtil::setString,
 				RawJdbcUtil::getString);
 		COLUMN_LIST = list;
