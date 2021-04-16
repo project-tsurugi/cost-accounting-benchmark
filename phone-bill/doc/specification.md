@@ -3,7 +3,6 @@
 本ドキュメントは、バッチの実行中に常にWriteが発生するタイプのバッチの
 サンプルとして作成する電話料金計算バッチの仕様について記述する。
 
-
 ## テーブル仕様
 
 * 通話履歴
@@ -27,6 +26,50 @@
   - 基本料金
   - 通話料金
   - 請求金額
+  - バッチ実行ID
+
+## DDL
+
+通話履歴
+```
+create table history(
+    caller_phone_number varchar(15) not null,
+    recipient_phone_number varchar(15) not null,
+    payment_categorty char(1) not null,
+    start_time timestamp not null,
+    time_secs integer not null,
+    charge integer,
+    df integer not null,
+    constraint history_pkey primary key(caller_phone_number, start_time)
+)
+create index idx_df on history(df)
+create index idx_st on history(start_time)
+```
+
+契約マスタ
+```
+create table contracts(
+    phone_number varchar(15) not null,
+    start_date date not null,
+    end_date date,
+    charge_rule varchar(255) not null,
+    primary key(phone_number, start_date)
+)
+```
+
+月額利用料金
+```
+create table billing(
+    phone_number varchar(15) not null,
+    target_month date not null,
+    basic_charge integer not null,
+    metered_charge integer not null,
+    billing_amount integer not null,
+    batch_exec_id varchar(36) not null,
+    constraint billing_pkey primary key(target_month, phone_number, batch_exec_id)
+)
+```
+
 
 ## データ量とデータサイズ
 
@@ -50,16 +93,17 @@
 ## バッチ処理概要
 
 * パラメータとして料金計算対象の年月が与えられる
+* 月額料金テーブルから、料金計算対象の年月のレコードを削除する
 * 契約マスタから、当該年月に有効な契約があるレコードを抽出する
 * 抽出した各レコードに対して以下の処理を繰り返す
-  - 通話履歴テーブルから、料金計算対象のレコードの値を取り出す(SELECT FOR UPDATE)
+  - 通話履歴テーブルから、料金計算対象のレコードの値を取り出す
    * 発信者電話番号が契約マスタの電話番号で同じで、料金区分が発信者負担
    * 受信者電話番号が契約マスタの電話番号で同じで、料金区分が受信者負担
    * 通話開始時刻が、契約マスタの契約開始日～契約終了日の間
   - 料金計算ルール(後述)に従い料金を計算し、通信履歴テーブルの通話料金を更新する(UPDATE)
-  - 料金計算ルール(後述)に従い、月額利用料金を更新する(INSERT OR UPDATE)
-* バッチ全体を1トランザクションとする
-   
+  - 料金計算ルール(後述)に従い、月額利用料金を更新する(INSERT)
+
+
 ## 料金計算ルール
 
 * 以下のルールがマスタに記録されている。
@@ -95,19 +139,18 @@
 
 ## 電話番号の再利用について
 
-* 契約が終了した電話番号は、たの契約に再利用されることがある
-* 契約終了後、最低でも三ヶ月間は電話番号が再利用されないことが保証されている。したがって、月額の料金計算で同一の電話番号の契約が複数存在するケースは考慮不要である。
+* 契約が終了した電話番号は、他の契約に再利用されることがある
+* 契約終了後、翌月までは電話番号が再利用されないことが保証されている。したがって、月額の料金計算で同一の電話番号の契約が複数存在するケースは考慮不要である。
 
-## バッチ実行時に発生する可能性があるトランザクション
+## オンラインアプリケーション
 
-* 月額利用料金テーブルは参照のみ、更新はなし
-* 契約マスタ
-  - 常にINSERTされる可能性がある
-    * INSERT時に全項目に値が設定される
-  - 電話番号以外の項目はUPDATEされる可能性がある
-  - 論理削除される可能性がある
-* 通話履歴
-  - 常にINSERTされる可能性がある
-    * INSERT時に通話料金以外の全項目に値が設定される
-  - 電話番号以外の項目はUPDATEされる可能性がある
-  - 論理削除される可能性がある
+サンプルバッチ実行中に以下の4種のオンラインアプリケーションを実行する。
+
+* 契約マスタ更新
+  - 既存の契約マスタを更新する
+* 契約マスタ追加
+  - 契約マスタにレコードを追加する
+* 通話履歴更新
+  - 既存の通話履歴を更新する
+* 通話履歴追加
+  - 通話履歴にレコードを追加する
