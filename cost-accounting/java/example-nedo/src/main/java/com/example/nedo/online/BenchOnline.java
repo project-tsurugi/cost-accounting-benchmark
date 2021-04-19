@@ -40,16 +40,18 @@ public class BenchOnline {
 			batchDate = LocalDate.parse(args[0]);
 		}
 
-		List<BenchOnlineThread> threadList = createThread((args.length >= 2) ? args[1] : "all", manager, batchDate);
+		AtomicBoolean stopRequest = new AtomicBoolean(false);
+		List<BenchOnlineThread> threadList = createThread((args.length >= 2) ? args[1] : "all", manager, batchDate,
+				stopRequest);
 
-		ExExecutorService pool = newExecutorService(threadList.size());
+		ExExecutorService pool = newExecutorService(threadList.size(), stopRequest);
 		AtomicBoolean done = new AtomicBoolean(false);
 		try {
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
 				public void run() {
 //					System.out.println("shutdown-hook start");
-					pool.shutdownNow();
+					stopRequest.set(true);
 
 					// 終了待ち
 					while (!done.get()) {
@@ -77,7 +79,8 @@ public class BenchOnline {
 		}
 	}
 
-	private static List<BenchOnlineThread> createThread(String arg, CostBenchDbManager manager, LocalDate batchDate) {
+	private static List<BenchOnlineThread> createThread(String arg, CostBenchDbManager manager, LocalDate batchDate,
+			AtomicBoolean stopRequest) {
 		List<BenchOnlineThread> threadList = new ArrayList<>();
 
 		if (!arg.trim().equalsIgnoreCase("all")) {
@@ -90,14 +93,14 @@ public class BenchOnline {
 						throw new IllegalArgumentException("duplicate id=" + id);
 					}
 				}
-				create1(manager, threadList, list, batchDate);
+				create1(manager, threadList, list, batchDate, stopRequest);
 			}
 		}
 
 		if (threadList.isEmpty()) {
 			List<Integer> factoryList = getAllFactory(manager);
 			for (Integer id : factoryList) {
-				create1(manager, threadList, Collections.singletonList(id), batchDate);
+				create1(manager, threadList, Collections.singletonList(id), batchDate, stopRequest);
 			}
 		}
 
@@ -136,22 +139,24 @@ public class BenchOnline {
 	private static int threadId = 0;
 
 	private static void create1(CostBenchDbManager manager, List<BenchOnlineThread> threadList, List<Integer> idList,
-			LocalDate date) {
+			LocalDate date, AtomicBoolean stopRequest) {
 		System.out.printf("create thread%d: factoryId=%s%n", threadId, StringUtil.toString(idList));
-		BenchOnlineThread thread = new BenchOnlineThread(threadId++, manager, idList, date);
+		BenchOnlineThread thread = new BenchOnlineThread(threadId++, manager, idList, date, stopRequest);
 		threadList.add(thread);
 	}
 
-	static ExExecutorService newExecutorService(int size) {
+	static ExExecutorService newExecutorService(int size, AtomicBoolean stopRequest) {
 		// return Executors.newFixedThreadPool(size);
-		return new ExExecutorService(size);
+		return new ExExecutorService(size, stopRequest);
 	}
 
 	private static class ExExecutorService extends ThreadPoolExecutor {
+		private final AtomicBoolean stopRequest;
 		private final List<Exception> exceptionList = new CopyOnWriteArrayList<>();
 
-		public ExExecutorService(int nThreads) {
+		public ExExecutorService(int nThreads, AtomicBoolean stopRequest) {
 			super(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+			this.stopRequest = stopRequest;
 		}
 
 		@Override
@@ -160,10 +165,10 @@ public class BenchOnline {
 			try {
 				task.get();
 			} catch (InterruptedException | CancellationException ignore) {
-				// ignore
+				stopRequest.set(true);
 			} catch (Exception e) {
 				exceptionList.add(e);
-				shutdownNow();
+				stopRequest.set(true);
 			}
 		}
 

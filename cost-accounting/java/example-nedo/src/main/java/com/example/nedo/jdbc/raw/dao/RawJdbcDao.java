@@ -190,7 +190,7 @@ public abstract class RawJdbcDao<E> {
 			try (PreparedStatement ps0 = finalPs; ResultSet rs0 = finalRs) {
 				// close by try-with-resources
 			} catch (SQLException e) {
-				new RuntimeException(e);
+				throw new RuntimeException(e);
 			}
 		});
 	}

@@ -2,6 +2,7 @@ package com.example.nedo.online;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.example.nedo.BenchConst;
 import com.example.nedo.init.BenchRandom;
@@ -30,17 +32,21 @@ public class BenchOnlineThread implements Runnable, Callable<Void> {
 	private final CostBenchDbManager dbManager;
 	private final List<Integer> factoryList;
 	private final LocalDate date;
+	private final AtomicBoolean stopRequest;
+
 	private final List<BenchOnlineTask> taskList = new ArrayList<>();
 	private final NavigableMap<Integer, BenchOnlineTask> taskRatioMap = new TreeMap<>();
 	private final int taskRatioMax;
 
 	private final BenchRandom random = new BenchRandom();
 
-	public BenchOnlineThread(int id, CostBenchDbManager dbManager, List<Integer> factoryList, LocalDate date) {
+	public BenchOnlineThread(int id, CostBenchDbManager dbManager, List<Integer> factoryList, LocalDate date,
+			AtomicBoolean stopRequest) {
 		this.threadId = id;
 		this.dbManager = dbManager;
 		this.factoryList = factoryList;
 		this.date = date;
+		this.stopRequest = stopRequest;
 
 		taskList.add(new BenchOnlineNewItemTask());
 		taskList.add(new BenchOnlineUpdateManufacturingTask());
@@ -76,8 +82,23 @@ public class BenchOnlineThread implements Runnable, Callable<Void> {
 		Path path = BenchConst.onlineLogFilePath(threadId);
 		try (BufferedWriter writer = Files.newBufferedWriter(path)) {
 			for (;;) {
-				if (!execute1(writer)) {
+				if (stopRequest.get()) {
 					break;
+				}
+				try {
+					if (!execute1(writer)) {
+						break;
+					}
+				} catch (Throwable t) {
+					stopRequest.set(true);
+					try {
+						PrintWriter pw = new PrintWriter(writer);
+						t.printStackTrace(pw);
+					} catch (Throwable s) {
+						t.addSuppressed(s);
+					}
+					System.out.println("thread" + threadId + " abend");
+					throw t;
 				}
 			}
 		} catch (IOException e) {
@@ -96,7 +117,7 @@ public class BenchOnlineThread implements Runnable, Callable<Void> {
 
 		task.execute();
 
-		if (Thread.interrupted()) {
+		if (Thread.interrupted() || stopRequest.get()) {
 			return false;
 		}
 
