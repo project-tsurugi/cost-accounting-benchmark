@@ -59,6 +59,7 @@ public interface ItemConstructionMasterDao {
 	@Suppress(messages = { Message.DOMA4274 })
 	Stream<ItemConstructionMaster> selectRecursiveByParentId(int parentId, LocalDate date);
 
+	// @return List<キー>
 	@Select
 	List<ItemConstructionMaster> selectByItemType(LocalDate date, List<ItemType> typeList);
 

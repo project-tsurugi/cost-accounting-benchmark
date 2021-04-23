@@ -87,7 +87,13 @@ public class ItemConstructionMasterDaoRaw extends RawJdbcDao<ItemConstructionMas
 
 	@Override
 	public ItemConstructionMaster selectById(int parentId, int itemId, LocalDate date) {
-		throw new InternalError("yet implmented");
+		String sql = "select * from " + TABLE_NAME + " where ic_parent_i_id = ? and ic_i_id = ? and " + PS_COND_DATE;
+		return executeQuery1(sql, ps -> {
+			int i = 1;
+			setInt(ps, i++, parentId);
+			setInt(ps, i++, itemId);
+			setDate(ps, i++, date);
+		}, this::newEntity);
 	}
 
 	@Override
@@ -98,7 +104,7 @@ public class ItemConstructionMasterDaoRaw extends RawJdbcDao<ItemConstructionMas
 	@Override
 	public List<ItemConstructionMaster> selectByItemType(LocalDate date, List<ItemType> typeList) {
 		String s = Stream.generate(() -> "?").limit(typeList.size()).collect(Collectors.joining(","));
-		String sql = "select ic.*" //
+		String sql = "select ic_parent_i_id, ic_i_id, ic_effective_date" //
 				+ " from item_construction_master ic" //
 				+ " left join item_master i on i_id=ic_i_id and ? between i_effective_date and i_expired_date"
 				+ " where ? between ic_effective_date and ic_expired_date" //
@@ -110,7 +116,13 @@ public class ItemConstructionMasterDaoRaw extends RawJdbcDao<ItemConstructionMas
 			for (ItemType type : typeList) {
 				setItemType(ps, i++, type);
 			}
-		}, this::newEntity);
+		}, rs -> {
+			ItemConstructionMaster key = new ItemConstructionMaster();
+			key.setIcParentIId(getInt(rs, "ic_parent_i_id"));
+			key.setIcIId(getInt(rs, "ic_i_id"));
+			key.setIcEffectiveDate(getDate(rs, "ic_effective_date"));
+			return key;
+		});
 	}
 
 	@Override

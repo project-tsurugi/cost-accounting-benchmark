@@ -47,16 +47,18 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 		ItemMaster material;
 		{
 			ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
-			List<ItemMaster> materialList = itemMasterDao.selectByType(date, ItemType.RAW_MATERIAL);
+			List<Integer> materialList = itemMasterDao.selectIdByType(date, ItemType.RAW_MATERIAL);
 			List<ItemConstructionMaster> childList = itemCostructionMasterDao.selectByParentId(item.getIcIId(), date);
+			int materialId;
 			for (;;) {
-				material = selectRandomMaterial(materialList);
-				int materialId = material.getIId();
-				if (childList.stream().anyMatch(child -> child.getIcIId().intValue() == materialId)) {
+				int mid = selectRandomMaterial(materialList);
+				if (childList.stream().anyMatch(child -> child.getIcIId().intValue() == mid)) {
 					continue;
 				}
+				materialId = mid;
 				break;
 			}
+			material = itemMasterDao.selectById(materialId, date);
 		}
 
 		logTarget("add item=%d, parent=%d", material.getIId(), item.getIcIId());
@@ -72,10 +74,16 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 		ItemConstructionMasterDao itemCostructionMasterDao = dbManager.getItemConstructionMasterDao();
 		List<ItemConstructionMaster> list = itemCostructionMasterDao.selectByItemType(date, typeList);
 		int i = random.nextInt(list.size());
-		return list.get(i);
+		ItemConstructionMaster key = list.get(i);
+		ItemConstructionMaster entity = itemCostructionMasterDao.selectById(key.getIcParentIId(), key.getIcIId(),
+				key.getIcEffectiveDate());
+		if (entity == null) {
+			throw new IllegalStateException("selectRandomAddItem key=" + key);
+		}
+		return entity;
 	}
 
-	private ItemMaster selectRandomMaterial(List<ItemMaster> list) {
+	private Integer selectRandomMaterial(List<Integer> list) {
 		int i = random.nextInt(list.size());
 		return list.get(i);
 	}
@@ -113,7 +121,8 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 		ItemConstructionMasterDao itemCostructionMasterDao = dbManager.getItemConstructionMasterDao();
 		List<ItemConstructionMaster> list = itemCostructionMasterDao.selectByItemType(date, typeList);
 		int i = random.nextInt(list.size());
-		return list.get(i);
+		ItemConstructionMaster key = list.get(i);
+		return key;
 	}
 
 	// for test

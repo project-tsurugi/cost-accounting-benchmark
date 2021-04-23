@@ -38,10 +38,6 @@ public interface ItemMasterDao {
 	List<Integer> selectIdByType(LocalDate date, ItemType type);
 
 	@Select
-	@Sql("select * from " + TABLE_NAME + " where " + COND_DATE + " and i_type = /* type */'raw_material'")
-	List<ItemMaster> selectByType(LocalDate date, ItemType type);
-
-	@Select
 	@Sql("select * from " + TABLE_NAME)
 	List<ItemMaster> selectAll();
 

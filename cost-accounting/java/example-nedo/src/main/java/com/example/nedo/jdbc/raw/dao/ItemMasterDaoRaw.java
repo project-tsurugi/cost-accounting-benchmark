@@ -86,16 +86,6 @@ public class ItemMasterDaoRaw extends RawJdbcDao<ItemMaster> implements ItemMast
 	}
 
 	@Override
-	public List<ItemMaster> selectByType(LocalDate date, ItemType type) {
-		String sql = "select * from " + TABLE_NAME + " where " + PS_COND_DATE + " and i_type = ?";
-		return executeQueryList(sql, ps -> {
-			int i = 1;
-			setDate(ps, i++, date);
-			setItemType(ps, i++, type);
-		}, this::newEntity);
-	}
-
-	@Override
 	public List<ItemMaster> selectAll() {
 		String sql = "select * from " + TABLE_NAME;
 		return executeQueryList(sql, null, this::newEntity);
