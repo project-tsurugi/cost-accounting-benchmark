@@ -15,6 +15,7 @@ import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDao;
 import com.example.nedo.jdbc.doma2.domain.ItemType;
 import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemConstructionMasterIds;
+import com.example.nedo.jdbc.doma2.entity.ItemConstructionMasterKey;
 import com.example.nedo.jdbc.raw.CostBenchDbManagerJdbc;
 
 public class ItemConstructionMasterDaoRaw extends RawJdbcDao<ItemConstructionMaster>
@@ -102,7 +103,7 @@ public class ItemConstructionMasterDaoRaw extends RawJdbcDao<ItemConstructionMas
 	}
 
 	@Override
-	public List<ItemConstructionMaster> selectByItemType(LocalDate date, List<ItemType> typeList) {
+	public List<ItemConstructionMasterKey> selectByItemType(LocalDate date, List<ItemType> typeList) {
 		String s = Stream.generate(() -> "?").limit(typeList.size()).collect(Collectors.joining(","));
 		String sql = "select ic_parent_i_id, ic_i_id, ic_effective_date" //
 				+ " from item_construction_master ic" //
@@ -117,7 +118,7 @@ public class ItemConstructionMasterDaoRaw extends RawJdbcDao<ItemConstructionMas
 				setItemType(ps, i++, type);
 			}
 		}, rs -> {
-			ItemConstructionMaster key = new ItemConstructionMaster();
+			ItemConstructionMasterKey key = new ItemConstructionMasterKey();
 			key.setIcParentIId(getInt(rs, "ic_parent_i_id"));
 			key.setIcIId(getInt(rs, "ic_i_id"));
 			key.setIcEffectiveDate(getDate(rs, "ic_effective_date"));
@@ -139,14 +140,14 @@ public class ItemConstructionMasterDaoRaw extends RawJdbcDao<ItemConstructionMas
 	}
 
 	@Override
-	public int delete(ItemConstructionMaster entity) {
+	public int delete(ItemConstructionMasterKey key) {
 		String sql = "delete from " + TABLE_NAME
 				+ " where ic_i_id = ? and ic_parent_i_id = ? and ic_effective_date = ?";
 		return executeUpdate(sql, ps -> {
 			int i = 1;
-			setInt(ps, i++, entity.getIcIId());
-			setInt(ps, i++, entity.getIcParentIId());
-			setDate(ps, i++, entity.getIcEffectiveDate());
+			setInt(ps, i++, key.getIcIId());
+			setInt(ps, i++, key.getIcParentIId());
+			setDate(ps, i++, key.getIcEffectiveDate());
 		});
 	}
 

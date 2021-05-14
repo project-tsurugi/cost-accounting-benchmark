@@ -16,6 +16,7 @@ import com.example.nedo.jdbc.doma2.config.AppConfig;
 import com.example.nedo.jdbc.doma2.domain.ItemType;
 import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
 import com.example.nedo.jdbc.doma2.entity.ItemConstructionMasterIds;
+import com.example.nedo.jdbc.doma2.entity.ItemConstructionMasterKey;
 
 @Dao(config = AppConfig.class)
 public interface ItemConstructionMasterDao {
@@ -59,9 +60,8 @@ public interface ItemConstructionMasterDao {
 	@Suppress(messages = { Message.DOMA4274 })
 	Stream<ItemConstructionMaster> selectRecursiveByParentId(int parentId, LocalDate date);
 
-	// @return List<キー>
 	@Select
-	List<ItemConstructionMaster> selectByItemType(LocalDate date, List<ItemType> typeList);
+	List<ItemConstructionMasterKey> selectByItemType(LocalDate date, List<ItemType> typeList);
 
 	@Select
 	@Sql("select * from " + TABLE_NAME
@@ -70,5 +70,5 @@ public interface ItemConstructionMasterDao {
 	ItemConstructionMaster lock(ItemConstructionMaster in);
 
 	@Delete
-	int delete(ItemConstructionMaster entity);
+	int delete(ItemConstructionMasterKey key);
 }

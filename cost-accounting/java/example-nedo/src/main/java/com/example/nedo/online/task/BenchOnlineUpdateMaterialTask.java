@@ -12,6 +12,7 @@ import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDao;
 import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
 import com.example.nedo.jdbc.doma2.domain.ItemType;
 import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
+import com.example.nedo.jdbc.doma2.entity.ItemConstructionMasterKey;
 import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 
 /**
@@ -72,9 +73,9 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 		List<ItemType> typeList = Arrays.stream(ItemType.values()).filter(t -> t != ItemType.RAW_MATERIAL)
 				.collect(Collectors.toList());
 		ItemConstructionMasterDao itemCostructionMasterDao = dbManager.getItemConstructionMasterDao();
-		List<ItemConstructionMaster> list = itemCostructionMasterDao.selectByItemType(date, typeList);
+		List<ItemConstructionMasterKey> list = itemCostructionMasterDao.selectByItemType(date, typeList);
 		int i = random.nextInt(list.size());
-		ItemConstructionMaster key = list.get(i);
+		ItemConstructionMasterKey key = list.get(i);
 		ItemConstructionMaster entity = itemCostructionMasterDao.selectById(key.getIcParentIId(), key.getIcIId(),
 				key.getIcEffectiveDate());
 		if (entity == null) {
@@ -107,7 +108,7 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 
 	protected void executeRemove() {
 		// 変更する構成品目を決定
-		ItemConstructionMaster item = selectRandomRemoveItem();
+		ItemConstructionMasterKey item = selectRandomRemoveItem();
 
 		logTarget("delete item=%d, parent=%d", item.getIcIId(), item.getIcParentIId());
 
@@ -116,12 +117,12 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 		itemCostructionMasterDao.delete(item);
 	}
 
-	private ItemConstructionMaster selectRandomRemoveItem() {
+	private ItemConstructionMasterKey selectRandomRemoveItem() {
 		List<ItemType> typeList = Arrays.asList(ItemType.RAW_MATERIAL);
 		ItemConstructionMasterDao itemCostructionMasterDao = dbManager.getItemConstructionMasterDao();
-		List<ItemConstructionMaster> list = itemCostructionMasterDao.selectByItemType(date, typeList);
+		List<ItemConstructionMasterKey> list = itemCostructionMasterDao.selectByItemType(date, typeList);
 		int i = random.nextInt(list.size());
-		ItemConstructionMaster key = list.get(i);
+		ItemConstructionMasterKey key = list.get(i);
 		return key;
 	}
 
