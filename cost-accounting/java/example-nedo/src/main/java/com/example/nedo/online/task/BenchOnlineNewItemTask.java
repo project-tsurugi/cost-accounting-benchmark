@@ -27,7 +27,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 	}
 
 	@Override
-	protected void execute1() {
+	protected boolean execute1() {
 		ItemMaster item;
 		for (;;) {
 			ItemMaster i = dbManager.execute(() -> {
@@ -41,6 +41,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 		dbManager.execute(() -> {
 			executeMain2(item);
 		});
+		return true;
 	}
 
 	protected ItemMaster executeMain() {

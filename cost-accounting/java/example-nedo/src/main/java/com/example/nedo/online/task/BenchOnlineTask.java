@@ -51,12 +51,13 @@ public abstract class BenchOnlineTask {
 	public final void execute() {
 		logStart("factory=%d, date=%s", factoryId, date);
 
-		execute1();
+		boolean result = execute1();
+		String target = result ? "exists" : "nothing";
 
-		logEnd("factory=%d, date=%s", factoryId, date);
+		logEnd("factory=%d, date=%s target=%s", factoryId, date, target);
 	}
 
-	protected abstract void execute1();
+	protected abstract boolean execute1();
 
 	private LocalDateTime startDateTime, nowDateTime;
 

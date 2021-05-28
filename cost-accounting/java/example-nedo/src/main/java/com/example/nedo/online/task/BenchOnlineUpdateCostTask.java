@@ -21,22 +21,28 @@ public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
 	}
 
 	@Override
-	protected void execute1() {
-		dbManager.execute(() -> {
+	protected boolean execute1() {
+		return dbManager.execute(() -> {
 			CostMaster cost = selectRandomItem();
-
+			if (cost == null) {
+				return false;
+			}
 			int pattern = random.random(0, 1);
 			if (pattern == 0) {
 				executeIncrease(cost);
 			} else {
 				executeDecrease(cost);
 			}
+			return true;
 		});
 	}
 
 	private CostMaster selectRandomItem() {
 		CostMasterDao costMasterDao = dbManager.getCostMasterDao();
 		List<CostMaster> list = costMasterDao.selectByFactory(factoryId);
+		if (list.isEmpty()) {
+			return null;
+		}
 		int i = random.nextInt(list.size());
 		return list.get(i);
 	}

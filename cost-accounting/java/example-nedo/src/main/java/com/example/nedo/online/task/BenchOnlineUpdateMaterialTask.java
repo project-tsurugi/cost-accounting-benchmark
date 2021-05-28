@@ -25,18 +25,18 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 	}
 
 	@Override
-	protected void execute1() {
-		dbManager.execute(() -> {
+	protected boolean execute1() {
+		return dbManager.execute(() -> {
 			int select = random.random(0, 1);
 			if (select == 0) {
-				executeAdd();
+				return executeAdd();
 			} else {
-				executeRemove();
+				return executeRemove();
 			}
 		});
 	}
 
-	protected void executeAdd() {
+	protected boolean executeAdd() {
 		// 変更する構成品目を決定
 		ItemConstructionMaster item = selectRandomAddItem();
 
@@ -47,18 +47,25 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 		// 追加する原材料の決定
 		ItemMaster material;
 		{
-			ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
-			List<Integer> materialList = itemMasterDao.selectIdByType(date, ItemType.RAW_MATERIAL);
+			List<Integer> materialList = selectMaterial();
 			List<ItemConstructionMaster> childList = itemCostructionMasterDao.selectByParentId(item.getIcIId(), date);
-			int materialId;
-			for (;;) {
-				int mid = selectRandomMaterial(materialList);
+			int materialId = -1;
+			for (int j = 0; j < materialList.size(); j++) {
+				int mid;
+				{
+					int i = random.nextInt(materialList.size());
+					mid = materialList.get(i);
+				}
 				if (childList.stream().anyMatch(child -> child.getIcIId().intValue() == mid)) {
 					continue;
 				}
 				materialId = mid;
 				break;
 			}
+			if (materialId < 0) {
+				return false; // retry over
+			}
+			ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
 			material = itemMasterDao.selectById(materialId, date);
 		}
 
@@ -67,26 +74,47 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 		// 品目構成マスターへ追加
 		ItemConstructionMaster entity = newItemConstructionMaster(item, material);
 		itemCostructionMasterDao.insert(entity);
+
+		return true;
 	}
 
+	private static List<ItemConstructionMasterKey> itemConstructionMasterKeyListForAdd;
+
 	private ItemConstructionMaster selectRandomAddItem() {
-		List<ItemType> typeList = Arrays.stream(ItemType.values()).filter(t -> t != ItemType.RAW_MATERIAL)
-				.collect(Collectors.toList());
 		ItemConstructionMasterDao itemCostructionMasterDao = dbManager.getItemConstructionMasterDao();
-		List<ItemConstructionMasterKey> list = itemCostructionMasterDao.selectByItemType(date, typeList);
-		int i = random.nextInt(list.size());
-		ItemConstructionMasterKey key = list.get(i);
-		ItemConstructionMaster entity = itemCostructionMasterDao.selectById(key.getIcParentIId(), key.getIcIId(),
-				key.getIcEffectiveDate());
-		if (entity == null) {
-			throw new IllegalStateException("selectRandomAddItem key=" + key);
+
+		ItemConstructionMaster entity;
+		for (;;) {
+			ItemConstructionMasterKey key;
+			synchronized (BenchOnlineUpdateMaterialTask.class) {
+				if (itemConstructionMasterKeyListForAdd == null) {
+					List<ItemType> typeList = Arrays.stream(ItemType.values()).filter(t -> t != ItemType.RAW_MATERIAL)
+							.collect(Collectors.toList());
+					itemConstructionMasterKeyListForAdd = itemCostructionMasterDao.selectByItemType(date, typeList);
+				}
+				List<ItemConstructionMasterKey> list = itemConstructionMasterKeyListForAdd;
+				int i = random.nextInt(list.size());
+				key = list.get(i);
+			}
+			entity = itemCostructionMasterDao.selectById(key.getIcParentIId(), key.getIcIId(),
+					key.getIcEffectiveDate());
+			if (entity != null) {
+				break;
+			}
 		}
 		return entity;
 	}
 
-	private Integer selectRandomMaterial(List<Integer> list) {
-		int i = random.nextInt(list.size());
-		return list.get(i);
+	private static List<Integer> itemMasterMaterialKeyList;
+
+	private List<Integer> selectMaterial() {
+		synchronized (BenchOnlineUpdateMaterialTask.class) {
+			if (itemMasterMaterialKeyList == null) {
+				ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
+				itemMasterMaterialKeyList = itemMasterDao.selectIdByType(date, ItemType.RAW_MATERIAL);
+			}
+		}
+		return itemMasterMaterialKeyList;
 	}
 
 	private static final BigDecimal MQ_START = new BigDecimal("0.1");
@@ -106,23 +134,39 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 		return entity;
 	}
 
-	protected void executeRemove() {
+	protected boolean executeRemove() {
 		// 変更する構成品目を決定
 		ItemConstructionMasterKey item = selectRandomRemoveItem();
+		if (item == null) {
+			return false;
+		}
 
 		logTarget("delete item=%d, parent=%d", item.getIcIId(), item.getIcParentIId());
 
 		// 品目構成マスターから削除
 		ItemConstructionMasterDao itemCostructionMasterDao = dbManager.getItemConstructionMasterDao();
 		itemCostructionMasterDao.delete(item);
+
+		return true;
 	}
 
+	private static List<ItemConstructionMasterKey> itemConstructionMasterKeyListForRemove = null;
+
 	private ItemConstructionMasterKey selectRandomRemoveItem() {
-		List<ItemType> typeList = Arrays.asList(ItemType.RAW_MATERIAL);
-		ItemConstructionMasterDao itemCostructionMasterDao = dbManager.getItemConstructionMasterDao();
-		List<ItemConstructionMasterKey> list = itemCostructionMasterDao.selectByItemType(date, typeList);
-		int i = random.nextInt(list.size());
-		ItemConstructionMasterKey key = list.get(i);
+		ItemConstructionMasterKey key;
+		synchronized (BenchOnlineUpdateMaterialTask.class) {
+			if (itemConstructionMasterKeyListForRemove == null) {
+				List<ItemType> typeList = Arrays.asList(ItemType.RAW_MATERIAL);
+				ItemConstructionMasterDao itemCostructionMasterDao = dbManager.getItemConstructionMasterDao();
+				itemConstructionMasterKeyListForRemove = itemCostructionMasterDao.selectByItemType(date, typeList);
+			}
+			List<ItemConstructionMasterKey> list = itemConstructionMasterKeyListForRemove;
+			if (list.isEmpty()) {
+				return null;
+			}
+			int i = random.nextInt(list.size());
+			key = list.remove(i);
+		}
 		return key;
 	}
 

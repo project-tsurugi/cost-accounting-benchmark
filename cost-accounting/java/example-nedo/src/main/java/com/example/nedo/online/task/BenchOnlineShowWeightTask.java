@@ -22,18 +22,24 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
 	}
 
 	@Override
-	protected void execute1() {
-		dbManager.execute(() -> {
+	protected boolean execute1() {
+		return dbManager.execute(() -> {
 			int productId = selectRandomItemId();
-
+			if (productId < 0) {
+				return false;
+			}
 			logTarget("factory=%d, date=%s, product=%d", factoryId, date, productId);
 			executeMain(productId);
+			return true;
 		});
 	}
 
 	protected int selectRandomItemId() {
 		ItemManufacturingMasterDao itemManufacturingMasterDao = dbManager.getItemManufacturingMasterDao();
 		List<Integer> list = itemManufacturingMasterDao.selectIdByFactory(factoryId, date);
+		if (list.isEmpty()) {
+			return -1;
+		}
 		int i = random.nextInt(list.size());
 		return list.get(i);
 	}

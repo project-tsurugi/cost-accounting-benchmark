@@ -21,10 +21,11 @@ public class BenchOnlineShowCostTask extends BenchOnlineTask {
 	}
 
 	@Override
-	protected void execute1() {
+	protected boolean execute1() {
 		dbManager.execute(() -> {
 			executeMain();
 		});
+		return true;
 	}
 
 	protected void executeMain() {
