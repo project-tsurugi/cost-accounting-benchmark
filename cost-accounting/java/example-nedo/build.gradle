@@ -4,6 +4,7 @@ plugins {
     id 'com.diffplug.eclipse.apt' version '3.24.0'
     id 'org.seasar.doma.compile' version '1.1.0'
     id 'java-library-distribution'
+    id 'com.github.spotbugs' version '4.7.1'
 }
 
 java {
@@ -17,6 +18,21 @@ compileJava {
 
 compileTestJava {
     options.encoding = 'UTF-8'
+}
+
+spotbugsMain {
+    ignoreFailures = true
+    reports {
+        html {
+            enabled = !project.hasProperty("ci")
+            destination = file("$buildDir/reports/spotbugs/main/spotbugs.html")
+            stylesheet = 'fancy-hist.xsl'
+        }
+        xml {
+            enabled = project.hasProperty("ci")
+            destination = file("$buildDir/reports/spotbugs/main/spotbugs.xml")
+        }
+    }
 }
 
 repositories {
