@@ -55,7 +55,7 @@ public class BenchConst {
 		return getPropertyInt("batch.parallelism", 0);
 	}
 
-	public static int DECIMAL_SCALE = getPropertyInt("decimal.scale", 20);
+	public static final int DECIMAL_SCALE = getPropertyInt("decimal.scale", 20);
 
 	// online
 	public static Path onlineLogFilePath(int threadId) {

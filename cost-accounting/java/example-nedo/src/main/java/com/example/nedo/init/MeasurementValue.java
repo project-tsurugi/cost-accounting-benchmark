@@ -48,8 +48,17 @@ public class MeasurementValue {
 
 	@Override
 	public boolean equals(Object obj) {
+		if (obj == null || !(obj instanceof MeasurementValue)) {
+			return false;
+		}
+
 		MeasurementValue that = (MeasurementValue) obj;
 		return this.unit.equals(that.unit) && this.value.equals(that.value);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(unit, value);
 	}
 
 	@Override

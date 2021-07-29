@@ -58,6 +58,10 @@ public class ItemConstructionMasterKey {
 
 	@Override
 	public boolean equals(Object obj) {
+		if (obj == null || !(obj instanceof ItemConstructionMasterKey)) {
+			return false;
+		}
+
 		ItemConstructionMasterKey other = (ItemConstructionMasterKey) obj;
 		return Objects.equals(icParentIId, other.icParentIId) && Objects.equals(icIId, other.icIId)
 				&& Objects.equals(icEffectiveDate, other.icEffectiveDate);

@@ -244,6 +244,8 @@ public class InitialData03ItemMaster extends InitialData {
 			case "dL":
 				entity.setIWeightUnit("hg");
 				break;
+			default:
+				throw new InternalError(unit);
 			}
 			entity.setIPrice(random(++seed, PRICE_START, PRICE_END));
 			entity.setIPriceUnit("L");

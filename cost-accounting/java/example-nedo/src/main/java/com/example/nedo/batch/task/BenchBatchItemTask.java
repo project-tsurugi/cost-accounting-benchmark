@@ -76,6 +76,8 @@ public class BenchBatchItemTask {
 		case 4:
 			insertResultBatch2(node, factoryId, productId, manufact.getImManufacturingQuantity());
 			break;
+		default:
+			throw new InternalError();
 		}
 	}
 
@@ -175,6 +177,8 @@ public class BenchBatchItemTask {
 		case 2:
 			createBomTree2(root);
 			break;
+		default:
+			throw new InternalError();
 		}
 		return root;
 	}

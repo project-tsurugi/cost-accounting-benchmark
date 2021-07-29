@@ -98,6 +98,8 @@ public class BenchBatch {
 			case 5:
 				executeForDebug1(batchDate);
 				break;
+			default:
+				throw new UnsupportedOperationException(Integer.toString(type));
 			}
 		}
 

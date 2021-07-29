@@ -20,6 +20,9 @@ compileTestJava {
     options.encoding = 'UTF-8'
 }
 
+spotbugs {
+  excludeFilter = file("spotbugs-exclude-filter.xml")
+}
 spotbugsMain {
     ignoreFailures = true
     reports {

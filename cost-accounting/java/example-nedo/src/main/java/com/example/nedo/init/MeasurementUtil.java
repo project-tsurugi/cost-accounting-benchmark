@@ -15,7 +15,7 @@ import com.example.nedo.jdbc.doma2.entity.MeasurementMaster;
 public class MeasurementUtil {
 
 	private static MeasurementMasterDao DAO;
-	static Map<String, MeasurementMaster> MAP;
+	volatile static Map<String, MeasurementMaster> MAP;
 
 	public static void initialize(MeasurementMasterDao dao) {
 		MeasurementUtil.DAO = dao;
