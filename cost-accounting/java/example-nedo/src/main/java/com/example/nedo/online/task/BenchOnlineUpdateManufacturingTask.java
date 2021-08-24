@@ -4,6 +4,8 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.seasar.doma.jdbc.UniqueConstraintException;
+
 import com.example.nedo.init.InitialData;
 import com.example.nedo.init.InitialData04ItemManufacturingMaster;
 import com.example.nedo.jdbc.CostBenchDbManager;
@@ -23,21 +25,43 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
 
 	@Override
 	protected boolean execute1() {
-		return dbManager.execute(() -> {
-			int productId = selectRandomItemId();
-			if (productId < 0) {
-				return false;
-			}
+		int productId = dbManager.execute(this::selectRandomItemId);
+		if (productId < 0) {
+			return false;
+		}
+		logTarget("factory=%d, date=%s, product=%d", factoryId, date, productId);
 
-			logTarget("factory=%d, date=%s, product=%d", factoryId, date, productId);
-			executeMain(productId);
-			return true;
-		});
-	}
-
-	protected void executeMain(int productId) {
 		int newQuantity = random.random(0, 500) * 100;
 
+		for (;;) {
+			boolean ok = dbManager.execute(() -> {
+				return executeMain(productId, newQuantity);
+			});
+			if (ok) {
+				return true;
+			}
+		}
+	}
+
+	protected boolean executeMain(int productId, int newQuantity) {
+		for (;;) {
+			boolean ok = executeMain1(productId, newQuantity);
+			if (ok) {
+				return true;
+			}
+
+			switch (1) {
+			case 1:
+				// 別コネクションでリトライ
+				return false;
+			default:
+				// 同一コネクション内でリトライ（PostgreSQLだと例外発生時に同一コネクションでSQLを発行するとエラーになる）
+				continue;
+			}
+		}
+	}
+
+	protected boolean executeMain1(int productId, int newQuantity) {
 		ItemManufacturingMasterDao itemManufacturingMasterDao = dbManager.getItemManufacturingMasterDao();
 		ItemManufacturingMaster entity = itemManufacturingMasterDao.selectByIdForUpdate(factoryId, productId, date);
 		if (entity == null) {
@@ -55,11 +79,17 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
 				}
 			}
 			entity.setImManufacturingQuantity(BigInteger.valueOf(newQuantity));
-			itemManufacturingMasterDao.insert(entity);
+			try {
+				itemManufacturingMasterDao.insert(entity);
+			} catch (UniqueConstraintException e) {
+				return false;
+			}
 		} else {
 			entity.setImManufacturingQuantity(BigInteger.valueOf(newQuantity));
 			itemManufacturingMasterDao.update(entity);
 		}
+
+		return true;
 	}
 
 	protected int selectRandomItemId() {
