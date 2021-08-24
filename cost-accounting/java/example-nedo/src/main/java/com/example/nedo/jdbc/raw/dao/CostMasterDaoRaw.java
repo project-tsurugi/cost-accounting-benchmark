@@ -1,7 +1,6 @@
 package com.example.nedo.jdbc.raw.dao;
 
 import static com.example.nedo.jdbc.raw.dao.RawJdbcUtil.*;
-import static com.example.nedo.jdbc.raw.dao.RawJdbcUtil.setInt;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -59,6 +58,16 @@ public class CostMasterDaoRaw extends RawJdbcDao<CostMaster> implements CostMast
 			int i = 1;
 			setInt(ps, i++, fId);
 			setInt(ps, i++, iId);
+		}, this::newEntity);
+	}
+
+	@Override
+	public CostMaster lock(CostMaster in) {
+		String sql = "select * from " + TABLE_NAME + " where c_f_id = ? and c_i_id = ? for update";
+		return executeQuery1(sql, ps -> {
+			int i = 1;
+			setInt(ps, i++, in.getCFId());
+			setInt(ps, i++, in.getCIId());
 		}, this::newEntity);
 	}
 

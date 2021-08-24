@@ -31,8 +31,12 @@ public interface CostMasterDao {
 	List<CostMaster> selectByFactory(int fId);
 
 	@Select
-	@Sql("select * from " + TABLE_NAME + " where c_f_id = /*fId*/1 and c_i_id = /*iId*/1")
+	@Sql("select * from " + TABLE_NAME + " where c_f_id = /*fId*/1 and c_i_id = /*iId*/2")
 	CostMaster selectById(int fId, int iId);
+
+	@Select
+	@Sql("select * from " + TABLE_NAME + " where c_f_id=/*in.cFId*/1 and c_i_id=/*in.cIId*/2 for update")
+	CostMaster lock(CostMaster in);
 
 	@Update
 	@Sql("update " + TABLE_NAME + " set" //

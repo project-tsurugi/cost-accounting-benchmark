@@ -27,12 +27,14 @@ public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
 			if (cost == null) {
 				return false;
 			}
+
 			int pattern = random.random(0, 1);
 			if (pattern == 0) {
 				executeIncrease(cost);
 			} else {
 				executeDecrease(cost);
 			}
+
 			return true;
 		});
 	}
@@ -78,6 +80,9 @@ public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
 	protected void executeDecrease(CostMaster cost) {
 		logTarget("decrease product=%d", cost.getCIId());
 
+		CostMasterDao costMasterDao = dbManager.getCostMasterDao();
+		cost = costMasterDao.lock(cost);
+
 		// 減らす在庫数
 		BigDecimal quantity = random.random(Q_START, Q_END).multiply(Q_MULTI);
 
@@ -88,7 +93,6 @@ public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
 		}
 
 		// 更新
-		CostMasterDao costMasterDao = dbManager.getCostMasterDao();
 		int r = costMasterDao.updateDecrease(cost, quantity);
 		assert r == 1;
 	}
