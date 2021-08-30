@@ -15,6 +15,6 @@ function call_java() {
   java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $@
 }
 
-call_java com.example.nedo.online.BenchOnline 2020-09-15 "1-2;3-4;5-6"
-# ex) 1,3-4;5-6
-# -> thead1: factoryId=1,3,4; thread2=factoryId=5,6
+call_java com.example.nedo.online.BenchOnline 2020-09-15 60
+# args[0]: batch date
+# args[1]: thread size

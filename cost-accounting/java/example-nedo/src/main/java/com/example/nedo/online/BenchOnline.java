@@ -2,11 +2,7 @@ package com.example.nedo.online;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
@@ -16,8 +12,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.example.nedo.BenchConst;
-import com.example.nedo.batch.StringUtil;
-import com.example.nedo.init.InitialData;
 import com.example.nedo.jdbc.CostBenchDbManager;
 import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
 
@@ -35,14 +29,21 @@ public class BenchOnline {
 	}
 
 	private static void main0(String[] args, CostBenchDbManager manager) {
-		LocalDate batchDate = InitialData.DEFAULT_BATCH_DATE;
-		if (args.length >= 1) {
+		LocalDate batchDate;
+		try {
 			batchDate = LocalDate.parse(args[0]);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("invalid batchDate (args[0])", e);
+		}
+		int threadSize;
+		try {
+			threadSize = Integer.parseInt(args[1]);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("invalid threadSize (args[1])", e);
 		}
 
 		AtomicBoolean stopRequest = new AtomicBoolean(false);
-		List<BenchOnlineThread> threadList = createThread((args.length >= 2) ? args[1] : "all", manager, batchDate,
-				stopRequest);
+		List<BenchOnlineThread> threadList = createThread(threadSize, manager, batchDate, stopRequest);
 
 		ExExecutorService pool = newExecutorService(threadList.size(), stopRequest);
 		AtomicBoolean done = new AtomicBoolean(false);
@@ -79,53 +80,16 @@ public class BenchOnline {
 		}
 	}
 
-	private static List<BenchOnlineThread> createThread(String arg, CostBenchDbManager manager, LocalDate batchDate,
+	private static List<BenchOnlineThread> createThread(int threadSize, CostBenchDbManager manager, LocalDate batchDate,
 			AtomicBoolean stopRequest) {
-		List<BenchOnlineThread> threadList = new ArrayList<>();
+		List<BenchOnlineThread> threadList = new ArrayList<>(threadSize);
 
-		if (!arg.trim().equalsIgnoreCase("all")) {
-			Set<Integer> set = new HashSet<>();
-			String[] ss = arg.split(";");
-			for (String s : ss) {
-				List<Integer> list = convertId(s);
-				for (Integer id : list) {
-					if (!set.add(id)) {
-						throw new IllegalArgumentException("duplicate id=" + id);
-					}
-				}
-				create1(manager, threadList, list, batchDate, stopRequest);
-			}
-		}
-
-		if (threadList.isEmpty()) {
-			List<Integer> factoryList = getAllFactory(manager);
-			for (Integer id : factoryList) {
-				create1(manager, threadList, Collections.singletonList(id), batchDate, stopRequest);
-			}
+		List<Integer> factoryList = getAllFactory(manager);
+		for (int i = 0; i < threadSize; i++) {
+			create1(manager, threadList, factoryList, batchDate, stopRequest);
 		}
 
 		return threadList;
-	}
-
-	private static List<Integer> convertId(String arg) {
-		Set<Integer> set = new TreeSet<>();
-
-		String[] ss = arg.split(",");
-		for (String s : ss) {
-			int n = s.indexOf('-');
-			if (n >= 0) {
-				int start = Integer.parseInt(s.substring(0, n).trim());
-				int end = Integer.parseInt(s.substring(n + 1).trim());
-				for (int id = start; id <= end; id++) {
-					set.add(id);
-				}
-			} else {
-				int id = Integer.parseInt(s.trim());
-				set.add(id);
-			}
-		}
-
-		return new ArrayList<>(set);
 	}
 
 	private static List<Integer> getAllFactory(CostBenchDbManager manager) {
@@ -138,10 +102,10 @@ public class BenchOnline {
 
 	private static int threadId = 0;
 
-	private static void create1(CostBenchDbManager manager, List<BenchOnlineThread> threadList, List<Integer> idList,
-			LocalDate date, AtomicBoolean stopRequest) {
-		System.out.printf("create thread%d: factoryId=%s%n", threadId, StringUtil.toString(idList));
-		BenchOnlineThread thread = new BenchOnlineThread(threadId++, manager, idList, date, stopRequest);
+	private static void create1(CostBenchDbManager manager, List<BenchOnlineThread> threadList,
+			List<Integer> factoryList, LocalDate date, AtomicBoolean stopRequest) {
+		System.out.printf("create thread%d%n", threadId);
+		BenchOnlineThread thread = new BenchOnlineThread(threadId++, manager, factoryList, date, stopRequest);
 		threadList.add(thread);
 	}
 
