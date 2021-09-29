@@ -26,6 +26,11 @@ public interface ResultTableDao {
 	static final String COND_DATE = "r_manufacturing_date = /* date */'2020-09-25'";
 
 	@Delete
+//	@Sql("delete from " + TABLE_NAME)
+	@Sql("truncate table " + TABLE_NAME)
+	int deleteAll();
+
+	@Delete
 	@Sql("delete from " + TABLE_NAME + " where r_f_id = /* factoryId */1 and " + COND_DATE)
 	int deleteByFactory(int factoryId, LocalDate date);
 

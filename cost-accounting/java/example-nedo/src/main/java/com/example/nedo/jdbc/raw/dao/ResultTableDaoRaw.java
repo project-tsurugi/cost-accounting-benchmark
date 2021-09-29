@@ -65,6 +65,11 @@ public class ResultTableDaoRaw extends RawJdbcDao<ResultTable> implements Result
 	}
 
 	@Override
+	public int deleteAll() {
+		return doDeleteAll();
+	}
+
+	@Override
 	public int deleteByFactory(int factoryId, LocalDate date) {
 		String sql = "delete from " + TABLE_NAME + " where r_f_id = ? and " + PS_COND_DATE;
 		return executeUpdate(sql, ps -> {
