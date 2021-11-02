@@ -53,7 +53,7 @@ public class ResultTable implements Cloneable {
     @Column(name = "r_weight_total_unit")
     String rWeightTotalUnit;
 
-    /** unsigned numeric(9, 2) */
+    /** unsigned numeric(11, 2) */
     @Column(name = "r_weight_total")
     BigDecimal rWeightTotal;
 
