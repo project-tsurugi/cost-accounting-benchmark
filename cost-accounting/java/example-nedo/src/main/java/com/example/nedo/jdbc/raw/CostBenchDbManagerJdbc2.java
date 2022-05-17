@@ -17,6 +17,7 @@ public class CostBenchDbManagerJdbc2 extends CostBenchDbManagerJdbc {
 		this.transaction = dataSource.getLocalTransaction(AppConfig.singleton().getJdbcLogger());
 	}
 
+	@Override
 	public Connection getConnection() {
 		if (!transaction.isActive()) {
 			transaction.begin();

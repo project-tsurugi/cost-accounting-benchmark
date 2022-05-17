@@ -40,6 +40,7 @@ public class CostBenchDbManagerJdbc1 extends CostBenchDbManagerJdbc {
 		return c;
 	}
 
+	@Override
 	public Connection getConnection() {
 		return connectionThreadLocal.get();
 	}
