@@ -14,17 +14,17 @@ import com.example.nedo.jdbc.doma2.entity.MeasurementMaster;
 @Dao(config = AppConfig.class)
 public interface MeasurementMasterDao {
 
-	public static final String TABLE_NAME = "measurement_master";
+    public static final String TABLE_NAME = "measurement_master";
 
-	@Delete
+    @Delete
 //	@Sql("delete from " + TABLE_NAME)
-	@Sql("truncate table " + TABLE_NAME)
-	int deleteAll();
+    @Sql("truncate table " + TABLE_NAME)
+    int deleteAll();
 
-	@Insert
-	int insert(MeasurementMaster entity);
+    @Insert
+    int insert(MeasurementMaster entity);
 
-	@Select
-	@Sql("select * from " + TABLE_NAME)
-	public List<MeasurementMaster> selectAll();
+    @Select
+    @Sql("select * from " + TABLE_NAME)
+    public List<MeasurementMaster> selectAll();
 }

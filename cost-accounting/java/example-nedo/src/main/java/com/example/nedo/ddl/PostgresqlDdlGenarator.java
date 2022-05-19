@@ -9,17 +9,17 @@ import com.example.nedo.ddl.ddl.TableDdlWriter;
 
 public class PostgresqlDdlGenarator extends DdlGenarator {
 
-	public static void main(String[] args) throws Exception {
-		new PostgresqlDdlGenarator().execute();
-	}
+    public static void main(String[] args) throws Exception {
+        new PostgresqlDdlGenarator().execute();
+    }
 
-	@Override
-	protected String getDdlFileName() {
-		return "ddl-postgresql.txt";
-	}
+    @Override
+    protected String getDdlFileName() {
+        return "ddl-postgresql.txt";
+    }
 
-	@Override
-	protected TableDdlWriter createTableDdlWriter(TableSheet table, BufferedWriter writer) {
-		return new PostgresqlTableDdlWriter(table, writer);
-	}
+    @Override
+    protected TableDdlWriter createTableDdlWriter(TableSheet table, BufferedWriter writer) {
+        return new PostgresqlTableDdlWriter(table, writer);
+    }
 }

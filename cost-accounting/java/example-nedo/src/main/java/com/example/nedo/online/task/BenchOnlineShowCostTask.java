@@ -16,44 +16,43 @@ import com.example.nedo.jdbc.doma2.entity.ResultTable;
  */
 public class BenchOnlineShowCostTask extends BenchOnlineTask {
 
-	public BenchOnlineShowCostTask() {
-		super("show-cost");
-	}
+    public BenchOnlineShowCostTask() {
+        super("show-cost");
+    }
 
-	@Override
-	protected boolean execute1() {
-		dbManager.execute(() -> {
-			executeMain();
-		});
-		return true;
-	}
+    @Override
+    protected boolean execute1() {
+        dbManager.execute(() -> {
+            executeMain();
+        });
+        return true;
+    }
 
-	protected void executeMain() {
-		FactoryMasterDao factoryMasterDao = dbManager.getFactoryMasterDao();
-		FactoryMaster factory = factoryMasterDao.selectById(factoryId);
+    protected void executeMain() {
+        FactoryMasterDao factoryMasterDao = dbManager.getFactoryMasterDao();
+        FactoryMaster factory = factoryMasterDao.selectById(factoryId);
 
-		ResultTableDao resultTableDao = dbManager.getResultTableDao();
-		try (Stream<ResultTable> stream = resultTableDao.selectCost(factoryId, date)) {
-			stream.forEach(result -> {
-				ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
-				ItemMaster item = itemMasterDao.selectById(result.getRIId(), date);
-				console("factory=%s, product=%s, total=%s, quantity=%s, cost=%s", factory.getFName(), item.getIName(),
-						result.getRTotalManufacturingCost(), result.getRManufacturingQuantity(),
-						result.getRManufacturingCost());
-			});
-		}
-	}
+        ResultTableDao resultTableDao = dbManager.getResultTableDao();
+        try (Stream<ResultTable> stream = resultTableDao.selectCost(factoryId, date)) {
+            stream.forEach(result -> {
+                ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
+                ItemMaster item = itemMasterDao.selectById(result.getRIId(), date);
+                console("factory=%s, product=%s, total=%s, quantity=%s, cost=%s", factory.getFName(), item.getIName(), result.getRTotalManufacturingCost(), result.getRManufacturingQuantity(),
+                        result.getRManufacturingCost());
+            });
+        }
+    }
 
-	// for test
-	public static void main(String[] args) {
-		BenchOnlineShowCostTask task = new BenchOnlineShowCostTask();
+    // for test
+    public static void main(String[] args) {
+        BenchOnlineShowCostTask task = new BenchOnlineShowCostTask();
 
-		try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
-			task.setDao(manager);
+        try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
+            task.setDao(manager);
 
-			task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
+            task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
 
-			task.execute();
-		}
-	}
+            task.execute();
+        }
+    }
 }

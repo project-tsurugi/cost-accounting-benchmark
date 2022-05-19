@@ -6,8 +6,8 @@ import org.seasar.doma.jdbc.dialect.Dialect;
 
 interface JdbcConfigFactory {
 
-	DataSource createDataSource();
+    DataSource createDataSource();
 
-	Dialect createDialect();
+    Dialect createDialect();
 
 }

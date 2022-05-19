@@ -9,30 +9,30 @@ import com.example.nedo.jdbc.CostBenchDbManager;
 @SuppressWarnings("serial")
 public abstract class DaoListTask<T> extends RecursiveAction {
 
-	private final CostBenchDbManager dbManager;
+    private final CostBenchDbManager dbManager;
 
-	private final List<T> list = new ArrayList<>();
+    private final List<T> list = new ArrayList<>();
 
-	public DaoListTask(CostBenchDbManager dbManager) {
-		this.dbManager = dbManager;
-	}
+    public DaoListTask(CostBenchDbManager dbManager) {
+        this.dbManager = dbManager;
+    }
 
-	public void add(T t) {
-		list.add(t);
-	}
+    public void add(T t) {
+        list.add(t);
+    }
 
-	public int size() {
-		return list.size();
-	}
+    public int size() {
+        return list.size();
+    }
 
-	@Override
-	protected final void compute() {
-		dbManager.execute(() -> {
-			for (T t : list) {
-				execute(t);
-			}
-		});
-	}
+    @Override
+    protected final void compute() {
+        dbManager.execute(() -> {
+            for (T t : list) {
+                execute(t);
+            }
+        });
+    }
 
-	protected abstract void execute(T t);
+    protected abstract void execute(T t);
 }

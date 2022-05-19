@@ -23,69 +23,69 @@ import com.example.nedo.jdbc.doma2.dao.ResultTableDaoImpl;
 
 public class CostBenchDbManagerDoma2 extends CostBenchDbManager {
 
-	private final TransactionManager tm;
+    private final TransactionManager tm;
 
-	public CostBenchDbManagerDoma2() {
-		this.tm = AppConfig.singleton().getTransactionManager();
-	}
+    public CostBenchDbManagerDoma2() {
+        this.tm = AppConfig.singleton().getTransactionManager();
+    }
 
-	@Override
-	protected MeasurementMasterDao newMeasurementMasterDao() {
-		return new MeasurementMasterDaoImpl();
-	}
+    @Override
+    protected MeasurementMasterDao newMeasurementMasterDao() {
+        return new MeasurementMasterDaoImpl();
+    }
 
-	@Override
-	protected FactoryMasterDao newFactoryMasterDao() {
-		return new FactoryMasterDaoImpl();
-	}
+    @Override
+    protected FactoryMasterDao newFactoryMasterDao() {
+        return new FactoryMasterDaoImpl();
+    }
 
-	@Override
-	protected ItemMasterDao newItemMasterDao() {
-		return new ItemMasterDaoImpl();
-	}
+    @Override
+    protected ItemMasterDao newItemMasterDao() {
+        return new ItemMasterDaoImpl();
+    }
 
-	@Override
-	protected ItemConstructionMasterDao newItemConstructionMasterDao() {
-		return new ItemConstructionMasterDaoImpl();
-	}
+    @Override
+    protected ItemConstructionMasterDao newItemConstructionMasterDao() {
+        return new ItemConstructionMasterDaoImpl();
+    }
 
-	@Override
-	protected ItemManufacturingMasterDao newItemManufacturingMasterDao() {
-		return new ItemManufacturingMasterDaoImpl();
-	}
+    @Override
+    protected ItemManufacturingMasterDao newItemManufacturingMasterDao() {
+        return new ItemManufacturingMasterDaoImpl();
+    }
 
-	@Override
-	protected CostMasterDao newCostMasterDao() {
-		return new CostMasterDaoImpl();
-	}
+    @Override
+    protected CostMasterDao newCostMasterDao() {
+        return new CostMasterDaoImpl();
+    }
 
-	@Override
-	protected ResultTableDao newResultTableDao() {
-		return new ResultTableDaoImpl();
-	}
+    @Override
+    protected ResultTableDao newResultTableDao() {
+        return new ResultTableDaoImpl();
+    }
 
-	@Override
-	public void execute(Runnable runnable) {
-		tm.required(runnable);
-	}
+    @Override
+    public void execute(Runnable runnable) {
+        tm.required(runnable);
+    }
 
-	@Override
-	public <T> T execute(Supplier<T> supplier) {
-		return tm.required(supplier);
-	}
+    @Override
+    public <T> T execute(Supplier<T> supplier) {
+        return tm.required(supplier);
+    }
 
-	@Override
-	public void commit() {
-		// do nothing
-	}
+    @Override
+    public void commit() {
+        // do nothing
+    }
 
-	@Override
-	public void rollback() {
-		tm.setRollbackOnly();
-	}
+    @Override
+    public void rollback() {
+        tm.setRollbackOnly();
+    }
 
-	@Override
-	public void close() {
-		// do nothing
-	}
+    @Override
+    public void close() {
+        // do nothing
+    }
 }

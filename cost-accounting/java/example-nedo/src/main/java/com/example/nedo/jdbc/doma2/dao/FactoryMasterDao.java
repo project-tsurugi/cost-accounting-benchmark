@@ -14,21 +14,21 @@ import com.example.nedo.jdbc.doma2.entity.FactoryMaster;
 @Dao(config = AppConfig.class)
 public interface FactoryMasterDao {
 
-	public static final String TABLE_NAME = "factory_master";
+    public static final String TABLE_NAME = "factory_master";
 
-	@Delete
+    @Delete
 //	@Sql("delete from " + TABLE_NAME)
-	@Sql("truncate table " + TABLE_NAME)
-	int deleteAll();
+    @Sql("truncate table " + TABLE_NAME)
+    int deleteAll();
 
-	@Insert
-	int insert(FactoryMaster entity);
+    @Insert
+    int insert(FactoryMaster entity);
 
-	@Select
-	@Sql("select f_id from " + TABLE_NAME)
-	List<Integer> selectAllId();
+    @Select
+    @Sql("select f_id from " + TABLE_NAME)
+    List<Integer> selectAllId();
 
-	@Select
-	@Sql("select * from " + TABLE_NAME + " where f_id = /* factoryId */1")
-	FactoryMaster selectById(int factoryId);
+    @Select
+    @Sql("select * from " + TABLE_NAME + " where f_id = /* factoryId */1")
+    FactoryMaster selectById(int factoryId);
 }

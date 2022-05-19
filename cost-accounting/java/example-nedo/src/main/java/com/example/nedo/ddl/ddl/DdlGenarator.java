@@ -14,26 +14,25 @@ import com.example.nedo.ddl.common.TableSheet;
 
 public abstract class DdlGenarator {
 
-	public void execute() throws Exception {
-		File srcFile = new File(BenchConst.tableXlsxPath());
-		System.out.println("src = " + srcFile);
+    public void execute() throws Exception {
+        File srcFile = new File(BenchConst.tableXlsxPath());
+        System.out.println("src = " + srcFile);
 
-		File dstFile = new File(srcFile.getParent(), getDdlFileName());
-		System.out.println("dst = " + dstFile);
+        File dstFile = new File(srcFile.getParent(), getDdlFileName());
+        System.out.println("dst = " + dstFile);
 
-		try (Workbook workbook = WorkbookFactory.create(srcFile);
-				BufferedWriter writer = Files.newBufferedWriter(dstFile.toPath(), StandardCharsets.UTF_8)) {
-			for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
-				Sheet sheet = workbook.getSheetAt(i);
-				TableSheet table = new TableSheet(sheet);
+        try (Workbook workbook = WorkbookFactory.create(srcFile); BufferedWriter writer = Files.newBufferedWriter(dstFile.toPath(), StandardCharsets.UTF_8)) {
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                Sheet sheet = workbook.getSheetAt(i);
+                TableSheet table = new TableSheet(sheet);
 
-				TableDdlWriter c = createTableDdlWriter(table, writer);
-				c.convert();
-			}
-		}
-	}
+                TableDdlWriter c = createTableDdlWriter(table, writer);
+                c.convert();
+            }
+        }
+    }
 
-	protected abstract String getDdlFileName();
+    protected abstract String getDdlFileName();
 
-	protected abstract TableDdlWriter createTableDdlWriter(TableSheet table, BufferedWriter writer);
+    protected abstract TableDdlWriter createTableDdlWriter(TableSheet table, BufferedWriter writer);
 }

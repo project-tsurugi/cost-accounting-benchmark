@@ -5,29 +5,29 @@ import com.example.nedo.jdbc.doma2.dao.ResultTableDao;
 
 public class InitialData06ResultTable extends InitialData {
 
-	public static void main(String[] args) throws Exception {
-		new InitialData06ResultTable().main();
-	}
+    public static void main(String[] args) throws Exception {
+        new InitialData06ResultTable().main();
+    }
 
-	public InitialData06ResultTable() {
-		super(null);
-	}
+    public InitialData06ResultTable() {
+        super(null);
+    }
 
-	private void main() {
-		logStart();
+    private void main() {
+        logStart();
 
-		try (CostBenchDbManager manager = initializeDbManager()) {
-			deleteResultTable();
-		}
+        try (CostBenchDbManager manager = initializeDbManager()) {
+            deleteResultTable();
+        }
 
-		logEnd();
-	}
+        logEnd();
+    }
 
-	private void deleteResultTable() {
-		ResultTableDao dao = dbManager.getResultTableDao();
+    private void deleteResultTable() {
+        ResultTableDao dao = dbManager.getResultTableDao();
 
-		dbManager.execute(() -> {
-			dao.deleteAll();
-		});
-	}
+        dbManager.execute(() -> {
+            dao.deleteAll();
+        });
+    }
 }

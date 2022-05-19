@@ -13,45 +13,44 @@ import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 
 class ConstraintCheckTest {
 
-	@Test
-	void testCheck() {
-		String tableName = "test";
+    @Test
+    void testCheck() {
+        String tableName = "test";
 
-		List<ItemMaster> allList = new ArrayList<>();
-		allList.add(create(1, LocalDate.of(2020, 9, 1), LocalDate.of(2020, 9, 30)));
-		allList.add(create(2, LocalDate.of(2020, 9, 1), LocalDate.of(2020, 9, 30)));
-		allList.add(create(2, LocalDate.of(2020, 10, 1), LocalDate.of(2020, 10, 31)));
-		allList.add(create(3, LocalDate.of(2020, 9, 1), LocalDate.of(2020, 9, 30)));
-		allList.add(create(3, LocalDate.of(2020, 10, 1), LocalDate.of(2020, 10, 31)));
-		allList.add(create(3, LocalDate.of(2020, 11, 1), LocalDate.of(2020, 11, 30)));
+        List<ItemMaster> allList = new ArrayList<>();
+        allList.add(create(1, LocalDate.of(2020, 9, 1), LocalDate.of(2020, 9, 30)));
+        allList.add(create(2, LocalDate.of(2020, 9, 1), LocalDate.of(2020, 9, 30)));
+        allList.add(create(2, LocalDate.of(2020, 10, 1), LocalDate.of(2020, 10, 31)));
+        allList.add(create(3, LocalDate.of(2020, 9, 1), LocalDate.of(2020, 9, 30)));
+        allList.add(create(3, LocalDate.of(2020, 10, 1), LocalDate.of(2020, 10, 31)));
+        allList.add(create(3, LocalDate.of(2020, 11, 1), LocalDate.of(2020, 11, 30)));
 
-		ConstraintCheck target = new ConstraintCheck();
-		assertDoesNotThrow(() -> target.checkDateRange(tableName, allList, target::getKey));
-	}
+        ConstraintCheck target = new ConstraintCheck();
+        assertDoesNotThrow(() -> target.checkDateRange(tableName, allList, target::getKey));
+    }
 
-	@Test
-	void testCheck_error() {
-		String tableName = "test";
+    @Test
+    void testCheck_error() {
+        String tableName = "test";
 
-		List<ItemMaster> allList = new ArrayList<>();
-		allList.add(create(1, LocalDate.of(2020, 9, 1), LocalDate.of(2020, 9, 30)));
-		allList.add(create(2, LocalDate.of(2020, 9, 1), LocalDate.of(2020, 9, 30)));
-		allList.add(create(2, LocalDate.of(2020, 10, 1), LocalDate.of(2020, 10, 31)));
-		allList.add(create(3, LocalDate.of(2020, 9, 1), LocalDate.of(2020, 9, 30)));
-		allList.add(create(3, LocalDate.of(2020, 9, 30), LocalDate.of(2020, 10, 31)));
-		allList.add(create(3, LocalDate.of(2020, 11, 1), LocalDate.of(2020, 11, 30)));
+        List<ItemMaster> allList = new ArrayList<>();
+        allList.add(create(1, LocalDate.of(2020, 9, 1), LocalDate.of(2020, 9, 30)));
+        allList.add(create(2, LocalDate.of(2020, 9, 1), LocalDate.of(2020, 9, 30)));
+        allList.add(create(2, LocalDate.of(2020, 10, 1), LocalDate.of(2020, 10, 31)));
+        allList.add(create(3, LocalDate.of(2020, 9, 1), LocalDate.of(2020, 9, 30)));
+        allList.add(create(3, LocalDate.of(2020, 9, 30), LocalDate.of(2020, 10, 31)));
+        allList.add(create(3, LocalDate.of(2020, 11, 1), LocalDate.of(2020, 11, 30)));
 
-		ConstraintCheck target = new ConstraintCheck();
-		ConstraintCheckException e = assertThrows(ConstraintCheckException.class,
-				() -> target.checkDateRange(tableName, allList, target::getKey));
-		assertEquals("constraint check error test[3]", e.getMessage());
-	}
+        ConstraintCheck target = new ConstraintCheck();
+        ConstraintCheckException e = assertThrows(ConstraintCheckException.class, () -> target.checkDateRange(tableName, allList, target::getKey));
+        assertEquals("constraint check error test[3]", e.getMessage());
+    }
 
-	private ItemMaster create(int id, LocalDate startDate, LocalDate endDate) {
-		ItemMaster entity = new ItemMaster();
-		entity.setIId(id);
-		entity.setIEffectiveDate(startDate);
-		entity.setIExpiredDate(endDate);
-		return entity;
-	}
+    private ItemMaster create(int id, LocalDate startDate, LocalDate endDate) {
+        ItemMaster entity = new ItemMaster();
+        entity.setIId(id);
+        entity.setIEffectiveDate(startDate);
+        entity.setIExpiredDate(endDate);
+        return entity;
+    }
 }

@@ -256,6 +256,10 @@ public class ResultTable implements Cloneable {
 
     @Override
     public String toString() {
-        return "ResultTable(r_f_id=" + rFId + ", r_manufacturing_date=" + rManufacturingDate + ", r_product_i_id=" + rProductIId + ", r_parent_i_id=" + rParentIId + ", r_i_id=" + rIId + ", r_manufacturing_quantity=" + rManufacturingQuantity + ", r_weight_unit=" + rWeightUnit + ", r_weight=" + rWeight + ", r_weight_total_unit=" + rWeightTotalUnit + ", r_weight_total=" + rWeightTotal + ", r_weight_ratio=" + rWeightRatio + ", r_standard_quantity_unit=" + rStandardQuantityUnit + ", r_standard_quantity=" + rStandardQuantity + ", r_required_quantity_unit=" + rRequiredQuantityUnit + ", r_required_quantity=" + rRequiredQuantity + ", r_unit_cost=" + rUnitCost + ", r_total_unit_cost=" + rTotalUnitCost + ", r_manufacturing_cost=" + rManufacturingCost + ", r_total_manufacturing_cost=" + rTotalManufacturingCost + ")";
+        return "ResultTable(r_f_id=" + rFId + ", r_manufacturing_date=" + rManufacturingDate + ", r_product_i_id=" + rProductIId + ", r_parent_i_id=" + rParentIId + ", r_i_id=" + rIId
+                + ", r_manufacturing_quantity=" + rManufacturingQuantity + ", r_weight_unit=" + rWeightUnit + ", r_weight=" + rWeight + ", r_weight_total_unit=" + rWeightTotalUnit
+                + ", r_weight_total=" + rWeightTotal + ", r_weight_ratio=" + rWeightRatio + ", r_standard_quantity_unit=" + rStandardQuantityUnit + ", r_standard_quantity=" + rStandardQuantity
+                + ", r_required_quantity_unit=" + rRequiredQuantityUnit + ", r_required_quantity=" + rRequiredQuantity + ", r_unit_cost=" + rUnitCost + ", r_total_unit_cost=" + rTotalUnitCost
+                + ", r_manufacturing_cost=" + rManufacturingCost + ", r_total_manufacturing_cost=" + rTotalManufacturingCost + ")";
     }
 }

@@ -13,77 +13,77 @@ import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
 // 1 thread
 public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
 
-	private final CostBenchDbManager dbManager;
-	private final int commitRatio;
-	private final LocalDate batchDate;
-	private final int factoryId;
+    private final CostBenchDbManager dbManager;
+    private final int commitRatio;
+    private final LocalDate batchDate;
+    private final int factoryId;
 
-	private final BenchRandom random = new BenchRandom();
+    private final BenchRandom random = new BenchRandom();
 
-	private int commitCount = 0;
-	private int rollbackCount = 0;
+    private int commitCount = 0;
+    private int rollbackCount = 0;
 
-	public BenchBatchFactoryTask(CostBenchDbManager dbManager, int commitRatio, LocalDate batchDate, int factoryId) {
-		this.dbManager = dbManager;
-		this.commitRatio = commitRatio;
-		this.batchDate = batchDate;
-		this.factoryId = factoryId;
-	}
+    public BenchBatchFactoryTask(CostBenchDbManager dbManager, int commitRatio, LocalDate batchDate, int factoryId) {
+        this.dbManager = dbManager;
+        this.commitRatio = commitRatio;
+        this.batchDate = batchDate;
+        this.factoryId = factoryId;
+    }
 
-	@Override
-	public void run() {
-		BenchBatchItemTask itemTask = new BenchBatchItemTask(dbManager, batchDate);
+    @Override
+    public void run() {
+        BenchBatchItemTask itemTask = new BenchBatchItemTask(dbManager, batchDate);
 
-		dbManager.execute(() -> {
-			deleteResult();
+        dbManager.execute(() -> {
+            deleteResult();
 
-			int[] count = { 0 };
-			try (Stream<ItemManufacturingMaster> stream = selectManufacturingItem()) {
-				stream.forEach(item -> {
-					count[0]++;
-					itemTask.execute(item);
-				});
-			}
+            int[] count = { 0 };
+            try (Stream<ItemManufacturingMaster> stream = selectManufacturingItem()) {
+                stream.forEach(item -> {
+                    count[0]++;
+                    itemTask.execute(item);
+                });
+            }
 
-			commitOrRollback(count[0]);
-		});
-	}
+            commitOrRollback(count[0]);
+        });
+    }
 
-	private void deleteResult() {
-		ResultTableDao dao = dbManager.getResultTableDao();
-		dao.deleteByFactory(factoryId, batchDate);
-	}
+    private void deleteResult() {
+        ResultTableDao dao = dbManager.getResultTableDao();
+        dao.deleteByFactory(factoryId, batchDate);
+    }
 
-	private Stream<ItemManufacturingMaster> selectManufacturingItem() {
-		ItemManufacturingMasterDao dao = dbManager.getItemManufacturingMasterDao();
+    private Stream<ItemManufacturingMaster> selectManufacturingItem() {
+        ItemManufacturingMasterDao dao = dbManager.getItemManufacturingMasterDao();
 
-		return dao.selectByFactory(factoryId, batchDate);
-	}
+        return dao.selectByFactory(factoryId, batchDate);
+    }
 
-	@Override
-	public final Void call() {
-		run();
-		return null;
-	}
+    @Override
+    public final Void call() {
+        run();
+        return null;
+    }
 
-	public void commitOrRollback(int count) {
-		int n = random.random(0, 99);
-		if (n < commitRatio) {
-			dbManager.commit();
-			commitCount += count;
-			System.out.printf("commit (%s, %d), count=%d\n", batchDate, factoryId, count);
-		} else {
-			dbManager.rollback();
-			rollbackCount += count;
-			System.out.printf("rollback (%s, %d), count=%d\n", batchDate, factoryId, count);
-		}
-	}
+    public void commitOrRollback(int count) {
+        int n = random.random(0, 99);
+        if (n < commitRatio) {
+            dbManager.commit();
+            commitCount += count;
+            System.out.printf("commit (%s, %d), count=%d\n", batchDate, factoryId, count);
+        } else {
+            dbManager.rollback();
+            rollbackCount += count;
+            System.out.printf("rollback (%s, %d), count=%d\n", batchDate, factoryId, count);
+        }
+    }
 
-	public final int getCommitCount() {
-		return commitCount;
-	}
+    public final int getCommitCount() {
+        return commitCount;
+    }
 
-	public final int getRollbackCount() {
-		return rollbackCount;
-	}
+    public final int getRollbackCount() {
+        return rollbackCount;
+    }
 }

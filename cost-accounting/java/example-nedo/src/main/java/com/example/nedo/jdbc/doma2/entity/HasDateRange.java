@@ -4,11 +4,11 @@ import java.time.LocalDate;
 
 public interface HasDateRange {
 
-	public LocalDate getEffectiveDate();
+    public LocalDate getEffectiveDate();
 
-	public void setEffectiveDate(LocalDate date);
+    public void setEffectiveDate(LocalDate date);
 
-	public LocalDate getExpiredDate();
+    public LocalDate getExpiredDate();
 
-	public void setExpiredDate(LocalDate date);
+    public void setExpiredDate(LocalDate date);
 }

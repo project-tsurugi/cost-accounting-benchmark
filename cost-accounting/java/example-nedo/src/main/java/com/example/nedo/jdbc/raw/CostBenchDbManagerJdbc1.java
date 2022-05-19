@@ -10,79 +10,79 @@ import com.example.nedo.BenchConst;
 
 public class CostBenchDbManagerJdbc1 extends CostBenchDbManagerJdbc {
 
-	private final List<Connection> connectionList = new CopyOnWriteArrayList<>();
+    private final List<Connection> connectionList = new CopyOnWriteArrayList<>();
 
-	private final ThreadLocal<Connection> connectionThreadLocal = new ThreadLocal<Connection>() {
+    private final ThreadLocal<Connection> connectionThreadLocal = new ThreadLocal<Connection>() {
 
-		@Override
-		protected Connection initialValue() {
-			try {
-				Connection c = createConnection();
-				connectionList.add(c);
-				return c;
-			} catch (SQLException e) {
-				throw new RuntimeException(e);
-			}
-		}
-	};
+        @Override
+        protected Connection initialValue() {
+            try {
+                Connection c = createConnection();
+                connectionList.add(c);
+                return c;
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    };
 
-	public CostBenchDbManagerJdbc1() {
-	}
+    public CostBenchDbManagerJdbc1() {
+    }
 
-	private Connection createConnection() throws SQLException {
-		String url = BenchConst.jdbcUrl();
-		String user = BenchConst.jdbcUser();
-		String password = BenchConst.jdbcPassword();
-		Connection c = DriverManager.getConnection(url, user, password);
+    private Connection createConnection() throws SQLException {
+        String url = BenchConst.jdbcUrl();
+        String user = BenchConst.jdbcUser();
+        String password = BenchConst.jdbcPassword();
+        Connection c = DriverManager.getConnection(url, user, password);
 
-		c.setAutoCommit(false);
+        c.setAutoCommit(false);
 
-		return c;
-	}
+        return c;
+    }
 
-	@Override
-	public Connection getConnection() {
-		return connectionThreadLocal.get();
-	}
+    @Override
+    public Connection getConnection() {
+        return connectionThreadLocal.get();
+    }
 
-	@Override
-	public void commit() {
-		Connection c = getConnection();
-		try {
-			c.commit();
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    @Override
+    public void commit() {
+        Connection c = getConnection();
+        try {
+            c.commit();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	@Override
-	public void rollback() {
-		Connection c = getConnection();
-		try {
-			c.rollback();
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    @Override
+    public void rollback() {
+        Connection c = getConnection();
+        try {
+            c.rollback();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	@Override
-	public void close() {
-		RuntimeException exception = null;
+    @Override
+    public void close() {
+        RuntimeException exception = null;
 
-		for (Connection c : connectionList) {
-			try {
-				c.close();
-			} catch (SQLException e) {
-				if (exception == null) {
-					exception = new RuntimeException(e);
-				} else {
-					exception.addSuppressed(e);
-				}
-			}
-		}
+        for (Connection c : connectionList) {
+            try {
+                c.close();
+            } catch (SQLException e) {
+                if (exception == null) {
+                    exception = new RuntimeException(e);
+                } else {
+                    exception.addSuppressed(e);
+                }
+            }
+        }
 
-		if (exception != null) {
-			throw exception;
-		}
-	}
+        if (exception != null) {
+            throw exception;
+        }
+    }
 }

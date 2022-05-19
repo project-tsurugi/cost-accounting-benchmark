@@ -13,24 +13,24 @@ import com.example.nedo.BenchConst;
 
 public class OracleConfigFactory implements JdbcConfigFactory {
 
-	@Override
-	public DataSource createDataSource() {
-		PoolDataSource pds = PoolDataSourceFactory.getPoolDataSource();
-		try {
-			pds.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
-			pds.setURL(BenchConst.jdbcUrl());
-			pds.setUser(BenchConst.jdbcUser());
-			pds.setPassword(BenchConst.jdbcPassword());
-			pds.setMaxStatements(256);
-			return pds;
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    @Override
+    public DataSource createDataSource() {
+        PoolDataSource pds = PoolDataSourceFactory.getPoolDataSource();
+        try {
+            pds.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
+            pds.setURL(BenchConst.jdbcUrl());
+            pds.setUser(BenchConst.jdbcUser());
+            pds.setPassword(BenchConst.jdbcPassword());
+            pds.setMaxStatements(256);
+            return pds;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	@Override
-	public Dialect createDialect() {
-		return new OracleDialect();
-	}
+    @Override
+    public Dialect createDialect() {
+        return new OracleDialect();
+    }
 
 }

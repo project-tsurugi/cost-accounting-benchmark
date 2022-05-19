@@ -16,43 +16,42 @@ import com.example.nedo.jdbc.doma2.entity.ResultTable;
  */
 public class BenchOnlineShowQuantityTask extends BenchOnlineTask {
 
-	public BenchOnlineShowQuantityTask() {
-		super("show-quantity");
-	}
+    public BenchOnlineShowQuantityTask() {
+        super("show-quantity");
+    }
 
-	@Override
-	protected boolean execute1() {
-		dbManager.execute(() -> {
-			executeMain();
-		});
-		return true;
-	}
+    @Override
+    protected boolean execute1() {
+        dbManager.execute(() -> {
+            executeMain();
+        });
+        return true;
+    }
 
-	protected void executeMain() {
-		FactoryMasterDao factoryMasterDao = dbManager.getFactoryMasterDao();
-		FactoryMaster factory = factoryMasterDao.selectById(factoryId);
+    protected void executeMain() {
+        FactoryMasterDao factoryMasterDao = dbManager.getFactoryMasterDao();
+        FactoryMaster factory = factoryMasterDao.selectById(factoryId);
 
-		ResultTableDao resultTableDao = dbManager.getResultTableDao();
-		try (Stream<ResultTable> stream = resultTableDao.selectRequiredQuantity(factoryId, date)) {
-			stream.forEach(result -> {
-				ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
-				ItemMaster item = itemMasterDao.selectById(result.getRIId(), date);
-				console("factory=%s, item=%s, required_quantity=%s %s", factory.getFName(), item.getIName(),
-						result.getRRequiredQuantity(), result.getRRequiredQuantityUnit());
-			});
-		}
-	}
+        ResultTableDao resultTableDao = dbManager.getResultTableDao();
+        try (Stream<ResultTable> stream = resultTableDao.selectRequiredQuantity(factoryId, date)) {
+            stream.forEach(result -> {
+                ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
+                ItemMaster item = itemMasterDao.selectById(result.getRIId(), date);
+                console("factory=%s, item=%s, required_quantity=%s %s", factory.getFName(), item.getIName(), result.getRRequiredQuantity(), result.getRRequiredQuantityUnit());
+            });
+        }
+    }
 
-	// for test
-	public static void main(String[] args) {
-		BenchOnlineShowQuantityTask task = new BenchOnlineShowQuantityTask();
+    // for test
+    public static void main(String[] args) {
+        BenchOnlineShowQuantityTask task = new BenchOnlineShowQuantityTask();
 
-		try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
-			task.setDao(manager);
+        try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
+            task.setDao(manager);
 
-			task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
+            task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
 
-			task.execute();
-		}
-	}
+            task.execute();
+        }
+    }
 }

@@ -21,93 +21,89 @@ import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 
 public class ConstraintCheck {
 
-	public static void main(String[] args) {
-		new ConstraintCheck().main();
-	}
+    public static void main(String[] args) {
+        new ConstraintCheck().main();
+    }
 
-	private CostBenchDbManager dbManager;
+    private CostBenchDbManager dbManager;
 
-	public void main() {
-		try (CostBenchDbManager manager = InitialData.createDbManager()) {
-			this.dbManager = manager;
+    public void main() {
+        try (CostBenchDbManager manager = InitialData.createDbManager()) {
+            this.dbManager = manager;
 
-			manager.execute(() -> {
-				checkDateRange(ItemMasterDao.TABLE_NAME, manager.getItemMasterDao().selectAll(), this::getKey);
-				checkDateRange(ItemConstructionMasterDao.TABLE_NAME, manager.getItemConstructionMasterDao().selectAll(),
-						this::getKey);
-				checkDateRange(ItemManufacturingMasterDao.TABLE_NAME,
-						manager.getItemManufacturingMasterDao().selectAll(), this::getKey);
-				checkBomChild(InitialData.DEFAULT_BATCH_DATE);
-			});
-		}
-	}
+            manager.execute(() -> {
+                checkDateRange(ItemMasterDao.TABLE_NAME, manager.getItemMasterDao().selectAll(), this::getKey);
+                checkDateRange(ItemConstructionMasterDao.TABLE_NAME, manager.getItemConstructionMasterDao().selectAll(), this::getKey);
+                checkDateRange(ItemManufacturingMasterDao.TABLE_NAME, manager.getItemManufacturingMasterDao().selectAll(), this::getKey);
+                checkBomChild(InitialData.DEFAULT_BATCH_DATE);
+            });
+        }
+    }
 
-	protected List<Object> getKey(ItemMaster entity) {
-		return Arrays.asList(entity.getIId());
-	}
+    protected List<Object> getKey(ItemMaster entity) {
+        return Arrays.asList(entity.getIId());
+    }
 
-	protected List<Object> getKey(ItemConstructionMaster entity) {
-		return Arrays.asList(entity.getIcIId(), entity.getIcParentIId());
-	}
+    protected List<Object> getKey(ItemConstructionMaster entity) {
+        return Arrays.asList(entity.getIcIId(), entity.getIcParentIId());
+    }
 
-	protected List<Object> getKey(ItemManufacturingMaster entity) {
-		return Arrays.asList(entity.getImFId(), entity.getImIId());
-	}
+    protected List<Object> getKey(ItemManufacturingMaster entity) {
+        return Arrays.asList(entity.getImFId(), entity.getImIId());
+    }
 
-	protected <T extends HasDateRange> void checkDateRange(String tableName, List<T> allList,
-			Function<T, List<Object>> keyGetter) {
-		Map<List<Object>, List<T>> map = toMap(allList, keyGetter);
+    protected <T extends HasDateRange> void checkDateRange(String tableName, List<T> allList, Function<T, List<Object>> keyGetter) {
+        Map<List<Object>, List<T>> map = toMap(allList, keyGetter);
 
-		map.forEach((key, list) -> {
-			for (T target : list) {
-				for (T entity : list) {
-					if (entity == target) {
-						continue;
-					}
-					if (between(target.getEffectiveDate(), entity.getEffectiveDate(), entity.getExpiredDate())
-							|| between(target.getExpiredDate(), entity.getEffectiveDate(), entity.getExpiredDate())) {
-						throw new ConstraintCheckException(tableName, key);
-					}
-				}
-			}
-		});
-	}
+        map.forEach((key, list) -> {
+            for (T target : list) {
+                for (T entity : list) {
+                    if (entity == target) {
+                        continue;
+                    }
+                    if (between(target.getEffectiveDate(), entity.getEffectiveDate(), entity.getExpiredDate())
+                            || between(target.getExpiredDate(), entity.getEffectiveDate(), entity.getExpiredDate())) {
+                        throw new ConstraintCheckException(tableName, key);
+                    }
+                }
+            }
+        });
+    }
 
-	private <T> Map<List<Object>, List<T>> toMap(List<T> allList, Function<T, List<Object>> keyGetter) {
-		Map<List<Object>, List<T>> map = new HashMap<>(allList.size());
-		for (T entity : allList) {
-			List<Object> key = keyGetter.apply(entity);
-			List<T> list = map.computeIfAbsent(key, k -> new ArrayList<>());
-			list.add(entity);
-		}
-		return map;
-	}
+    private <T> Map<List<Object>, List<T>> toMap(List<T> allList, Function<T, List<Object>> keyGetter) {
+        Map<List<Object>, List<T>> map = new HashMap<>(allList.size());
+        for (T entity : allList) {
+            List<Object> key = keyGetter.apply(entity);
+            List<T> list = map.computeIfAbsent(key, k -> new ArrayList<>());
+            list.add(entity);
+        }
+        return map;
+    }
 
-	private static boolean between(LocalDate date, LocalDate startDate, LocalDate endDate) {
-		return startDate.compareTo(date) <= 0 && date.compareTo(endDate) <= 0;
-	}
+    private static boolean between(LocalDate date, LocalDate startDate, LocalDate endDate) {
+        return startDate.compareTo(date) <= 0 && date.compareTo(endDate) <= 0;
+    }
 
-	@SuppressWarnings("serial")
-	public static class ConstraintCheckException extends RuntimeException {
-		public ConstraintCheckException(String tableName, List<Object> key) {
-			super("constraint check error " + tableName + key);
-		}
-	}
+    @SuppressWarnings("serial")
+    public static class ConstraintCheckException extends RuntimeException {
+        public ConstraintCheckException(String tableName, List<Object> key) {
+            super("constraint check error " + tableName + key);
+        }
+    }
 
-	protected void checkBomChild(LocalDate date) {
-		ItemConstructionMasterDao dao = dbManager.getItemConstructionMasterDao();
-		List<ItemConstructionMaster> allList = dao.selectAll(date);
-		Map<List<Object>, List<ItemConstructionMaster>> map = toMap(allList, e -> Arrays.asList(e.getIcParentIId()));
-		map.forEach((key, list) -> {
-			Set<Integer> set = new HashSet<>();
-			for (ItemConstructionMaster entity : list) {
-				Integer id = entity.getIcIId();
-				if (set.contains(id)) {
-					throw new ConstraintCheckException("ItemConstructionMaster",
-							Arrays.asList(entity.getIcParentIId(), id));
-				}
-				set.add(id);
-			}
-		});
-	}
+    protected void checkBomChild(LocalDate date) {
+        ItemConstructionMasterDao dao = dbManager.getItemConstructionMasterDao();
+        List<ItemConstructionMaster> allList = dao.selectAll(date);
+        Map<List<Object>, List<ItemConstructionMaster>> map = toMap(allList, e -> Arrays.asList(e.getIcParentIId()));
+        map.forEach((key, list) -> {
+            Set<Integer> set = new HashSet<>();
+            for (ItemConstructionMaster entity : list) {
+                Integer id = entity.getIcIId();
+                if (set.contains(id)) {
+                    throw new ConstraintCheckException("ItemConstructionMaster", Arrays.asList(entity.getIcParentIId(), id));
+                }
+                set.add(id);
+            }
+        });
+    }
 }
