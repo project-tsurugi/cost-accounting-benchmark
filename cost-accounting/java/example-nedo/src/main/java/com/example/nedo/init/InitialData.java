@@ -10,11 +10,14 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 
 import com.example.nedo.BenchConst;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.entity.HasDateRange;
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.entity.HasDateRange;
+import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class InitialData {
     public static final LocalDate DEFAULT_BATCH_DATE = BenchConst.initBatchDate();
+    protected static final TgTmSetting TX_INIT = TgTmSetting.of(TgTxOption.ofOCC());
 
     protected CostBenchDbManager dbManager;
 

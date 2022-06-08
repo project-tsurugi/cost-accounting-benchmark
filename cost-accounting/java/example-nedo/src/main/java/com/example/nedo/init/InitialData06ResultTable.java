@@ -1,7 +1,7 @@
 package com.example.nedo.init;
 
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.ResultTableDao;
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.ResultTableDao;
 
 public class InitialData06ResultTable extends InitialData {
 
@@ -26,7 +26,7 @@ public class InitialData06ResultTable extends InitialData {
     private void deleteResultTable() {
         ResultTableDao dao = dbManager.getResultTableDao();
 
-        dbManager.execute(() -> {
+        dbManager.execute(TX_INIT, () -> {
             dao.deleteAll();
         });
     }

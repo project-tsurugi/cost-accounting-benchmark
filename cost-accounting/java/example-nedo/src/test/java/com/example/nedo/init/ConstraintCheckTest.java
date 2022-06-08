@@ -8,8 +8,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import com.example.nedo.db.doma2.entity.ItemMaster;
 import com.example.nedo.init.ConstraintCheck.ConstraintCheckException;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 
 class ConstraintCheckTest {
 

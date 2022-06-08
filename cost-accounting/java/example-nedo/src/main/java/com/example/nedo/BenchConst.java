@@ -23,6 +23,18 @@ public class BenchConst {
         return getProperty("jdbc.password");
     }
 
+    public static String tsurugiEndpoint() {
+        return getProperty("tsurugi.endpoint");
+    }
+
+    public static String tsurugiUser() {
+        return getProperty("tsurugi.user");
+    }
+
+    public static String tsurugiPassword() {
+        return getProperty("tsurugi.password");
+    }
+
     public static String docDir() {
         return getProperty("doc.dir");
     }

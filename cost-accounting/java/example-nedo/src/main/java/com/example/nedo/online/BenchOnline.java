@@ -12,8 +12,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.example.nedo.BenchConst;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.FactoryMasterDao;
+import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class BenchOnline {
 
@@ -94,7 +96,8 @@ public class BenchOnline {
     private static List<Integer> getAllFactory(CostBenchDbManager manager) {
         FactoryMasterDao dao = manager.getFactoryMasterDao();
 
-        return manager.execute(() -> {
+        var setting = TgTmSetting.ofAlways(TgTxOption.ofOCC());
+        return manager.execute(setting, () -> {
             return dao.selectAllId();
         });
     }

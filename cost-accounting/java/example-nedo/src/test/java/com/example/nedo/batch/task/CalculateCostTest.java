@@ -11,12 +11,12 @@ import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 
 import com.example.nedo.batch.task.BenchBatchItemTask.BomNode;
+import com.example.nedo.db.doma2.entity.CostMaster;
+import com.example.nedo.db.doma2.entity.ItemConstructionMaster;
+import com.example.nedo.db.doma2.entity.ItemManufacturingMaster;
+import com.example.nedo.db.doma2.entity.ItemMaster;
 import com.example.nedo.init.MeasurementUtilTestSupport;
 import com.example.nedo.init.MeasurementValue;
-import com.example.nedo.jdbc.doma2.entity.CostMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 
 class CalculateCostTest {
     static {

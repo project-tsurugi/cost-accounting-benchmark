@@ -13,15 +13,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import com.example.nedo.BenchConst;
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.ItemConstructionMasterDao;
+import com.example.nedo.db.doma2.dao.ItemMasterDao;
+import com.example.nedo.db.doma2.domain.ItemType;
+import com.example.nedo.db.doma2.entity.ItemConstructionMaster;
+import com.example.nedo.db.doma2.entity.ItemMaster;
 import com.example.nedo.init.util.AmplificationRecord;
 import com.example.nedo.init.util.DaoListTask;
 import com.example.nedo.init.util.DaoSplitTask;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.domain.ItemType;
-import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 
 @SuppressWarnings("serial")
 public class InitialData03ItemMaster extends InitialData {
@@ -93,7 +93,7 @@ public class InitialData03ItemMaster extends InitialData {
     }
 
     private void generateItemMaster() {
-        dbManager.execute(() -> {
+        dbManager.execute(TX_INIT, () -> {
             {
                 ItemMasterDao dao = dbManager.getItemMasterDao();
                 dao.deleteAll();
@@ -114,7 +114,7 @@ public class InitialData03ItemMaster extends InitialData {
 
     private abstract class ItemMasterTask extends DaoSplitTask {
         public ItemMasterTask(int startId, int endId) {
-            super(dbManager, startId, endId);
+            super(dbManager, TX_INIT, startId, endId);
         }
     }
 
@@ -310,7 +310,7 @@ public class InitialData03ItemMaster extends InitialData {
         private int idSize = 0;
 
         public ItemMasterWorkTask() {
-            super(dbManager);
+            super(dbManager, TX_INIT);
         }
 
         public void add(int startId, int endId) {
@@ -487,7 +487,7 @@ public class InitialData03ItemMaster extends InitialData {
     // 製品品目の品目構成マスター
     private class ItemConstructionMasterProductTask extends DaoSplitTask {
         public ItemConstructionMasterProductTask(int startId, int endId) {
-            super(dbManager, startId, endId);
+            super(dbManager, TX_INIT, startId, endId);
         }
 
         @Override

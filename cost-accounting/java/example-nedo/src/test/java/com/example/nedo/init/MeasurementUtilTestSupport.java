@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.example.nedo.jdbc.doma2.domain.MeasurementType;
-import com.example.nedo.jdbc.doma2.entity.MeasurementMaster;
+import com.example.nedo.db.doma2.domain.MeasurementType;
+import com.example.nedo.db.doma2.entity.MeasurementMaster;
 
 public class MeasurementUtilTestSupport {
 

@@ -6,18 +6,27 @@ import java.util.List;
 
 import org.seasar.doma.jdbc.UniqueConstraintException;
 
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.ItemManufacturingMasterDao;
+import com.example.nedo.db.doma2.dao.ItemMasterDao;
+import com.example.nedo.db.doma2.domain.ItemType;
+import com.example.nedo.db.doma2.entity.ItemManufacturingMaster;
 import com.example.nedo.init.InitialData;
 import com.example.nedo.init.InitialData04ItemManufacturingMaster;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.domain.ItemType;
-import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
+import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 /**
  * 生産数の変更
  */
 public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
+
+    private static final TgTmSetting TX_PRE = TgTmSetting.of( //
+            TgTxOption.ofOCC(), //
+            TgTxOption.ofRTX());
+    private static final TgTmSetting TX_MAIN = TgTmSetting.of( //
+            TgTxOption.ofOCC(), //
+            TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
 
     public BenchOnlineUpdateManufacturingTask() {
         super("update-manufacturing");
@@ -25,7 +34,7 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
 
     @Override
     protected boolean execute1() {
-        int productId = dbManager.execute(this::selectRandomItemId);
+        int productId = dbManager.execute(TX_PRE, this::selectRandomItemId);
         if (productId < 0) {
             return false;
         }
@@ -34,7 +43,7 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
         int newQuantity = random.random(0, 500) * 100;
 
         for (;;) {
-            boolean ok = dbManager.execute(() -> {
+            boolean ok = dbManager.execute(TX_MAIN, () -> {
                 return executeMain(productId, newQuantity);
             });
             if (ok) {

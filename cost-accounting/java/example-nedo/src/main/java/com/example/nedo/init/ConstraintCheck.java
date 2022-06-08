@@ -10,16 +10,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.entity.HasDateRange;
-import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.ItemConstructionMasterDao;
+import com.example.nedo.db.doma2.dao.ItemManufacturingMasterDao;
+import com.example.nedo.db.doma2.dao.ItemMasterDao;
+import com.example.nedo.db.doma2.entity.HasDateRange;
+import com.example.nedo.db.doma2.entity.ItemConstructionMaster;
+import com.example.nedo.db.doma2.entity.ItemManufacturingMaster;
+import com.example.nedo.db.doma2.entity.ItemMaster;
+import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class ConstraintCheck {
+
+    private static final TgTmSetting TX_MAIN = TgTmSetting.of( //
+            TgTxOption.ofOCC(), //
+            TgTxOption.ofRTX());
 
     public static void main(String[] args) {
         new ConstraintCheck().main();
@@ -31,7 +37,7 @@ public class ConstraintCheck {
         try (CostBenchDbManager manager = InitialData.createDbManager()) {
             this.dbManager = manager;
 
-            manager.execute(() -> {
+            manager.execute(TX_MAIN, () -> {
                 checkDateRange(ItemMasterDao.TABLE_NAME, manager.getItemMasterDao().selectAll(), this::getKey);
                 checkDateRange(ItemConstructionMasterDao.TABLE_NAME, manager.getItemConstructionMasterDao().selectAll(), this::getKey);
                 checkDateRange(ItemManufacturingMasterDao.TABLE_NAME, manager.getItemManufacturingMasterDao().selectAll(), this::getKey);

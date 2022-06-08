@@ -4,8 +4,8 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.TreeMap;
 
+import com.example.nedo.db.doma2.entity.HasDateRange;
 import com.example.nedo.init.BenchRandom;
-import com.example.nedo.jdbc.doma2.entity.HasDateRange;
 
 // thread safe
 public abstract class AmplificationRecord<T extends HasDateRange> {

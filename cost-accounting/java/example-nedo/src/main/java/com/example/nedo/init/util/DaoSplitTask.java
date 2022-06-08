@@ -3,18 +3,21 @@ package com.example.nedo.init.util;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 
-import com.example.nedo.jdbc.CostBenchDbManager;
+import com.example.nedo.db.CostBenchDbManager;
+import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 
 @SuppressWarnings("serial")
 public abstract class DaoSplitTask extends RecursiveAction {
     public static final int TASK_THRESHOLD = 10000;
 
     private final CostBenchDbManager dbManager;
+    private final TgTmSetting setting;
     private final int startId;
     private final int endId;
 
-    public DaoSplitTask(CostBenchDbManager dbManager, int startId, int endId) {
+    public DaoSplitTask(CostBenchDbManager dbManager, TgTmSetting setting, int startId, int endId) {
         this.dbManager = dbManager;
+        this.setting = setting;
         this.startId = startId;
         this.endId = endId;
     }
@@ -29,7 +32,7 @@ public abstract class DaoSplitTask extends RecursiveAction {
             task1.join();
             task2.join();
         } else {
-            dbManager.execute(() -> {
+            dbManager.execute(setting, () -> {
                 for (int iId = startId; iId < endId; iId++) {
                     execute(iId);
                 }

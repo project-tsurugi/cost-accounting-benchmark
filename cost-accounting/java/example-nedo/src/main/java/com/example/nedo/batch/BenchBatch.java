@@ -19,14 +19,18 @@ import java.util.stream.Stream;
 import com.example.nedo.BenchConst;
 import com.example.nedo.batch.task.BenchBatchFactoryTask;
 import com.example.nedo.batch.task.BenchBatchItemTask;
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.FactoryMasterDao;
+import com.example.nedo.db.doma2.dao.ItemManufacturingMasterDao;
+import com.example.nedo.db.doma2.dao.ResultTableDao;
+import com.example.nedo.db.doma2.entity.ItemManufacturingMaster;
 import com.example.nedo.init.InitialData;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ResultTableDao;
-import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
+import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class BenchBatch {
+    private static final TgTmSetting TX_BATCH = TgTmSetting.of( //
+            TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
 
     private int commitRatio;
 
@@ -127,7 +131,8 @@ public class BenchBatch {
     private List<Integer> getAllFactory() {
         FactoryMasterDao dao = dbManager.getFactoryMasterDao();
 
-        return dbManager.execute(dao::selectAllId);
+        var setting = TgTmSetting.of(TgTxOption.ofOCC(), TgTxOption.ofRTX());
+        return dbManager.execute(setting, dao::selectAllId);
     }
 
     private void executeSequential(LocalDate batchDate, List<Integer> factoryList) {
@@ -174,7 +179,7 @@ public class BenchBatch {
     }
 
     private void executeStream(LocalDate batchDate, List<Integer> factoryList) {
-        dbManager.execute(() -> {
+        dbManager.execute(TX_BATCH, () -> {
             ResultTableDao resultTableDao = dbManager.getResultTableDao();
             resultTableDao.deleteByFactories(factoryList, batchDate);
 
@@ -201,7 +206,7 @@ public class BenchBatch {
     private void executeQueue(LocalDate batchDate, List<Integer> factoryList) {
         ResultTableDao resultTableDao = dbManager.getResultTableDao();
 
-        ConcurrentLinkedDeque<ItemManufacturingMaster> queue = dbManager.execute(() -> {
+        ConcurrentLinkedDeque<ItemManufacturingMaster> queue = dbManager.execute(TX_BATCH, () -> {
             ConcurrentLinkedDeque<ItemManufacturingMaster> q;
             resultTableDao.deleteByFactories(factoryList, batchDate);
 
@@ -221,7 +226,7 @@ public class BenchBatch {
                 BenchBatchFactoryTask thread = newBenchBatchFactoryThread(batchDate, -1);
                 BenchBatchItemTask itemTask = newBenchBatchItemTask(batchDate);
 
-                dbManager.execute(() -> {
+                dbManager.execute(TX_BATCH, () -> {
                     int[] count = { 0 };
                     for (;;) {
                         ItemManufacturingMaster manufact = queue.pollLast();
@@ -257,7 +262,7 @@ public class BenchBatch {
 
         BenchBatchItemTask itemTask = newBenchBatchItemTask(batchDate);
 
-        dbManager.execute(() -> {
+        dbManager.execute(TX_BATCH, () -> {
             ItemManufacturingMaster manufact = itemManufacturingMasterDao.selectById(factoryId, productId, batchDate);
 
             resultTableDao.deleteByProductId(factoryId, batchDate, productId);

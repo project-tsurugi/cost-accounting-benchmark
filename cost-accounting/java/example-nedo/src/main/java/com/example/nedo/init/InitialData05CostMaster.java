@@ -8,14 +8,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.CostMasterDao;
+import com.example.nedo.db.doma2.dao.FactoryMasterDao;
+import com.example.nedo.db.doma2.dao.ItemMasterDao;
+import com.example.nedo.db.doma2.domain.ItemType;
+import com.example.nedo.db.doma2.entity.CostMaster;
+import com.example.nedo.db.doma2.entity.ItemMaster;
 import com.example.nedo.init.util.DaoSplitTask;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.CostMasterDao;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.domain.ItemType;
-import com.example.nedo.jdbc.doma2.entity.CostMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
 
 public class InitialData05CostMaster extends InitialData {
 
@@ -44,7 +44,7 @@ public class InitialData05CostMaster extends InitialData {
     private void initializeField() {
         {
             FactoryMasterDao dao = dbManager.getFactoryMasterDao();
-            dbManager.execute(() -> {
+            dbManager.execute(TX_INIT, () -> {
                 List<Integer> list = dao.selectAllId();
 
                 factoryIdSet.clear();
@@ -54,7 +54,7 @@ public class InitialData05CostMaster extends InitialData {
     }
 
     private void generateCostMaster() {
-        dbManager.execute(() -> {
+        dbManager.execute(TX_INIT, () -> {
             CostMasterDao dao = dbManager.getCostMasterDao();
             dao.deleteAll();
         });
@@ -69,7 +69,7 @@ public class InitialData05CostMaster extends InitialData {
     @SuppressWarnings("serial")
     private class CostMasterTask extends DaoSplitTask {
         public CostMasterTask(int startId, int endId) {
-            super(dbManager, startId, endId);
+            super(dbManager, TX_INIT, startId, endId);
         }
 
         @Override

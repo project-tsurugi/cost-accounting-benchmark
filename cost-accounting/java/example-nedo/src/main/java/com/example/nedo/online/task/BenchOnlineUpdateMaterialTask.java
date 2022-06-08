@@ -5,20 +5,26 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.ItemConstructionMasterDao;
+import com.example.nedo.db.doma2.dao.ItemMasterDao;
+import com.example.nedo.db.doma2.domain.ItemType;
+import com.example.nedo.db.doma2.entity.ItemConstructionMaster;
+import com.example.nedo.db.doma2.entity.ItemConstructionMasterKey;
+import com.example.nedo.db.doma2.entity.ItemMaster;
 import com.example.nedo.init.InitialData;
 import com.example.nedo.init.InitialData03ItemMaster;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.domain.ItemType;
-import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemConstructionMasterKey;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
+import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 /**
  * 原材料の変更
  */
 public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
+
+    private static final TgTmSetting TX_MAIN = TgTmSetting.of( //
+            TgTxOption.ofOCC(), //
+            TgTxOption.ofLTX(ItemConstructionMasterDao.TABLE_NAME));
 
     public BenchOnlineUpdateMaterialTask() {
         super("update-material");
@@ -26,7 +32,7 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 
     @Override
     protected boolean execute1() {
-        return dbManager.execute(() -> {
+        return dbManager.execute(TX_MAIN, () -> {
             int select = random.random(0, 1);
             if (select == 0) {
                 return executeAdd();

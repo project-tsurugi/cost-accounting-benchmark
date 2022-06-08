@@ -15,8 +15,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.example.nedo.BenchConst;
+import com.example.nedo.db.CostBenchDbManager;
 import com.example.nedo.init.BenchRandom;
-import com.example.nedo.jdbc.CostBenchDbManager;
 import com.example.nedo.online.task.BenchOnlineNewItemTask;
 import com.example.nedo.online.task.BenchOnlineShowCostTask;
 import com.example.nedo.online.task.BenchOnlineShowQuantityTask;

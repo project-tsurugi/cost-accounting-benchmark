@@ -2,20 +2,26 @@ package com.example.nedo.online.task;
 
 import java.util.List;
 
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.FactoryMasterDao;
+import com.example.nedo.db.doma2.dao.ItemManufacturingMasterDao;
+import com.example.nedo.db.doma2.dao.ItemMasterDao;
+import com.example.nedo.db.doma2.dao.ResultTableDao;
+import com.example.nedo.db.doma2.entity.FactoryMaster;
+import com.example.nedo.db.doma2.entity.ItemMaster;
+import com.example.nedo.db.doma2.entity.ResultTable;
 import com.example.nedo.init.InitialData;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ResultTableDao;
-import com.example.nedo.jdbc.doma2.entity.FactoryMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
-import com.example.nedo.jdbc.doma2.entity.ResultTable;
+import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 /**
  * 重量の照会
  */
 public class BenchOnlineShowWeightTask extends BenchOnlineTask {
+
+    private static final TgTmSetting TX_MAIN = TgTmSetting.of( //
+            TgTxOption.ofOCC(), //
+            TgTxOption.ofRTX());
 
     public BenchOnlineShowWeightTask() {
         super("show-weight");
@@ -23,7 +29,7 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
 
     @Override
     protected boolean execute1() {
-        return dbManager.execute(() -> {
+        return dbManager.execute(TX_MAIN, () -> {
             int productId = selectRandomItemId();
             if (productId < 0) {
                 return false;

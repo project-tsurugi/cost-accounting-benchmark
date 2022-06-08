@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 import com.example.nedo.BenchConst;
+import com.example.nedo.db.CostBenchDbManager;
 import com.example.nedo.init.BenchRandom;
-import com.example.nedo.jdbc.CostBenchDbManager;
 import com.example.nedo.online.BenchOnline;
 
 public abstract class BenchOnlineTask {

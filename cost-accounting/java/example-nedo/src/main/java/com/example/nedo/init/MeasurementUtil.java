@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.example.nedo.BenchConst;
-import com.example.nedo.jdbc.doma2.dao.MeasurementMasterDao;
-import com.example.nedo.jdbc.doma2.domain.MeasurementType;
-import com.example.nedo.jdbc.doma2.entity.MeasurementMaster;
+import com.example.nedo.db.doma2.dao.MeasurementMasterDao;
+import com.example.nedo.db.doma2.domain.MeasurementType;
+import com.example.nedo.db.doma2.entity.MeasurementMaster;
 
 public class MeasurementUtil {
 

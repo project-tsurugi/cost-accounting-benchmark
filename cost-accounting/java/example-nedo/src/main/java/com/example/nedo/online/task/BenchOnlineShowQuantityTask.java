@@ -2,19 +2,25 @@ package com.example.nedo.online.task;
 
 import java.util.stream.Stream;
 
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.FactoryMasterDao;
+import com.example.nedo.db.doma2.dao.ItemMasterDao;
+import com.example.nedo.db.doma2.dao.ResultTableDao;
+import com.example.nedo.db.doma2.entity.FactoryMaster;
+import com.example.nedo.db.doma2.entity.ItemMaster;
+import com.example.nedo.db.doma2.entity.ResultTable;
 import com.example.nedo.init.InitialData;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ResultTableDao;
-import com.example.nedo.jdbc.doma2.entity.FactoryMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
-import com.example.nedo.jdbc.doma2.entity.ResultTable;
+import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 /**
  * 所要量の照会
  */
 public class BenchOnlineShowQuantityTask extends BenchOnlineTask {
+
+    private static final TgTmSetting TX_MAIN = TgTmSetting.of( //
+            TgTxOption.ofOCC(), //
+            TgTxOption.ofRTX());
 
     public BenchOnlineShowQuantityTask() {
         super("show-quantity");
@@ -22,7 +28,7 @@ public class BenchOnlineShowQuantityTask extends BenchOnlineTask {
 
     @Override
     protected boolean execute1() {
-        dbManager.execute(() -> {
+        dbManager.execute(TX_MAIN, () -> {
             executeMain();
         });
         return true;

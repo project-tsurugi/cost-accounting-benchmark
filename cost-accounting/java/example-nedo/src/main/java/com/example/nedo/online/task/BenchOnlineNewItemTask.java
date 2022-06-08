@@ -7,20 +7,29 @@ import java.util.Set;
 
 import org.seasar.doma.jdbc.UniqueConstraintException;
 
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.ItemManufacturingMasterDao;
+import com.example.nedo.db.doma2.dao.ItemMasterDao;
+import com.example.nedo.db.doma2.domain.ItemType;
+import com.example.nedo.db.doma2.entity.ItemManufacturingMaster;
+import com.example.nedo.db.doma2.entity.ItemMaster;
 import com.example.nedo.init.InitialData;
 import com.example.nedo.init.InitialData03ItemMaster;
 import com.example.nedo.init.InitialData04ItemManufacturingMaster;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.domain.ItemType;
-import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
+import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 /**
  * 新規開発商品の追加
  */
 public class BenchOnlineNewItemTask extends BenchOnlineTask {
+
+    private static final TgTmSetting TX_PRE = TgTmSetting.of( //
+            TgTxOption.ofOCC(), //
+            TgTxOption.ofLTX(ItemMasterDao.TABLE_NAME));
+    private static final TgTmSetting TX_MAIN = TgTmSetting.of( //
+            TgTxOption.ofOCC(), //
+            TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
 
     public BenchOnlineNewItemTask() {
         super("new-item");
@@ -30,7 +39,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
     protected boolean execute1() {
         ItemMaster item;
         for (;;) {
-            ItemMaster i = dbManager.execute(() -> {
+            ItemMaster i = dbManager.execute(TX_PRE, () -> {
                 return executeMain();
             });
             if (i != null) {
@@ -38,7 +47,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
                 break;
             }
         }
-        dbManager.execute(() -> {
+        dbManager.execute(TX_MAIN, () -> {
             executeMain2(item);
         });
         return true;

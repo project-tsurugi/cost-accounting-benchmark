@@ -14,13 +14,13 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.example.nedo.BenchConst;
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.FactoryMasterDao;
+import com.example.nedo.db.doma2.dao.ItemManufacturingMasterDao;
+import com.example.nedo.db.doma2.dao.ItemMasterDao;
+import com.example.nedo.db.doma2.domain.ItemType;
+import com.example.nedo.db.doma2.entity.ItemManufacturingMaster;
 import com.example.nedo.init.util.AmplificationRecord;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.domain.ItemType;
-import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
 
 public class InitialData04ItemManufacturingMaster extends InitialData {
 
@@ -54,7 +54,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
     private void initializeField() {
         {
             FactoryMasterDao dao = dbManager.getFactoryMasterDao();
-            dbManager.execute(() -> {
+            dbManager.execute(TX_INIT, () -> {
                 List<Integer> list = dao.selectAllId();
 
                 factoryIdSet.clear();
@@ -64,7 +64,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
         }
         {
             ItemMasterDao dao = dbManager.getItemMasterDao();
-            dbManager.execute(() -> {
+            dbManager.execute(TX_INIT, () -> {
                 List<Integer> list = dao.selectIdByType(batchDate, ItemType.PRODUCT);
 
                 productIdSet.clear();
@@ -76,7 +76,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
     private void generateItemManufacturingMaster() {
         ItemManufacturingMasterDao dao = dbManager.getItemManufacturingMasterDao();
 
-        dbManager.execute(() -> {
+        dbManager.execute(TX_INIT, () -> {
             dao.deleteAll();
             insertItemManufacturingMaster(dao);
         });

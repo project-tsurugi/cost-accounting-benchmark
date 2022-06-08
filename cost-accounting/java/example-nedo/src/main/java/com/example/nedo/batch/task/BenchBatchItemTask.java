@@ -18,22 +18,24 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.example.nedo.BenchConst;
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.CostBenchDbManagerDoma2;
+import com.example.nedo.db.doma2.dao.CostMasterDao;
+import com.example.nedo.db.doma2.dao.ItemConstructionMasterDao;
+import com.example.nedo.db.doma2.dao.ItemManufacturingMasterDao;
+import com.example.nedo.db.doma2.dao.ItemMasterDao;
+import com.example.nedo.db.doma2.dao.ResultTableDao;
+import com.example.nedo.db.doma2.entity.CostMaster;
+import com.example.nedo.db.doma2.entity.ItemConstructionMaster;
+import com.example.nedo.db.doma2.entity.ItemManufacturingMaster;
+import com.example.nedo.db.doma2.entity.ItemMaster;
+import com.example.nedo.db.doma2.entity.ResultTable;
 import com.example.nedo.init.InitialData;
 import com.example.nedo.init.MeasurementUtil;
 import com.example.nedo.init.MeasurementUtil.ValuePair;
 import com.example.nedo.init.MeasurementValue;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.CostBenchDbManagerDoma2;
-import com.example.nedo.jdbc.doma2.dao.CostMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemConstructionMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ResultTableDao;
-import com.example.nedo.jdbc.doma2.entity.CostMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemConstructionMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
-import com.example.nedo.jdbc.doma2.entity.ResultTable;
+import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class BenchBatchItemTask {
 
@@ -621,7 +623,8 @@ public class BenchBatchItemTask {
         CostBenchDbManager manager = new CostBenchDbManagerDoma2();
         BenchBatchItemTask task = new BenchBatchItemTask(manager, InitialData.DEFAULT_BATCH_DATE);
 
-        manager.execute(() -> {
+        var setting = TgTmSetting.of(TgTxOption.ofRTX());
+        manager.execute(setting, () -> {
             ItemManufacturingMasterDao itemManufacturingMasterDao = manager.getItemManufacturingMasterDao();
             ItemManufacturingMaster manufact = itemManufacturingMasterDao.selectById(1, 67586, InitialData.DEFAULT_BATCH_DATE);
             BomNode root1 = task.new BomNode(manufact);
@@ -651,7 +654,8 @@ public class BenchBatchItemTask {
         CostBenchDbManager manager = new CostBenchDbManagerDoma2();
         BenchBatchItemTask task = new BenchBatchItemTask(manager, date);
 
-        manager.execute(() -> {
+        var setting = TgTmSetting.of(TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
+        manager.execute(setting, () -> {
             ResultTableDao resultTableDao = manager.getResultTableDao();
             resultTableDao.deleteByProductId(1, date, itemId);
 

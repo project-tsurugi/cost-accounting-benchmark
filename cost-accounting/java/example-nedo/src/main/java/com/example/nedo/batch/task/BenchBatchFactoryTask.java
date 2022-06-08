@@ -4,14 +4,19 @@ import java.time.LocalDate;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.ItemManufacturingMasterDao;
+import com.example.nedo.db.doma2.dao.ResultTableDao;
+import com.example.nedo.db.doma2.entity.ItemManufacturingMaster;
 import com.example.nedo.init.BenchRandom;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.ItemManufacturingMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ResultTableDao;
-import com.example.nedo.jdbc.doma2.entity.ItemManufacturingMaster;
+import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 // 1 thread
 public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
+
+    private static final TgTmSetting TX_BATCH = TgTmSetting.of( //
+            TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
 
     private final CostBenchDbManager dbManager;
     private final int commitRatio;
@@ -34,7 +39,7 @@ public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
     public void run() {
         BenchBatchItemTask itemTask = new BenchBatchItemTask(dbManager, batchDate);
 
-        dbManager.execute(() -> {
+        dbManager.execute(TX_BATCH, () -> {
             deleteResult();
 
             int[] count = { 0 };

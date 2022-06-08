@@ -1,9 +1,9 @@
 package com.example.nedo.init;
 
 import com.example.nedo.BenchConst;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.FactoryMasterDao;
-import com.example.nedo.jdbc.doma2.entity.FactoryMaster;
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.FactoryMasterDao;
+import com.example.nedo.db.doma2.entity.FactoryMaster;
 
 public class InitialData02FactoryMaster extends InitialData {
 
@@ -29,7 +29,7 @@ public class InitialData02FactoryMaster extends InitialData {
     private void generateFactoryMaster(int size) {
         FactoryMasterDao dao = dbManager.getFactoryMasterDao();
 
-        dbManager.execute(() -> {
+        dbManager.execute(TX_INIT, () -> {
             dao.deleteAll();
             insertFactoryMaster(size, dao);
         });

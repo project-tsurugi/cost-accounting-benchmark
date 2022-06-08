@@ -4,17 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RecursiveAction;
 
-import com.example.nedo.jdbc.CostBenchDbManager;
+import com.example.nedo.db.CostBenchDbManager;
+import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 
 @SuppressWarnings("serial")
 public abstract class DaoListTask<T> extends RecursiveAction {
 
     private final CostBenchDbManager dbManager;
+    private final TgTmSetting setting;
 
     private final List<T> list = new ArrayList<>();
 
-    public DaoListTask(CostBenchDbManager dbManager) {
+    public DaoListTask(CostBenchDbManager dbManager, TgTmSetting setting) {
         this.dbManager = dbManager;
+        this.setting = setting;
     }
 
     public void add(T t) {
@@ -27,7 +30,7 @@ public abstract class DaoListTask<T> extends RecursiveAction {
 
     @Override
     protected final void compute() {
-        dbManager.execute(() -> {
+        dbManager.execute(setting, () -> {
             for (T t : list) {
                 execute(t);
             }

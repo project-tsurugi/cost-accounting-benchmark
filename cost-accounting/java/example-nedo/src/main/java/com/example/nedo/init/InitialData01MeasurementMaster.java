@@ -10,11 +10,11 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import com.example.nedo.BenchConst;
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.MeasurementMasterDao;
+import com.example.nedo.db.doma2.domain.MeasurementType;
+import com.example.nedo.db.doma2.entity.MeasurementMaster;
 import com.example.nedo.ddl.common.SheetWrapper;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.MeasurementMasterDao;
-import com.example.nedo.jdbc.doma2.domain.MeasurementType;
-import com.example.nedo.jdbc.doma2.entity.MeasurementMaster;
 
 public class InitialData01MeasurementMaster extends InitialData {
 
@@ -72,7 +72,7 @@ public class InitialData01MeasurementMaster extends InitialData {
     private void generateMeasurementMaster(TableSheet table) {
         MeasurementMasterDao dao = dbManager.getMeasurementMasterDao();
 
-        dbManager.execute(() -> {
+        dbManager.execute(TX_INIT, () -> {
             dao.deleteAll();
             insertMeasureMaster(table, dao);
         });

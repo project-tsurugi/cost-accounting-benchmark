@@ -3,18 +3,24 @@ package com.example.nedo.online.task;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.example.nedo.db.CostBenchDbManager;
+import com.example.nedo.db.doma2.dao.CostMasterDao;
+import com.example.nedo.db.doma2.dao.ItemMasterDao;
+import com.example.nedo.db.doma2.entity.CostMaster;
+import com.example.nedo.db.doma2.entity.ItemMaster;
 import com.example.nedo.init.InitialData;
 import com.example.nedo.init.MeasurementUtil;
-import com.example.nedo.jdbc.CostBenchDbManager;
-import com.example.nedo.jdbc.doma2.dao.CostMasterDao;
-import com.example.nedo.jdbc.doma2.dao.ItemMasterDao;
-import com.example.nedo.jdbc.doma2.entity.CostMaster;
-import com.example.nedo.jdbc.doma2.entity.ItemMaster;
+import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 /**
  * 原価の変更
  */
 public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
+
+    private static final TgTmSetting TX_MAIN = TgTmSetting.of( //
+            TgTxOption.ofOCC(), //
+            TgTxOption.ofLTX(CostMasterDao.TABLE_NAME));
 
     public BenchOnlineUpdateCostTask() {
         super("update-cost");
@@ -22,7 +28,7 @@ public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
 
     @Override
     protected boolean execute1() {
-        return dbManager.execute(() -> {
+        return dbManager.execute(TX_MAIN, () -> {
             CostMaster cost = selectRandomItem();
             if (cost == null) {
                 return false;
