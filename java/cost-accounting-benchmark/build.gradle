@@ -1,30 +1,59 @@
-// https://github.com/domaframework/simple-boilerplate/blob/master/build.gradle
 plugins {
     id 'java'
+
+    id 'java-library-distribution'
+
     id 'com.diffplug.eclipse.apt' version '3.24.0'
     id 'org.seasar.doma.compile' version '1.1.0'
-    id 'java-library-distribution'
     id 'com.github.spotbugs' version '4.7.1'
 }
 
+if (hasProperty('mavenLocal')) {
+    repositories {
+        mavenLocal()
+    }
+} else {
+    repositories {
+        maven {
+            url 'https://maven.pkg.github.com/project-tsurugi/*'
+            content {
+                includeGroupByRegex 'com\\.tsurugidb.*'
+            }
+            credentials {
+                username findProperty('gpr.user') ?: System.getenv('GPR_USER')
+                password findProperty('gpr.key') ?: System.getenv('GPR_KEY')
+            }
+        }
+    }
+}
+
+repositories {
+    mavenCentral {
+        content {
+            excludeGroupByRegex 'com\\.tsurugidb.*'
+        }
+    }
+}
+
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 8, 'hours'
+}
+
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
 }
 
-compileJava {
-    options.encoding = 'UTF-8'
-}
-
-compileTestJava {
-    options.encoding = 'UTF-8'
+tasks.withType(JavaCompile) { task ->
+    task.options.encoding = 'UTF-8'
 }
 
 spotbugs {
   excludeFilter = file("spotbugs-exclude-filter.xml")
 }
+
 spotbugsMain {
-    ignoreFailures = true
     reports {
         html {
             enabled = !project.hasProperty("ci")
@@ -38,10 +67,7 @@ spotbugsMain {
     }
 }
 
-repositories {
-  mavenLocal()
-  mavenCentral()
-}
+spotbugsTest.enabled = false
 
 dependencies {
   // https://mvnrepository.com/artifact/org.postgresql/postgresql
@@ -50,6 +76,7 @@ dependencies {
   runtimeOnly group: 'com.oracle.database.jdbc', name: 'ojdbc8', version: '21.1.0.0'
   implementation group: 'com.oracle.database.jdbc', name: 'ucp', version: '21.1.0.0'
   runtimeOnly group: 'com.oracle.database.nls', name: 'orai18n', version: '21.1.0.0'
+
   api 'com.tsurugidb.iceaxe:iceaxe-core:0.0.1-SNAPSHOT'
 
   // https://mvnrepository.com/artifact/org.apache.poi/poi
@@ -64,7 +91,25 @@ dependencies {
   // https://mvnrepository.com/artifact/org.apache.commons/commons-math3
   implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
 
-  testCompileOnly("org.junit.jupiter:junit-jupiter-api:5.7.0")
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
-  testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.0.0") // for IDE
+  testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+
+    testLogging {
+        showStandardStreams true
+        events 'started', 'skipped', 'passed', 'failed'
+        exceptionFormat 'full'
+    }
+}
+
+task showIceaxeManifest {
+    doLast {
+        def tsubakuroJar = configurations["compileClasspath"].filter {
+            it.name.startsWith("iceaxe-core")
+        }
+        def version = resources.text.fromArchiveEntry(tsubakuroJar, "META-INF/MANIFEST.MF")
+        print(version.asString())
+    }
 }
