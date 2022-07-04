@@ -1,9 +1,9 @@
-name: cost-batch-benchmark-CI
+name: cost-accounting-benchmark-CI
 
 on:
   push:
     paths:
-    - 'cost-accounting/java/example-nedo'
+    - 'java/cost-accounting-benchmark/**'
     - '.github/**'
   pull_request:
 
@@ -21,9 +21,11 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: cost-accounting/java/example-nedo
+        working-directory: java/cost-accounting-benchmark
     env:
       JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
+      GPR_USER: ${{ github.repository_owner }}
+      GPR_KEY: ${{ secrets.GHCR_PAT }}
 
     steps:
       - id: Checkout
@@ -46,27 +48,21 @@ jobs:
       - id: Assemble
         name: Assemble
         run: |
-          ./gradlew -i clean assemble
+          ./gradlew -i showIceaxeManifest clean assemble
 
-      - id: Test
-        name: Test
-        continue-on-error: false
+      - id: Check
+        name: Check
         run: |
-          ./gradlew -i test
-
-      - id: Static_Analysis
-        name: Static_Analysis
-        run: |
-          ./gradlew -i spotbugsMain -Pci
+          ./gradlew -i check --continue
 
       - id: Generate_Annotations
         name: Generate_Annotations
         uses: ./.github/actions/tsurugi-annotations-action
         if: always()
         with:
-          junit_input: 'cost-accounting/java/example-nedo/build/test-results/**/TEST-*.xml'
-          junit_test_src_dir: 'cost-accounting/java/example-nedo/src/test/java'
-          spotbugs_input: 'cost-accounting/java/example-nedo/build/reports/spotbugs/main/*.xml'
+          junit_input: 'java/cost-accounting-benchmark/build/test-results/**/TEST-*.xml'
+          junit_test_src_dir: 'java/cost-accounting-benchmark/src/test/java'
+          spotbugs_input: 'java/cost-accounting-benchmark/build/reports/spotbugs/main/*.xml'
 
       - id: Notify_Slack
         name: Notify_Slack
