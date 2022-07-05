@@ -13,14 +13,14 @@ drop table item_master;
 create table item_master
 (
   i_id int, -- 品目ID
-  i_effective_date date, -- 開始日
-  i_expired_date date, -- 終了日
+  i_effective_date char(10), -- 開始日
+  i_expired_date char(10), -- 終了日
   i_name varchar(20), -- 品目名
   i_type varchar(20), -- 品目種類
   i_unit varchar(5), -- 単位
-  i_weight_ratio decimal(9, 2), -- 重量比
+  i_weight_ratio double, -- 重量比
   i_weight_unit varchar(5), -- 重量単位
-  i_price decimal(11, 2), -- 品目単価
+  i_price double, -- 品目単価
   i_price_unit varchar(5) -- 品目単価単位
   ,primary key(i_id, i_effective_date)
 );
@@ -31,11 +31,11 @@ create table item_construction_master
 (
   ic_parent_i_id int, -- 親品目ID
   ic_i_id int, -- 品目ID
-  ic_effective_date date, -- 開始日
-  ic_expired_date date, -- 終了日
+  ic_effective_date char(10), -- 開始日
+  ic_expired_date char(10), -- 終了日
   ic_material_unit varchar(5), -- 原料単位
-  ic_material_quantity decimal(15, 4), -- 原料数量
-  ic_loss_ratio decimal(5, 2) -- ロス率
+  ic_material_quantity double, -- 原料数量
+  ic_loss_ratio double -- ロス率
   ,primary key(ic_parent_i_id, ic_i_id, ic_effective_date)
 );
 
@@ -45,9 +45,9 @@ create table item_manufacturing_master
 (
   im_f_id int, -- 工場ID
   im_i_id int, -- 品目ID
-  im_effective_date date, -- 開始日
-  im_expired_date date, -- 終了日
-  im_manufacturing_quantity decimal(6) -- 生産数（1日分）
+  im_effective_date char(10), -- 開始日
+  im_expired_date char(10), -- 終了日
+  im_manufacturing_quantity double -- 生産数（1日分）
   ,primary key(im_f_id, im_i_id, im_effective_date)
 );
 
@@ -58,8 +58,8 @@ create table cost_master
   c_f_id int, -- 工場ID
   c_i_id int, -- 品目ID
   c_stock_unit varchar(5), -- 在庫単位
-  c_stock_quantity decimal(15, 4), -- 在庫数量（1日分）
-  c_stock_amount decimal(13, 2) -- 在庫金額（1日分）
+  c_stock_quantity double, -- 在庫数量（1日分）
+  c_stock_amount double -- 在庫金額（1日分）
   ,primary key(c_f_id, c_i_id)
 );
 
@@ -71,7 +71,7 @@ create table measurement_master
   m_name varchar(20), -- 単位名称
   m_type varchar(10), -- 単位種類
   m_default_unit varchar(5), -- 標準単位
-  m_scale decimal(13, 6) -- スケール
+  m_scale double -- スケール
   ,primary key(m_unit)
 );
 
@@ -80,23 +80,23 @@ drop table result_table;
 create table result_table
 (
   r_f_id int, -- 工場ID
-  r_manufacturing_date date, -- 日付
+  r_manufacturing_date char(10), -- 日付
   r_product_i_id int, -- 製造品目ID
   r_parent_i_id int, -- 親品目ID
   r_i_id int, -- 品目ID
-  r_manufacturing_quantity decimal(6), -- 生産数
+  r_manufacturing_quantity double, -- 生産数
   r_weight_unit varchar(5), -- 重量単位
-  r_weight decimal(9, 2), -- 重量（品目当たり）
+  r_weight double, -- 重量（品目当たり）
   r_weight_total_unit varchar(5), -- 重量計単位
-  r_weight_total decimal(11, 2), -- 重量計
-  r_weight_ratio decimal(7, 3), -- 重量割合
+  r_weight_total double, -- 重量計
+  r_weight_ratio double, -- 重量割合
   r_standard_quantity_unit varchar(5), -- 標準量単位
-  r_standard_quantity decimal(15, 4), -- 標準量（品目当たり）
+  r_standard_quantity double, -- 標準量（品目当たり）
   r_required_quantity_unit varchar(5), -- 所要量単位
-  r_required_quantity decimal(15, 4), -- 所要量
-  r_unit_cost decimal(11, 2), -- 原価（品目当たり）
-  r_total_unit_cost decimal(11, 2), -- 総原価
-  r_manufacturing_cost decimal(11, 2), -- 製造原価（品目当たり）
-  r_total_manufacturing_cost decimal(11, 2) -- 総製造原価
+  r_required_quantity double, -- 所要量
+  r_unit_cost double, -- 原価（品目当たり）
+  r_total_unit_cost double, -- 総原価
+  r_manufacturing_cost double, -- 製造原価（品目当たり）
+  r_total_manufacturing_cost double -- 総製造原価
   ,primary key(r_f_id, r_manufacturing_date, r_product_i_id, r_parent_i_id, r_i_id)
 );

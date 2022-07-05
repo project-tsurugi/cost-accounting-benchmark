@@ -10,6 +10,7 @@ import com.tsurugidb.benchmark.costaccounting.db.domain.MeasurementType;
 import com.tsurugidb.iceaxe.result.TsurugiResultRecord;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 
+//TODO dataType
 public class IceaxeRecordUtil {
 
     // get from ResultRecord
@@ -24,11 +25,15 @@ public class IceaxeRecordUtil {
     }
 
     public static BigDecimal getDecimal(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
-        return record.nextDecimalOrNull();
+//      return record.nextDecimalOrNull();
+        Double value = record.nextFloat8OrNull();
+        return (value == null) ? null : BigDecimal.valueOf(value);
     }
 
     public static LocalDate getDate(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
-        return record.nextDateOrNull();
+//      return record.nextDateOrNull();
+        String value = record.nextCharacterOrNull();
+        return (value == null) ? null : LocalDate.parse(value);
     }
 
     public static String getString(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {

@@ -9,6 +9,7 @@ import com.tsurugidb.benchmark.costaccounting.db.domain.MeasurementType;
 import com.tsurugidb.iceaxe.statement.TgVariable;
 import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableInteger;
 
+//TODO dataType
 public class BenchVariable {
 
     public static TgVariableInteger ofInt(String name) {
@@ -16,7 +17,8 @@ public class BenchVariable {
     }
 
     public static TgVariable<LocalDate> ofDate(String name) {
-        return TgVariable.ofDate(name);
+//      return TgVariable.ofDate(name);
+        return new TmpVariableDate(name);
     }
 
     public static TgVariable<String> ofString(String name) {
@@ -24,18 +26,20 @@ public class BenchVariable {
     }
 
     public static TgVariable<BigDecimal> ofDecimal(String name) {
-        return TgVariable.ofDecimal(name);
+//      return TgVariable.ofDecimal(name);
+        return new TmpVariableDecimal(name);
     }
 
     public static TgVariable<BigInteger> ofBigInt(String name) {
-        return new TgVariableBigInteger(name);
-    }
-
-    public static TgVariable<ItemType> ofItemType(String name) {
-        return new TgVariableItemType(name);
+//      return new TgVariableBigInteger(name);
+        return new TmpVariableBigInteger(name);
     }
 
     public static TgVariable<MeasurementType> ofMeasurementType(String name) {
         return new TgVariableMeasurementType(name);
+    }
+
+    public static TgVariable<ItemType> ofItemType(String name) {
+        return new TgVariableItemType(name);
     }
 }
