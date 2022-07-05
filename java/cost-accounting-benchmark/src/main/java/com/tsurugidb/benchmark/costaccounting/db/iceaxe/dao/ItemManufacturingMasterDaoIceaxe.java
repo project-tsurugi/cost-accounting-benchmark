@@ -13,27 +13,26 @@ import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemManufacturingMast
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemManufacturingMasterIds;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
-import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.TgVariableBigInteger;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
-import com.tsurugidb.iceaxe.statement.TgVariable;
 import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableInteger;
 import com.tsurugidb.iceaxe.statement.TgVariableList;
 import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery1;
 
 public class ItemManufacturingMasterDaoIceaxe extends IceaxeDao<ItemManufacturingMaster> implements ItemManufacturingMasterDao {
 
-    private static final TgVariableInteger IM_F_ID = TgVariable.ofInt4("im_f_id");
-    private static final TgVariableInteger IM_I_ID = TgVariable.ofInt4("im_i_id");
+    private static final TgVariableInteger IM_F_ID = BenchVariable.ofInt("im_f_id");
+    private static final TgVariableInteger IM_I_ID = BenchVariable.ofInt("im_i_id");
     private static final List<IceaxeColumn<ItemManufacturingMaster, ?>> COLUMN_LIST;
     static {
         List<IceaxeColumn<ItemManufacturingMaster, ?>> list = new ArrayList<>();
         add(list, IM_F_ID, ItemManufacturingMaster::setImFId, ItemManufacturingMaster::getImFId, IceaxeRecordUtil::getInt, true);
         add(list, IM_I_ID, ItemManufacturingMaster::setImIId, ItemManufacturingMaster::getImIId, IceaxeRecordUtil::getInt, true);
-        add(list, TgVariable.ofDate("im_effective_date"), ItemManufacturingMaster::setImEffectiveDate, ItemManufacturingMaster::getImEffectiveDate, IceaxeRecordUtil::getDate, true);
-        add(list, TgVariable.ofDate("im_expired_date"), ItemManufacturingMaster::setImExpiredDate, ItemManufacturingMaster::getImExpiredDate, IceaxeRecordUtil::getDate);
-        add(list, TgVariableBigInteger.of("im_manufacturing_quantity"), ItemManufacturingMaster::setImManufacturingQuantity, ItemManufacturingMaster::getImManufacturingQuantity,
+        add(list, BenchVariable.ofDate("im_effective_date"), ItemManufacturingMaster::setImEffectiveDate, ItemManufacturingMaster::getImEffectiveDate, IceaxeRecordUtil::getDate, true);
+        add(list, BenchVariable.ofDate("im_expired_date"), ItemManufacturingMaster::setImExpiredDate, ItemManufacturingMaster::getImExpiredDate, IceaxeRecordUtil::getDate);
+        add(list, BenchVariable.ofBigInt("im_manufacturing_quantity"), ItemManufacturingMaster::setImManufacturingQuantity, ItemManufacturingMaster::getImManufacturingQuantity,
                 IceaxeRecordUtil::getBigInt);
         COLUMN_LIST = list;
     }
@@ -124,7 +123,7 @@ public class ItemManufacturingMasterDaoIceaxe extends IceaxeDao<ItemManufacturin
         var param = TgParameterList.of();
         int i = 0;
         for (var factoryId : factoryIdList) {
-            var variable = TgVariable.ofInt4(Integer.toString(i++));
+            var variable = IM_F_ID.copy(Integer.toString(i++));
             vlist.add(variable);
             param.add(variable.bind(factoryId));
         }

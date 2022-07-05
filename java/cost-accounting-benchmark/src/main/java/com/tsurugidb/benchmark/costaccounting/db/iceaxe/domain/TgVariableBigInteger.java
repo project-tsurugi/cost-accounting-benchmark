@@ -9,10 +9,6 @@ import com.tsurugidb.iceaxe.statement.TgVariable;
 
 public class TgVariableBigInteger extends TgVariable<BigInteger> {
 
-    public static TgVariableBigInteger of(String name) {
-        return new TgVariableBigInteger(name);
-    }
-
     protected TgVariableBigInteger(String name) {
         super(name, TgDataType.DECIMAL);
     }

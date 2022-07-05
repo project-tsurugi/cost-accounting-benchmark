@@ -6,19 +6,18 @@ import java.util.List;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.MeasurementMaster;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
-import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.TgVariableMeasurementType;
-import com.tsurugidb.iceaxe.statement.TgVariable;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 
 public class MeasurementMasterDaoIceaxe extends IceaxeDao<MeasurementMaster> implements MeasurementMasterDao {
 
     private static final List<IceaxeColumn<MeasurementMaster, ?>> COLUMN_LIST;
     static {
         List<IceaxeColumn<MeasurementMaster, ?>> list = new ArrayList<>();
-        add(list, TgVariable.ofCharacter("m_unit"), MeasurementMaster::setMUnit, MeasurementMaster::getMUnit, IceaxeRecordUtil::getString, true);
-        add(list, TgVariable.ofCharacter("m_name"), MeasurementMaster::setMName, MeasurementMaster::getMName, IceaxeRecordUtil::getString);
-        add(list, TgVariableMeasurementType.of("m_type"), MeasurementMaster::setMType, MeasurementMaster::getMType, IceaxeRecordUtil::getMeasurementType);
-        add(list, TgVariable.ofCharacter("m_default_unit"), MeasurementMaster::setMDefaultUnit, MeasurementMaster::getMDefaultUnit, IceaxeRecordUtil::getString);
-        add(list, TgVariable.ofDecimal("m_scale"), MeasurementMaster::setMScale, MeasurementMaster::getMScale, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofString("m_unit"), MeasurementMaster::setMUnit, MeasurementMaster::getMUnit, IceaxeRecordUtil::getString, true);
+        add(list, BenchVariable.ofString("m_name"), MeasurementMaster::setMName, MeasurementMaster::getMName, IceaxeRecordUtil::getString);
+        add(list, BenchVariable.ofMeasurementType("m_type"), MeasurementMaster::setMType, MeasurementMaster::getMType, IceaxeRecordUtil::getMeasurementType);
+        add(list, BenchVariable.ofString("m_default_unit"), MeasurementMaster::setMDefaultUnit, MeasurementMaster::getMDefaultUnit, IceaxeRecordUtil::getString);
+        add(list, BenchVariable.ofDecimal("m_scale"), MeasurementMaster::setMScale, MeasurementMaster::getMScale, IceaxeRecordUtil::getDecimal);
         COLUMN_LIST = list;
     }
 

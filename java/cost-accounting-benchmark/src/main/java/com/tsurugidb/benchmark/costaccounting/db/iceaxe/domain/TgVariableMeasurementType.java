@@ -7,10 +7,6 @@ import com.tsurugidb.iceaxe.statement.TgVariable;
 
 public class TgVariableMeasurementType extends TgVariable<MeasurementType> {
 
-    public static TgVariableMeasurementType of(String name) {
-        return new TgVariableMeasurementType(name);
-    }
-
     protected TgVariableMeasurementType(String name) {
         super(name, TgDataType.CHARACTER);
     }

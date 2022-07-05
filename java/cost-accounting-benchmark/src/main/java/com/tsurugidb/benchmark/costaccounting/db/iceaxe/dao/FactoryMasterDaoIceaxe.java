@@ -6,6 +6,7 @@ import java.util.List;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.FactoryMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.FactoryMaster;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
@@ -18,8 +19,8 @@ public class FactoryMasterDaoIceaxe extends IceaxeDao<FactoryMaster> implements 
     private static final List<IceaxeColumn<FactoryMaster, ?>> COLUMN_LIST;
     static {
         List<IceaxeColumn<FactoryMaster, ?>> list = new ArrayList<>();
-        add(list, TgVariable.ofInt4("f_id"), FactoryMaster::setFId, FactoryMaster::getFId, IceaxeRecordUtil::getInt, true);
-        add(list, TgVariable.ofCharacter("f_name"), FactoryMaster::setFName, FactoryMaster::getFName, IceaxeRecordUtil::getString);
+        add(list, BenchVariable.ofInt("f_id"), FactoryMaster::setFId, FactoryMaster::getFId, IceaxeRecordUtil::getInt, true);
+        add(list, BenchVariable.ofString("f_name"), FactoryMaster::setFName, FactoryMaster::getFName, IceaxeRecordUtil::getString);
         COLUMN_LIST = list;
     }
 
@@ -54,7 +55,7 @@ public class FactoryMasterDaoIceaxe extends IceaxeDao<FactoryMaster> implements 
         return this.selectAllIdPs;
     }
 
-    private final TgVariable<Integer> vFactoryId = TgVariable.ofInt4("factoryId");
+    private final TgVariable<Integer> vFactoryId = BenchVariable.ofInt("factoryId");
 
     @Override
     public FactoryMaster selectById(int factoryId) {

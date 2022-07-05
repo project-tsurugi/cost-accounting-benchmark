@@ -11,11 +11,10 @@ import java.util.stream.Stream;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ResultTable;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
-import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.TgVariableBigInteger;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
-import com.tsurugidb.iceaxe.statement.TgVariable;
 import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableInteger;
 import com.tsurugidb.iceaxe.statement.TgVariableList;
 import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery1;
@@ -23,30 +22,30 @@ import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate1;
 
 public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements ResultTableDao {
 
-    private static final TgVariableInteger R_F_ID = TgVariable.ofInt4("r_f_id");
-    private static final TgVariableInteger R_PRODUCT_I_ID = TgVariable.ofInt4("r_product_i_id");
+    private static final TgVariableInteger R_F_ID = BenchVariable.ofInt("r_f_id");
+    private static final TgVariableInteger R_PRODUCT_I_ID = BenchVariable.ofInt("r_product_i_id");
     private static final List<IceaxeColumn<ResultTable, ?>> COLUMN_LIST;
     static {
         List<IceaxeColumn<ResultTable, ?>> list = new ArrayList<>();
         add(list, R_F_ID, ResultTable::setRFId, ResultTable::getRFId, IceaxeRecordUtil::getInt, true);
-        add(list, TgVariable.ofDate("r_manufacturing_date"), ResultTable::setRManufacturingDate, ResultTable::getRManufacturingDate, IceaxeRecordUtil::getDate, true);
+        add(list, BenchVariable.ofDate("r_manufacturing_date"), ResultTable::setRManufacturingDate, ResultTable::getRManufacturingDate, IceaxeRecordUtil::getDate, true);
         add(list, R_PRODUCT_I_ID, ResultTable::setRProductIId, ResultTable::getRProductIId, IceaxeRecordUtil::getInt, true);
-        add(list, TgVariable.ofInt4("r_parent_i_id"), ResultTable::setRParentIId, ResultTable::getRParentIId, IceaxeRecordUtil::getInt, true);
-        add(list, TgVariable.ofInt4("r_i_id"), ResultTable::setRIId, ResultTable::getRIId, IceaxeRecordUtil::getInt, true);
-        add(list, TgVariableBigInteger.of("r_manufacturing_quantity"), ResultTable::setRManufacturingQuantity, ResultTable::getRManufacturingQuantity, IceaxeRecordUtil::getBigInt);
-        add(list, TgVariable.ofCharacter("r_weight_unit"), ResultTable::setRWeightUnit, ResultTable::getRWeightUnit, IceaxeRecordUtil::getString);
-        add(list, TgVariable.ofDecimal("r_weight"), ResultTable::setRWeight, ResultTable::getRWeight, IceaxeRecordUtil::getDecimal);
-        add(list, TgVariable.ofCharacter("r_weight_total_unit"), ResultTable::setRWeightTotalUnit, ResultTable::getRWeightTotalUnit, IceaxeRecordUtil::getString);
-        add(list, TgVariable.ofDecimal("r_weight_total"), ResultTable::setRWeightTotal, ResultTable::getRWeightTotal, IceaxeRecordUtil::getDecimal);
-        add(list, TgVariable.ofDecimal("r_weight_ratio"), ResultTable::setRWeightRatio, ResultTable::getRWeightRatio, IceaxeRecordUtil::getDecimal);
-        add(list, TgVariable.ofCharacter("r_standard_quantity_unit"), ResultTable::setRStandardQuantityUnit, ResultTable::getRStandardQuantityUnit, IceaxeRecordUtil::getString);
-        add(list, TgVariable.ofDecimal("r_standard_quantity"), ResultTable::setRStandardQuantity, ResultTable::getRStandardQuantity, IceaxeRecordUtil::getDecimal);
-        add(list, TgVariable.ofCharacter("r_required_quantity_unit"), ResultTable::setRRequiredQuantityUnit, ResultTable::getRRequiredQuantityUnit, IceaxeRecordUtil::getString);
-        add(list, TgVariable.ofDecimal("r_required_quantity"), ResultTable::setRRequiredQuantity, ResultTable::getRRequiredQuantity, IceaxeRecordUtil::getDecimal);
-        add(list, TgVariable.ofDecimal("r_unit_cost"), ResultTable::setRUnitCost, ResultTable::getRUnitCost, IceaxeRecordUtil::getDecimal);
-        add(list, TgVariable.ofDecimal("r_total_unit_cost"), ResultTable::setRTotalUnitCost, ResultTable::getRTotalUnitCost, IceaxeRecordUtil::getDecimal);
-        add(list, TgVariable.ofDecimal("r_manufacturing_cost"), ResultTable::setRManufacturingCost, ResultTable::getRManufacturingCost, IceaxeRecordUtil::getDecimal);
-        add(list, TgVariable.ofDecimal("r_total_manufacturing_cost"), ResultTable::setRTotalManufacturingCost, ResultTable::getRTotalManufacturingCost, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofInt("r_parent_i_id"), ResultTable::setRParentIId, ResultTable::getRParentIId, IceaxeRecordUtil::getInt, true);
+        add(list, BenchVariable.ofInt("r_i_id"), ResultTable::setRIId, ResultTable::getRIId, IceaxeRecordUtil::getInt, true);
+        add(list, BenchVariable.ofBigInt("r_manufacturing_quantity"), ResultTable::setRManufacturingQuantity, ResultTable::getRManufacturingQuantity, IceaxeRecordUtil::getBigInt);
+        add(list, BenchVariable.ofString("r_weight_unit"), ResultTable::setRWeightUnit, ResultTable::getRWeightUnit, IceaxeRecordUtil::getString);
+        add(list, BenchVariable.ofDecimal("r_weight"), ResultTable::setRWeight, ResultTable::getRWeight, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofString("r_weight_total_unit"), ResultTable::setRWeightTotalUnit, ResultTable::getRWeightTotalUnit, IceaxeRecordUtil::getString);
+        add(list, BenchVariable.ofDecimal("r_weight_total"), ResultTable::setRWeightTotal, ResultTable::getRWeightTotal, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("r_weight_ratio"), ResultTable::setRWeightRatio, ResultTable::getRWeightRatio, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofString("r_standard_quantity_unit"), ResultTable::setRStandardQuantityUnit, ResultTable::getRStandardQuantityUnit, IceaxeRecordUtil::getString);
+        add(list, BenchVariable.ofDecimal("r_standard_quantity"), ResultTable::setRStandardQuantity, ResultTable::getRStandardQuantity, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofString("r_required_quantity_unit"), ResultTable::setRRequiredQuantityUnit, ResultTable::getRRequiredQuantityUnit, IceaxeRecordUtil::getString);
+        add(list, BenchVariable.ofDecimal("r_required_quantity"), ResultTable::setRRequiredQuantity, ResultTable::getRRequiredQuantity, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("r_unit_cost"), ResultTable::setRUnitCost, ResultTable::getRUnitCost, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("r_total_unit_cost"), ResultTable::setRTotalUnitCost, ResultTable::getRTotalUnitCost, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("r_manufacturing_cost"), ResultTable::setRManufacturingCost, ResultTable::getRManufacturingCost, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("r_total_manufacturing_cost"), ResultTable::setRTotalManufacturingCost, ResultTable::getRTotalManufacturingCost, IceaxeRecordUtil::getDecimal);
         COLUMN_LIST = list;
     }
 
@@ -85,7 +84,7 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
         var param = TgParameterList.of();
         int i = 0;
         for (var factoryId : factoryIdList) {
-            var variable = TgVariable.ofInt4(Integer.toString(i++));
+            var variable = R_F_ID.copy(Integer.toString(i++));
             vlist.add(variable);
             param.add(variable.bind(factoryId));
         }

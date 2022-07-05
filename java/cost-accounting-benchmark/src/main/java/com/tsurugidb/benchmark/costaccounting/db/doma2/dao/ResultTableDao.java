@@ -16,6 +16,7 @@ import org.seasar.doma.message.Message;
 
 import com.tsurugidb.benchmark.costaccounting.db.doma2.config.AppConfig;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ResultTable;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.statement.TgVariable;
 
 @Dao(config = AppConfig.class)
@@ -26,7 +27,7 @@ public interface ResultTableDao {
     public static final String PS_COND_DATE = "r_manufacturing_date = ?";
     static final String COND_DATE = "r_manufacturing_date = /* date */'2020-09-25'";
 
-    public static final TgVariable<LocalDate> vDate = TgVariable.ofDate("date");
+    public static final TgVariable<LocalDate> vDate = BenchVariable.ofDate("date");
     public static final String TG_COND_DATE = "r_manufacturing_date = " + vDate.sqlName();
 
     @Delete

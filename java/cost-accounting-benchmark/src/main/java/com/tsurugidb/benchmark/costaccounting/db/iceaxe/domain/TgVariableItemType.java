@@ -7,10 +7,6 @@ import com.tsurugidb.iceaxe.statement.TgVariable;
 
 public class TgVariableItemType extends TgVariable<ItemType> {
 
-    public static TgVariableItemType of(String name) {
-        return new TgVariableItemType(name);
-    }
-
     protected TgVariableItemType(String name) {
         super(name, TgDataType.CHARACTER);
     }

@@ -10,7 +10,7 @@ import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
-import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.TgVariableItemType;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
@@ -22,21 +22,21 @@ import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery1;
 
 public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMasterDao {
 
-    private static final TgVariableInteger I_ID = TgVariable.ofInt4("i_id");
-    private static final TgVariableItemType I_TYPE = TgVariableItemType.of("i_type");
+    private static final TgVariableInteger I_ID = BenchVariable.ofInt("i_id");
+    private static final TgVariable<ItemType> I_TYPE = BenchVariable.ofItemType("i_type");
     private static final List<IceaxeColumn<ItemMaster, ?>> COLUMN_LIST;
     static {
         List<IceaxeColumn<ItemMaster, ?>> list = new ArrayList<>();
         add(list, I_ID, ItemMaster::setIId, ItemMaster::getIId, IceaxeRecordUtil::getInt, true);
-        add(list, TgVariable.ofDate("i_effective_date"), ItemMaster::setIEffectiveDate, ItemMaster::getIEffectiveDate, IceaxeRecordUtil::getDate, true);
-        add(list, TgVariable.ofDate("i_expired_date"), ItemMaster::setIExpiredDate, ItemMaster::getIExpiredDate, IceaxeRecordUtil::getDate);
-        add(list, TgVariable.ofCharacter("i_name"), ItemMaster::setIName, ItemMaster::getIName, IceaxeRecordUtil::getString);
+        add(list, BenchVariable.ofDate("i_effective_date"), ItemMaster::setIEffectiveDate, ItemMaster::getIEffectiveDate, IceaxeRecordUtil::getDate, true);
+        add(list, BenchVariable.ofDate("i_expired_date"), ItemMaster::setIExpiredDate, ItemMaster::getIExpiredDate, IceaxeRecordUtil::getDate);
+        add(list, BenchVariable.ofString("i_name"), ItemMaster::setIName, ItemMaster::getIName, IceaxeRecordUtil::getString);
         add(list, I_TYPE, ItemMaster::setIType, ItemMaster::getIType, IceaxeRecordUtil::getItemType);
-        add(list, TgVariable.ofCharacter("i_unit"), ItemMaster::setIUnit, ItemMaster::getIUnit, IceaxeRecordUtil::getString);
-        add(list, TgVariable.ofDecimal("i_weight_ratio"), ItemMaster::setIWeightRatio, ItemMaster::getIWeightRatio, IceaxeRecordUtil::getDecimal);
-        add(list, TgVariable.ofCharacter("i_weight_unit"), ItemMaster::setIWeightUnit, ItemMaster::getIWeightUnit, IceaxeRecordUtil::getString);
-        add(list, TgVariable.ofDecimal("i_price"), ItemMaster::setIPrice, ItemMaster::getIPrice, IceaxeRecordUtil::getDecimal);
-        add(list, TgVariable.ofCharacter("i_price_unit"), ItemMaster::setIPriceUnit, ItemMaster::getIPriceUnit, IceaxeRecordUtil::getString);
+        add(list, BenchVariable.ofString("i_unit"), ItemMaster::setIUnit, ItemMaster::getIUnit, IceaxeRecordUtil::getString);
+        add(list, BenchVariable.ofDecimal("i_weight_ratio"), ItemMaster::setIWeightRatio, ItemMaster::getIWeightRatio, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofString("i_weight_unit"), ItemMaster::setIWeightUnit, ItemMaster::getIWeightUnit, IceaxeRecordUtil::getString);
+        add(list, BenchVariable.ofDecimal("i_price"), ItemMaster::setIPrice, ItemMaster::getIPrice, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofString("i_price_unit"), ItemMaster::setIPriceUnit, ItemMaster::getIPriceUnit, IceaxeRecordUtil::getString);
         COLUMN_LIST = list;
     }
 
@@ -61,7 +61,7 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
         var param = TgParameterList.of();
         int i = 0;
         for (int id : ids) {
-            var variable = TgVariable.ofInt4(Integer.toString(i++));
+            var variable = I_ID.copy(Integer.toString(i++));
             variableList.add(variable);
             if (sb.length() != 0) {
                 sb.append(',');
@@ -82,7 +82,7 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
         }
     }
 
-    private static final TgVariableItemType vType = I_TYPE.copy("type");
+    private static final TgVariable<ItemType> vType = I_TYPE.copy("type");
 
     @Override
     public List<Integer> selectIdByType(LocalDate date, ItemType type) {

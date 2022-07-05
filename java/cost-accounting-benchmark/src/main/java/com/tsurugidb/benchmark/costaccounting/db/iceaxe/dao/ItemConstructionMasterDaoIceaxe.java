@@ -14,11 +14,10 @@ import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMa
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMasterIds;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMasterKey;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
-import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.TgVariableItemType;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
-import com.tsurugidb.iceaxe.statement.TgVariable;
 import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableInteger;
 import com.tsurugidb.iceaxe.statement.TgVariableList;
 import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery1;
@@ -26,18 +25,18 @@ import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate1;
 
 public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionMaster> implements ItemConstructionMasterDao {
 
-    private static final TgVariableInteger IC_PARENT_I_ID = TgVariable.ofInt4("ic_parent_i_id");
-    private static final TgVariableInteger IC_I_ID = TgVariable.ofInt4("ic_i_id");
+    private static final TgVariableInteger IC_PARENT_I_ID = BenchVariable.ofInt("ic_parent_i_id");
+    private static final TgVariableInteger IC_I_ID = BenchVariable.ofInt("ic_i_id");
     private static final List<IceaxeColumn<ItemConstructionMaster, ?>> COLUMN_LIST;
     static {
         List<IceaxeColumn<ItemConstructionMaster, ?>> list = new ArrayList<>();
         add(list, IC_PARENT_I_ID, ItemConstructionMaster::setIcParentIId, ItemConstructionMaster::getIcParentIId, IceaxeRecordUtil::getInt, true);
         add(list, IC_I_ID, ItemConstructionMaster::setIcIId, ItemConstructionMaster::getIcIId, IceaxeRecordUtil::getInt, true);
-        add(list, TgVariable.ofDate("ic_effective_date"), ItemConstructionMaster::setIcEffectiveDate, ItemConstructionMaster::getIcEffectiveDate, IceaxeRecordUtil::getDate, true);
-        add(list, TgVariable.ofDate("ic_expired_date"), ItemConstructionMaster::setIcExpiredDate, ItemConstructionMaster::getIcExpiredDate, IceaxeRecordUtil::getDate);
-        add(list, TgVariable.ofCharacter("ic_material_unit"), ItemConstructionMaster::setIcMaterialUnit, ItemConstructionMaster::getIcMaterialUnit, IceaxeRecordUtil::getString);
-        add(list, TgVariable.ofDecimal("ic_material_quantity"), ItemConstructionMaster::setIcMaterialQuantity, ItemConstructionMaster::getIcMaterialQuantity, IceaxeRecordUtil::getDecimal);
-        add(list, TgVariable.ofDecimal("ic_loss_ratio"), ItemConstructionMaster::setIcLossRatio, ItemConstructionMaster::getIcLossRatio, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDate("ic_effective_date"), ItemConstructionMaster::setIcEffectiveDate, ItemConstructionMaster::getIcEffectiveDate, IceaxeRecordUtil::getDate, true);
+        add(list, BenchVariable.ofDate("ic_expired_date"), ItemConstructionMaster::setIcExpiredDate, ItemConstructionMaster::getIcExpiredDate, IceaxeRecordUtil::getDate);
+        add(list, BenchVariable.ofString("ic_material_unit"), ItemConstructionMaster::setIcMaterialUnit, ItemConstructionMaster::getIcMaterialUnit, IceaxeRecordUtil::getString);
+        add(list, BenchVariable.ofDecimal("ic_material_quantity"), ItemConstructionMaster::setIcMaterialQuantity, ItemConstructionMaster::getIcMaterialQuantity, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("ic_loss_ratio"), ItemConstructionMaster::setIcLossRatio, ItemConstructionMaster::getIcLossRatio, IceaxeRecordUtil::getDecimal);
         COLUMN_LIST = list;
     }
 
@@ -157,7 +156,7 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
         var in = TgVariableList.of();
         int i = 0;
         for (var type : typeList) {
-            var variable = TgVariableItemType.of(Integer.toString(i++));
+            var variable = BenchVariable.ofItemType(Integer.toString(i++));
             in.add(variable);
             param.add(variable.bind(type));
         }

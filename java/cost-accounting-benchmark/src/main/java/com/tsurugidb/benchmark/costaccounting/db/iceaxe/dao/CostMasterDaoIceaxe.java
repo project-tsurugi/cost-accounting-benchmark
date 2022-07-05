@@ -7,26 +7,26 @@ import java.util.List;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
 import com.tsurugidb.iceaxe.statement.TgVariable;
-import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableBigDecimal;
 import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableInteger;
 import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery1;
 import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate1;
 
 public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMasterDao {
 
-    private static final TgVariableInteger C_F_ID = TgVariable.ofInt4("c_f_id");
-    private static final TgVariableInteger C_I_ID = TgVariable.ofInt4("c_i_id");
+    private static final TgVariableInteger C_F_ID = BenchVariable.ofInt("c_f_id");
+    private static final TgVariableInteger C_I_ID = BenchVariable.ofInt("c_i_id");
     private static final List<IceaxeColumn<CostMaster, ?>> COLUMN_LIST;
     static {
         List<IceaxeColumn<CostMaster, ?>> list = new ArrayList<>();
         add(list, C_F_ID, CostMaster::setCFId, CostMaster::getCFId, IceaxeRecordUtil::getInt, true);
         add(list, C_I_ID, CostMaster::setCIId, CostMaster::getCIId, IceaxeRecordUtil::getInt, true);
-        add(list, TgVariable.ofCharacter("c_stock_unit"), CostMaster::setCStockUnit, CostMaster::getCStockUnit, IceaxeRecordUtil::getString);
-        add(list, TgVariable.ofDecimal("c_stock_quantity"), CostMaster::setCStockQuantity, CostMaster::getCStockQuantity, IceaxeRecordUtil::getDecimal);
-        add(list, TgVariable.ofDecimal("c_stock_amount"), CostMaster::setCStockAmount, CostMaster::getCStockAmount, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofString("c_stock_unit"), CostMaster::setCStockUnit, CostMaster::getCStockUnit, IceaxeRecordUtil::getString);
+        add(list, BenchVariable.ofDecimal("c_stock_quantity"), CostMaster::setCStockQuantity, CostMaster::getCStockQuantity, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("c_stock_amount"), CostMaster::setCStockAmount, CostMaster::getCStockAmount, IceaxeRecordUtil::getDecimal);
         COLUMN_LIST = list;
     }
 
@@ -92,8 +92,8 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
         return in;
     }
 
-    private static final TgVariableBigDecimal vQuantity = TgVariable.ofDecimal("quantity");
-    private static final TgVariableBigDecimal vAmount = TgVariable.ofDecimal("amount");
+    private static final TgVariable<BigDecimal> vQuantity = BenchVariable.ofDecimal("quantity");
+    private static final TgVariable<BigDecimal> vAmount = BenchVariable.ofDecimal("amount");
 
     @Override
     public int updateIncrease(CostMaster entity, BigDecimal quantity, BigDecimal amount) {
