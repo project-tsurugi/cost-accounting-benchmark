@@ -15,13 +15,16 @@ public class SqlIn {
         var name = variable.sqlName();
 
         if (sb.length() != 0) {
-            sb.append(",");
+            sb.append(" or ");
         }
+
+        sb.append(columnName);
+        sb.append(" = ");
         sb.append(name);
     }
 
     @Override
     public String toString() {
-        return columnName + " in (" + sb + ")";
+        return "(" + sb + ")";
     }
 }
