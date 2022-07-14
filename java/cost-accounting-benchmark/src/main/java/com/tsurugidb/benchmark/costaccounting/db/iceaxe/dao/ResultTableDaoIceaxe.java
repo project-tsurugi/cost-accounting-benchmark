@@ -167,13 +167,14 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
                     + "  r_f_id," //
                     + "  r_manufacturing_date," //
                     + "  r_i_id," //
-                    + "  sum(r_required_quantity) r_required_quantity," //
-                    + "  max(r_required_quantity_unit) r_required_quantity_unit" //
+                    + "  sum(r_required_quantity) as r_required_quantity," //
+                    + "  max(r_required_quantity_unit) as r_required_quantity_unit" //
                     + " from " + TABLE_NAME + " r" //
                     + " left join item_master m on m.i_id=r.r_i_id" //
                     + " where r_f_id=" + vFactoryId + " and r_manufacturing_date=" + vDate + " and m.i_type='raw_material'" //
                     + " group by r_f_id, r_manufacturing_date, r_i_id" //
                     + " order by r_i_id";
+            System.out.println(sql);
             var parameterMapping = TgParameterMapping.of(vFactoryId, vDate);
             var resultMapping = TgResultMapping.of(ResultTable::new) //
                     .int4(ResultTable::setRFId) //
