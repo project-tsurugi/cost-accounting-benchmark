@@ -28,7 +28,7 @@ import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
-public class CostAccouintgBatch {
+public class CostAccountingBatch {
     private static final TgTmSetting TX_BATCH = TgTmSetting.of( //
             TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
 
@@ -66,7 +66,7 @@ public class CostAccouintgBatch {
             commitRatio = Integer.parseInt(args[2].trim());
         }
 
-        new CostAccouintgBatch().main(batchDate, factoryList, commitRatio);
+        new CostAccountingBatch().main(batchDate, factoryList, commitRatio);
     }
 
     public void main(LocalDate batchDate, List<Integer> factoryList, int commitRatio) {

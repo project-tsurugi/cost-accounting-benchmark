@@ -15,4 +15,4 @@ function call_java() {
   java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $@
 }
 
-call_java com.tsurugidb.benchmark.costaccounting.batch.CostAccouintgBatch 2020-09-15 "all" 100
+call_java com.tsurugidb.benchmark.costaccounting.batch.CostAccountingBatch 2020-09-15 "all" 100
