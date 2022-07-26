@@ -9,12 +9,15 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.poi.ss.usermodel.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.ddl.common.TableSheet;
 import com.tsurugidb.benchmark.costaccounting.ddl.common.WriterWrapper;
 
 public class TableEntityWriter extends WriterWrapper {
+    private static final Logger LOG = LoggerFactory.getLogger(TableEntityWriter.class);
 
     private final TableSheet table;
 
@@ -31,7 +34,7 @@ public class TableEntityWriter extends WriterWrapper {
     }
 
     public void convert() throws IOException {
-        System.out.println(table.getSheetName());
+        LOG.info("sheet={}", table.getSheetName());
 
         writePackage();
         writeImport();

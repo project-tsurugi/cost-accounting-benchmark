@@ -8,6 +8,7 @@ import java.sql.Statement;
 
 import com.tsurugidb.benchmark.costaccounting.BenchConst;
 
+// TODO delete JdbcExample
 public class JdbcExample {
 
     public static void main(String[] args) throws SQLException {

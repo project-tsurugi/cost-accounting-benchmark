@@ -7,14 +7,18 @@ import java.util.Random;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class TreeExample {
+    private static final Logger LOG = LoggerFactory.getLogger(TreeExample.class);
 
     public static void main(String[] args) {
         // TreeExample tree = new TreeExample(72_000, 75_000);
         TreeExample tree = new TreeExample(21_000, 75_000);
         tree.makeTree();
-        System.out.println(tree.get中間数());
-        System.out.println(tree.levelMap);
+        LOG.info("中間数={}", tree.get中間数());
+        LOG.info("tree.levelMap={}", tree.levelMap);
     }
 
     private final int 製品数;

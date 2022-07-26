@@ -8,6 +8,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
@@ -17,6 +19,7 @@ import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.MeasurementMaster;
 import com.tsurugidb.benchmark.costaccounting.ddl.common.SheetWrapper;
 
 public class InitialData01MeasurementMaster extends InitialData {
+    private static final Logger LOG = LoggerFactory.getLogger(InitialData01MeasurementMaster.class);
 
     public static void main(String[] args) throws Exception {
 //		new InitialDataMeasureMaster().main(args[0]);
@@ -32,7 +35,7 @@ public class InitialData01MeasurementMaster extends InitialData {
 
         try (CostBenchDbManager manager = initializeDbManager()) {
             File srcFile = new File(src);
-            System.out.println(srcFile);
+            LOG.info("src={}", srcFile);
 
             try (Workbook workbook = WorkbookFactory.create(srcFile)) {
                 Sheet sheet = workbook.getSheet("measurement");

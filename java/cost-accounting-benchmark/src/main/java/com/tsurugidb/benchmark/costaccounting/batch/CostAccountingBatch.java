@@ -16,6 +16,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.tsurugidb.benchmark.costaccounting.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchFactoryTask;
 import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchItemTask;
@@ -29,6 +32,8 @@ import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class CostAccountingBatch {
+    private static final Logger LOG = LoggerFactory.getLogger(CostAccountingBatch.class);
+
     private static final TgTmSetting TX_BATCH = TgTmSetting.of( //
             TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
 
@@ -81,9 +86,9 @@ public class CostAccountingBatch {
             }
             this.commitRatio = commitRatio;
 
-            System.out.println("batchDate=" + batchDate);
-            System.out.println("factory=" + StringUtil.toString(factoryList));
-            System.out.println("commitRatio=" + commitRatio);
+            LOG.info("batchDate={}", batchDate);
+            LOG.info("factory={}", StringUtil.toString(factoryList));
+            LOG.info("commitRatio={}", commitRatio);
 
             int type = BenchConst.batchExecuteType();
             switch (type) {
@@ -119,13 +124,13 @@ public class CostAccountingBatch {
 
     protected void logStart() {
         startTime = LocalDateTime.now();
-        System.out.println("start " + startTime);
+        LOG.info("start {}", startTime);
     }
 
     protected void logEnd() {
-        System.out.printf("commit=%d, rollback=%d%n", commitCount.get(), rollbackCount.get());
+        LOG.info("commit={}, rollback={}", commitCount.get(), rollbackCount.get());
         LocalDateTime endTime = LocalDateTime.now();
-        System.out.println("end " + startTime.until(endTime, ChronoUnit.MILLIS) + "[ms]");
+        LOG.info("end {}[ms]", startTime.until(endTime, ChronoUnit.MILLIS));
     }
 
     private List<Integer> getAllFactory() {
@@ -193,7 +198,7 @@ public class CostAccountingBatch {
                     count[0]++;
                     itemTask.execute(manufact);
                     if (count[0] % 10 == 0) {
-                        System.out.println("executeStream progress " + count[0]);
+                        LOG.info("executeStream progress {}", count[0]);
                     }
                 });
             }

@@ -4,6 +4,9 @@ import java.time.LocalDate;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ResultTableDao;
@@ -14,6 +17,7 @@ import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 // 1 thread
 public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
+    private static final Logger LOG = LoggerFactory.getLogger(BenchBatchFactoryTask.class);
 
     private static final TgTmSetting TX_BATCH = TgTmSetting.of( //
             TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
@@ -76,11 +80,11 @@ public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
         if (n < commitRatio) {
             dbManager.commit();
             commitCount += count;
-            System.out.printf("commit (%s, %d), count=%d\n", batchDate, factoryId, count);
+            LOG.info("commit ({}, {}), count={}", batchDate, factoryId, count);
         } else {
             dbManager.rollback();
             rollbackCount += count;
-            System.out.printf("rollback (%s, %d), count=%d\n", batchDate, factoryId, count);
+            LOG.info("rollback ({}, {}), count={}", batchDate, factoryId, count);
         }
     }
 

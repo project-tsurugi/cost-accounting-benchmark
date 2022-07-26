@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.tsurugidb.benchmark.costaccounting.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.HasDateRange;
@@ -16,6 +19,8 @@ import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class InitialData {
+    private static final Logger LOG = LoggerFactory.getLogger(InitialData.class);
+
     public static final LocalDate DEFAULT_BATCH_DATE = BenchConst.initBatchDate();
     protected static final TgTmSetting TX_INIT = TgTmSetting.of(TgTxOption.ofOCC());
 
@@ -44,13 +49,13 @@ public class InitialData {
     }
 
     protected void logStart() {
-        startTime = LocalDateTime.now();
-        System.out.println("start " + startTime);
+        this.startTime = LocalDateTime.now();
+        LOG.info("start {}", startTime);
     }
 
     protected void logEnd() {
         LocalDateTime endTime = LocalDateTime.now();
-        System.out.println("end " + startTime.until(endTime, ChronoUnit.SECONDS) + "[s]");
+        LOG.info("end {}[s]", startTime.until(endTime, ChronoUnit.SECONDS));
     }
 
     protected void initializeStartEndDate(int seed, HasDateRange entity) {
@@ -91,7 +96,7 @@ public class InitialData {
     protected void executeTask(ForkJoinTask<?> task) {
         if (forkJoinPool == null) {
             int parallelism = BenchConst.initParallelism();
-            System.out.printf("ForkJoinPool.parallelism=%d\n", parallelism);
+            LOG.info("ForkJoinPool.parallelism={}", parallelism);
             forkJoinPool = new ForkJoinPool(parallelism);
         }
         forkJoinPool.execute(task);

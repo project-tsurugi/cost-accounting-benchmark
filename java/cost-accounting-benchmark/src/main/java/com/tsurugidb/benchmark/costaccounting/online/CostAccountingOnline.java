@@ -11,6 +11,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.tsurugidb.benchmark.costaccounting.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.FactoryMasterDao;
@@ -18,6 +21,7 @@ import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class CostAccountingOnline {
+    private static final Logger LOG = LoggerFactory.getLogger(CostAccountingOnline.class);
 
     public static void main(String[] args) {
         try (CostBenchDbManager manager = createCostBenchDbManager()) {
@@ -53,7 +57,7 @@ public class CostAccountingOnline {
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
                 public void run() {
-//					System.out.println("shutdown-hook start");
+                    LOG.debug("shutdown-hook start");
                     stopRequest.set(true);
 
                     // 終了待ち
@@ -105,7 +109,7 @@ public class CostAccountingOnline {
     private static int threadId = 0;
 
     private static void create1(CostBenchDbManager manager, List<CostAccountingOnlineThread> threadList, List<Integer> factoryList, LocalDate date, AtomicBoolean stopRequest) {
-        System.out.printf("create thread%d%n", threadId);
+        LOG.info("create thread{}", threadId);
         CostAccountingOnlineThread thread = new CostAccountingOnlineThread(threadId++, manager, factoryList, date, stopRequest);
         threadList.add(thread);
     }
@@ -139,8 +143,7 @@ public class CostAccountingOnline {
 
         public void printException() {
             for (Exception e : exceptionList) {
-                System.err.println("----");
-                e.printStackTrace();
+                LOG.error("exception", e);
             }
         }
     }

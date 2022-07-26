@@ -3,6 +3,9 @@ package com.tsurugidb.benchmark.costaccounting.db;
 import java.io.Closeable;
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.tsurugidb.benchmark.costaccounting.db.doma2.CostBenchDbManagerDoma2;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.FactoryMasterDao;
@@ -18,6 +21,7 @@ import com.tsurugidb.benchmark.costaccounting.init.MeasurementUtil;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 
 public abstract class CostBenchDbManager implements Closeable {
+    private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManager.class);
 
     private MeasurementMasterDao measurementMasterDao;
     private FactoryMasterDao factoryMasterDao;
@@ -45,7 +49,7 @@ public abstract class CostBenchDbManager implements Closeable {
                 break;
             }
         }
-        System.out.println("using " + manager.getClass().getSimpleName());
+        LOG.info("using {}", manager.getClass().getSimpleName());
 
         MeasurementUtil.initialize(manager.getMeasurementMasterDao());
 

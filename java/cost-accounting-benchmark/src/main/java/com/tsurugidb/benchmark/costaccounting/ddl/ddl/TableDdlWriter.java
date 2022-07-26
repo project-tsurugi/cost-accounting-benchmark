@@ -6,11 +6,14 @@ import java.io.UncheckedIOException;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.ddl.common.TableSheet;
 import com.tsurugidb.benchmark.costaccounting.ddl.common.WriterWrapper;
 
 public abstract class TableDdlWriter extends WriterWrapper {
+    private static final Logger LOG = LoggerFactory.getLogger(TableDdlWriter.class);
 
     private final TableSheet table;
 
@@ -20,7 +23,7 @@ public abstract class TableDdlWriter extends WriterWrapper {
     }
 
     public void convert() throws IOException {
-        System.out.println(table.getSheetName());
+        LOG.info("sheet={}", table.getSheetName());
 
         writeComment();
         writeDrop();
@@ -53,7 +56,7 @@ public abstract class TableDdlWriter extends WriterWrapper {
 
     protected void writeDrop() throws IOException {
         String tableName = table.getTableName();
-        System.out.println(tableName);
+        LOG.info("table={}", tableName);
         writeln("drop table ", tableName, ";");
     }
 

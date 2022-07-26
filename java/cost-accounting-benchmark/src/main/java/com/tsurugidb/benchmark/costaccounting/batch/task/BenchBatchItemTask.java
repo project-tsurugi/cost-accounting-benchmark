@@ -17,6 +17,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.tsurugidb.benchmark.costaccounting.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.CostBenchDbManagerDoma2;
@@ -38,6 +41,7 @@ import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class BenchBatchItemTask {
+    private static final Logger LOG = LoggerFactory.getLogger(BenchBatchItemTask.class);
 
     private final CostBenchDbManager dbManager;
     private final LocalDate batchDate;
@@ -156,13 +160,13 @@ public class BenchBatchItemTask {
         }
 
         public void debugDump() {
-            System.out.println("node.itemId=" + this.itemId);
-            System.out.println("node.manufactEntity=" + this.manufactEntity);
-            System.out.println("node.constructEntity=" + this.constructEntity);
-            System.out.println("node.itemEntity=" + this.itemEntity);
-            System.out.println("node.standardQuantity=" + this.standardQuantity);
-            System.out.println("node.requiredQuantity=" + this.requiredQuantity);
-            System.out.println(itemId + "->" + childList.stream().map(node -> Integer.toString(node.itemId)).collect(Collectors.joining(",")));
+            LOG.error("node.itemId={}", this.itemId);
+            LOG.error("node.manufactEntity={}", this.manufactEntity);
+            LOG.error("node.constructEntity={}", this.constructEntity);
+            LOG.error("node.itemEntity={}", this.itemEntity);
+            LOG.error("node.standardQuantity={}", this.standardQuantity);
+            LOG.error("node.requiredQuantity={}", this.requiredQuantity);
+            LOG.error("{} -> {}", itemId, childList.stream().map(node -> Integer.toString(node.itemId)).collect(Collectors.joining(",")));
 //			for (BomNode child : childList) {
 //				child.debugDump();
 //			}
@@ -324,28 +328,14 @@ public class BenchBatchItemTask {
         }
     }
 
-    // TODO delete DEBUG_ID
-    int DEBUG_ID = -1;
-
     protected Ratio calculateRequiredQuantity1(BomNode node, Ratio parentRatio, BigDecimal manufacturingQuantity) {
         ItemConstructionMaster construct = node.constructEntity;
-
-        if (node.itemId == DEBUG_ID) {
-            System.out.printf("debug---calculateRequiredVolume---itemId=%s, manufacturingQuantity=%s\n", node.itemId, manufacturingQuantity);
-        }
 
         Ratio ratio;
         if (construct != null) {
             ratio = parentRatio.multiply(D_100, D_100.subtract(construct.getIcLossRatio()));
-            if (node.itemId == DEBUG_ID) {
-                System.out.printf("debug---materialVolume=%s\n", new MeasurementValue(construct.getIcMaterialUnit(), construct.getIcMaterialQuantity()));
-                System.out.printf("debug---parentRate=%s, loss=%s, rate=%s\n", parentRatio, construct.getIcLossRatio(), ratio);
-            }
         } else {
             ratio = parentRatio;
-            if (node.itemId == DEBUG_ID) {
-                System.out.printf("debug---rate=%s\n", ratio);
-            }
         }
 
         if (construct == null || construct.getIcMaterialQuantity() == null) {
@@ -370,10 +360,6 @@ public class BenchBatchItemTask {
         }
         node.requiredQuantity = node.standardQuantity.multiply(manufacturingQuantity).convertUnit(requiredUnit);
 
-        if (node.itemId == DEBUG_ID) {
-            System.out.printf("debug---necessaryVolume=%s, requiredVolume=%s\n", node.standardQuantity, node.requiredQuantity);
-        }
-
         return ratio;
     }
 
@@ -395,19 +381,11 @@ public class BenchBatchItemTask {
     }
 
     protected void calculateCost1(BomNode node, int factoryId, BigDecimal manufacturingQuantity) {
-        if (node.itemId == DEBUG_ID) {
-            System.out.printf("debug---calculateCost---itemId=%s, manufacturingQuantity=%s\n", node.itemId, manufacturingQuantity);
-        }
-
         CostMaster costEntity = selectCostMaster(factoryId, node.itemId);
         if (costEntity != null) {
             MeasurementValue stock = new MeasurementValue(costEntity.getCStockUnit(), costEntity.getCStockQuantity());
             ValuePair c = MeasurementUtil.getCommonUnitValue(stock, node.requiredQuantity);
             node.totalUnitCost = costEntity.getCStockAmount().multiply(c.value2).divide(c.value1, BenchConst.DECIMAL_SCALE, RoundingMode.DOWN);
-            if (node.itemId == DEBUG_ID) {
-                System.out.printf("debug---stock =%s, amount=%s\n", stock, costEntity.getCStockAmount());
-                System.out.printf("debug---stock2=%s, requiredVolume=%s\n", c.value1, c.value2);
-            }
         } else {
             ItemMaster itemEntity = node.getItemMasterEntity();
             if (itemEntity.getIPrice() == null) {
@@ -415,20 +393,12 @@ public class BenchBatchItemTask {
             } else {
                 String commonUnit = MeasurementUtil.getCommonUnit(itemEntity.getIPriceUnit(), node.requiredQuantity.unit);
                 BigDecimal price = MeasurementUtil.convertPriceUnit(itemEntity.getIPrice(), itemEntity.getIPriceUnit(), commonUnit);
-                if (node.itemId == DEBUG_ID) {
-                    System.out.printf("debug---price=%s yen/%s\n", itemEntity.getIPrice(), itemEntity.getIPriceUnit());
-                    System.out.printf("debug---price=%s yen/%s\n", price, commonUnit);
-                }
                 BigDecimal required = MeasurementUtil.convertUnit(node.requiredQuantity.value, node.requiredQuantity.unit, commonUnit);
                 node.totalUnitCost = price.multiply(required);
             }
         }
 
         node.unitCost = node.totalUnitCost.divide(manufacturingQuantity, BenchConst.DECIMAL_SCALE, RoundingMode.DOWN);
-        if (node.itemId == DEBUG_ID) {
-            System.out.printf("debug---totalCost=%s\n", node.totalUnitCost);
-            System.out.printf("debug---cost=%s\n", node.unitCost);
-        }
     }
 
     protected void calculateCost2(BomNode node, int factoryId, BigDecimal manufacturingQuantity) {
@@ -441,10 +411,6 @@ public class BenchBatchItemTask {
         node.totalManufacturingCost = totalManufacturingCost;
 
         node.manufacturingCost = totalManufacturingCost.divide(manufacturingQuantity, BenchConst.DECIMAL_SCALE, RoundingMode.DOWN);
-        if (node.itemId == DEBUG_ID) {
-            System.out.printf("debug---totalCostTotal=%s\n", node.totalManufacturingCost);
-            System.out.printf("debug---costTotal=%s\n", node.manufacturingCost);
-        }
     }
 
     protected CostMaster selectCostMaster(int factoryId, int itemId) {
@@ -615,8 +581,8 @@ public class BenchBatchItemTask {
 
     // for test
     public static void main(String[] args) {
-//		test1();
-        test2();
+        test1();
+//      test2();
     }
 
     static void test1() {
@@ -632,24 +598,23 @@ public class BenchBatchItemTask {
                 long s = System.currentTimeMillis();
                 task.createBomTree1(root1);
                 long e = System.currentTimeMillis();
-                System.out.printf("1: %d\n", e - s);
+                LOG.info("1: %d", e - s);
             }
             BomNode root2 = task.new BomNode(manufact);
             {
                 long s = System.currentTimeMillis();
                 task.createBomTree2(root2);
                 long e = System.currentTimeMillis();
-                System.out.printf("2: %d\n", e - s);
+                LOG.info("2: {}", e - s);
             }
 
-            System.out.println(root1.equalsById(root2));
+            LOG.info("equals=", root1.equalsById(root2));
         });
     }
 
     static void test2() {
         int itemId = 11649;
         LocalDate date = InitialData.DEFAULT_BATCH_DATE;
-//		LocalDate date = LocalDate.of(2020, 9, 23);
 
         CostBenchDbManager manager = new CostBenchDbManagerDoma2();
         BenchBatchItemTask task = new BenchBatchItemTask(manager, date);

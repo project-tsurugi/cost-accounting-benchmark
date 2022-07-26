@@ -8,18 +8,21 @@ import java.nio.file.Files;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.ddl.common.TableSheet;
 
 public abstract class DdlGenarator {
+    private static final Logger LOG = LoggerFactory.getLogger(DdlGenarator.class);
 
     public void execute() throws Exception {
         File srcFile = new File(BenchConst.tableXlsxPath());
-        System.out.println("src = " + srcFile);
+        LOG.info("src={}", srcFile);
 
         File dstFile = new File(srcFile.getParent(), getDdlFileName());
-        System.out.println("dst = " + dstFile);
+        LOG.info("dst={}", dstFile);
 
         try (Workbook workbook = WorkbookFactory.create(srcFile); BufferedWriter writer = Files.newBufferedWriter(dstFile.toPath(), StandardCharsets.UTF_8)) {
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {

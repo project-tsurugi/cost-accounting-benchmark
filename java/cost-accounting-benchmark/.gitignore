@@ -4,6 +4,7 @@
 .gradle/
 /bin/
 build
+logs/
 .project
 .classpath
 .factorypath

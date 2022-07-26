@@ -5,13 +5,17 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @SuppressWarnings("unused")
 public class TreeExample2 {
+    private static final Logger LOG = LoggerFactory.getLogger(TreeExample2.class);
 
     public static void main(String[] args) {
         TreeExample2 tree = new TreeExample2(7_2000, 19_8000, 7_5000);
         tree.makeTrees();
-        System.out.println(tree.count中間数);
+        LOG.info("中間数={}", tree.count中間数);
     }
 
     private final int 製品数;
