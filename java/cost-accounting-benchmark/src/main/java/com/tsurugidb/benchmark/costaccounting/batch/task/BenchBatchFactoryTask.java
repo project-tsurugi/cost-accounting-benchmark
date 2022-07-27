@@ -11,7 +11,7 @@ import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemManufacturingMaster;
-import com.tsurugidb.benchmark.costaccounting.init.BenchRandom;
+import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 

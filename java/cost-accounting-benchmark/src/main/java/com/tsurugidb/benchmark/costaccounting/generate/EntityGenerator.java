@@ -1,4 +1,4 @@
-package com.tsurugidb.benchmark.costaccounting.ddl;
+package com.tsurugidb.benchmark.costaccounting.generate;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -13,9 +13,9 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.tsurugidb.benchmark.costaccounting.BenchConst;
-import com.tsurugidb.benchmark.costaccounting.ddl.common.TableSheet;
-import com.tsurugidb.benchmark.costaccounting.ddl.entity.TableEntityWriter;
+import com.tsurugidb.benchmark.costaccounting.generate.entity.TableEntityWriter;
+import com.tsurugidb.benchmark.costaccounting.generate.util.TableSheet;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 public class EntityGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(EntityGenerator.class);

@@ -1,14 +1,14 @@
-package com.tsurugidb.benchmark.costaccounting.ddl.ddl;
+package com.tsurugidb.benchmark.costaccounting.generate.ddl;
 
 import java.io.BufferedWriter;
 
 import org.apache.poi.ss.usermodel.Row;
 
-import com.tsurugidb.benchmark.costaccounting.ddl.common.TableSheet;
+import com.tsurugidb.benchmark.costaccounting.generate.util.TableSheet;
 
-public class TsurugiTableDdlWriter extends TableDdlWriter {
+public class PostgresqlTableDdlWriter extends TableDdlWriter {
 
-    public TsurugiTableDdlWriter(TableSheet table, BufferedWriter writer) {
+    public PostgresqlTableDdlWriter(TableSheet table, BufferedWriter writer) {
         super(table, writer);
     }
 
@@ -16,9 +16,8 @@ public class TsurugiTableDdlWriter extends TableDdlWriter {
     protected String getType(Row row, String typeName) {
         switch (typeName) {
         case "unique ID":
-            return "int";
         case "unsigned numeric":
-            return getTypeWithSize(row, "decimal");
+            return getTypeWithSize(row, "numeric");
         case "variable text":
             return getTypeWithSize(row, "varchar");
         case "date":

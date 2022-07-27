@@ -1,10 +1,8 @@
-package com.tsurugidb.benchmark.costaccounting.init;
+package com.tsurugidb.benchmark.costaccounting.util;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
-
-import com.tsurugidb.benchmark.costaccounting.BenchConst;
 
 public class MeasurementValue {
     public final String unit;

@@ -14,9 +14,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.tsurugidb.benchmark.costaccounting.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.FactoryMasterDao;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 

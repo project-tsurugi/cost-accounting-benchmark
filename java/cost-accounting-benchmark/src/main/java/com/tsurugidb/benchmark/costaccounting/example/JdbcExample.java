@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import com.tsurugidb.benchmark.costaccounting.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 // TODO delete JdbcExample
 public class JdbcExample {

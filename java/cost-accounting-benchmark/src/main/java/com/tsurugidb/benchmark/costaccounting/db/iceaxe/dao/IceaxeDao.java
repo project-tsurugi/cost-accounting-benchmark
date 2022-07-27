@@ -21,6 +21,7 @@ import com.tsurugidb.iceaxe.statement.TgParameterMapping;
 import com.tsurugidb.iceaxe.statement.TgVariable;
 import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery0;
 import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery1;
+import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate0;
 import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate1;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransactionException;
@@ -194,6 +195,14 @@ public abstract class IceaxeDao<E> {
     }
 
     // create/execute
+
+    protected final TsurugiPreparedStatementUpdate0 createPreparedStatement(String sql) {
+        try {
+            return getSession().createPreparedStatement(sql);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
     protected final <P> TsurugiPreparedStatementUpdate1<P> createPreparedStatement(String sql, TgParameterMapping<P> parameterMapping) {
         try {

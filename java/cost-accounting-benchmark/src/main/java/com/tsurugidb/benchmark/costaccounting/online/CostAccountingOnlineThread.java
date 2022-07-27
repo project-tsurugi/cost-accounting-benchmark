@@ -17,9 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.tsurugidb.benchmark.costaccounting.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
-import com.tsurugidb.benchmark.costaccounting.init.BenchRandom;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineNewItemTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineShowCostTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineShowQuantityTask;
@@ -28,6 +26,8 @@ import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateCostTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateManufacturingTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateMaterialTask;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 
 public class CostAccountingOnlineThread implements Runnable, Callable<Void> {
     private static final Logger LOG = LoggerFactory.getLogger(CostAccountingOnlineThread.class);

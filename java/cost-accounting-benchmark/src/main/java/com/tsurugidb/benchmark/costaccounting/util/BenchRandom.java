@@ -1,4 +1,4 @@
-package com.tsurugidb.benchmark.costaccounting.init;
+package com.tsurugidb.benchmark.costaccounting.util;
 
 import java.math.BigDecimal;
 import java.util.Arrays;

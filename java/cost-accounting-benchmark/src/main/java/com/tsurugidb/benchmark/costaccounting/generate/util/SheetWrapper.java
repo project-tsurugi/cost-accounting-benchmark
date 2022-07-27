@@ -1,4 +1,4 @@
-package com.tsurugidb.benchmark.costaccounting.ddl.common;
+package com.tsurugidb.benchmark.costaccounting.generate.util;
 
 import java.math.BigDecimal;
 import java.util.Iterator;

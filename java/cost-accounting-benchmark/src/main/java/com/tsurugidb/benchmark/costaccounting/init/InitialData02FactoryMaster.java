@@ -1,9 +1,9 @@
 package com.tsurugidb.benchmark.costaccounting.init;
 
-import com.tsurugidb.benchmark.costaccounting.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.FactoryMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.FactoryMaster;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 public class InitialData02FactoryMaster extends InitialData {
 

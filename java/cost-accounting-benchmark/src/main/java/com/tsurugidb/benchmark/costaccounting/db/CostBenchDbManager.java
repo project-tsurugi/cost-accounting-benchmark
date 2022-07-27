@@ -17,7 +17,7 @@ import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
 import com.tsurugidb.benchmark.costaccounting.db.raw.CostBenchDbManagerJdbc1;
 import com.tsurugidb.benchmark.costaccounting.db.raw.CostBenchDbManagerJdbc2;
-import com.tsurugidb.benchmark.costaccounting.init.MeasurementUtil;
+import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 
 public abstract class CostBenchDbManager implements Closeable {
@@ -118,6 +118,10 @@ public abstract class CostBenchDbManager implements Closeable {
     }
 
     protected abstract ResultTableDao newResultTableDao();
+
+    // execute
+
+    public abstract void executeDdl(String... sqls);
 
     public abstract void execute(TgTmSetting setting, Runnable runnable);
 

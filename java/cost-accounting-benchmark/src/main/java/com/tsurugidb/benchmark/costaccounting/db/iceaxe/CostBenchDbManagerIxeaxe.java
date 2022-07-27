@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.function.Supplier;
 
-import com.tsurugidb.benchmark.costaccounting.BenchConst;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.FactoryMasterDao;
@@ -15,21 +17,25 @@ import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.CostMasterDaoIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.FactoryMasterDaoIceaxe;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.IceaxeDao;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.ItemConstructionMasterDaoIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.ItemManufacturingMasterDaoIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.ItemMasterDaoIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.MeasurementMasterDaoIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.ResultTableDaoIceaxe;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.TsurugiConnector;
 import com.tsurugidb.iceaxe.session.TgSessionInfo;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransactionException;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransactionManager;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransactionRuntimeException;
 
 public class CostBenchDbManagerIxeaxe extends CostBenchDbManager {
+    private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManagerIxeaxe.class);
 
     private final TsurugiSession session;
     private final TsurugiTransactionManager transactionManager;
@@ -89,6 +95,27 @@ public class CostBenchDbManagerIxeaxe extends CostBenchDbManager {
     @Override
     protected ResultTableDao newResultTableDao() {
         return new ResultTableDaoIceaxe(this);
+    }
+
+    @Override
+    public void executeDdl(String... sqls) {
+        var dao = new IceaxeDao<Object>(this, null, null, null) {
+            public void executeDdl() {
+                var setting = TgTmSetting.of(TgTxOption.ofOCC());
+                for (var sql : sqls) {
+                    try (var ps = createPreparedStatement(sql)) {
+                        ps.executeAndGetCount(transactionManager, setting);
+                    } catch (IOException e) {
+                        LOG.info("ddl={}", sql.trim());
+                        if (sql.equals(sqls[sqls.length - 1])) {
+                            throw new UncheckedIOException(e);
+                        }
+                        LOG.warn("execption={}", e.getMessage());
+                    }
+                }
+            }
+        };
+        dao.executeDdl();
     }
 
     @Override

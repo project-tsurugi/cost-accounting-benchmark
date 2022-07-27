@@ -15,8 +15,8 @@ import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMaster;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemMaster;
-import com.tsurugidb.benchmark.costaccounting.init.MeasurementUtilTestSupport;
-import com.tsurugidb.benchmark.costaccounting.init.MeasurementValue;
+import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtilTestSupport;
+import com.tsurugidb.benchmark.costaccounting.util.MeasurementValue;
 
 class CalculateCostTest {
     static {

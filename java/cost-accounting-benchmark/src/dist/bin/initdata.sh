@@ -15,6 +15,7 @@ function call_java() {
   java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $1
 }
 
+call_java com.tsurugidb.benchmark.costaccounting.init.InitialData00CreateTable
 call_java com.tsurugidb.benchmark.costaccounting.init.InitialData01MeasurementMaster
 call_java com.tsurugidb.benchmark.costaccounting.init.InitialData02FactoryMaster
 call_java com.tsurugidb.benchmark.costaccounting.init.InitialData03ItemMaster

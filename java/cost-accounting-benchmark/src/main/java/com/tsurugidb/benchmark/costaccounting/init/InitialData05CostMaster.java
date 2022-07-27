@@ -16,6 +16,7 @@ import com.tsurugidb.benchmark.costaccounting.db.doma2.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.util.DaoSplitTask;
+import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
 
 public class InitialData05CostMaster extends InitialData {
 

@@ -19,7 +19,6 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.tsurugidb.benchmark.costaccounting.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchFactoryTask;
 import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchItemTask;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
@@ -28,6 +27,7 @@ import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemManufacturingMast
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 

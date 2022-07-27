@@ -1,7 +1,8 @@
-package com.tsurugidb.benchmark.costaccounting.ddl.ddl;
+package com.tsurugidb.benchmark.costaccounting.generate.ddl;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.util.List;
 
@@ -9,8 +10,9 @@ import org.apache.poi.ss.usermodel.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.tsurugidb.benchmark.costaccounting.ddl.common.TableSheet;
-import com.tsurugidb.benchmark.costaccounting.ddl.common.WriterWrapper;
+import com.tsurugidb.benchmark.costaccounting.generate.util.TableSheet;
+import com.tsurugidb.benchmark.costaccounting.generate.util.WriterWrapper;
+import com.tsurugidb.iceaxe.util.IoRunnable;
 
 public abstract class TableDdlWriter extends WriterWrapper {
     private static final Logger LOG = LoggerFactory.getLogger(TableDdlWriter.class);
@@ -22,12 +24,48 @@ public abstract class TableDdlWriter extends WriterWrapper {
         this.table = table;
     }
 
-    public void convert() throws IOException {
+    public void write() throws IOException {
         LOG.info("sheet={}", table.getSheetName());
 
         writeComment();
-        writeDrop();
-        writeCreate();
+        writeDrop(";");
+        writeCreate(";");
+    }
+
+    public String getDropDdl() throws IOException {
+        return getDdl(() -> writeDrop(""));
+    }
+
+    public String getCreateDdl() throws IOException {
+        return getDdl(() -> writeCreate(""));
+    }
+
+    private String getDdl(IoRunnable runnable) throws IOException {
+        try (var writer = new StringWriter(1024)) {
+            setWriter(writer);
+            runnable.run();
+            return writer.toString();
+        }
+    }
+
+    // write ddl
+
+    protected void writeComment() throws IOException {
+        writeln();
+
+        String tableLogicalName = table.getTableLogicalName();
+        writeln("-- ", tableLogicalName);
+    }
+
+    protected void writeDrop(String eos) throws IOException {
+        String tableName = table.getTableName();
+        LOG.info("table={}", tableName);
+        writeln("drop table ", tableName, eos);
+    }
+
+    protected void writeCreate(String eos) throws IOException {
+        String tableName = table.getTableName();
+        writeln("create table ", tableName);
 
         writeln("(");
         table.getRows().forEachOrdered(row -> {
@@ -44,25 +82,7 @@ public abstract class TableDdlWriter extends WriterWrapper {
             writeln(1, ",primary key(", keys, ")");
         }
 
-        writeln(");");
-    }
-
-    protected void writeComment() throws IOException {
-        writeln();
-
-        String tableLogicalName = table.getTableLogicalName();
-        writeln("-- ", tableLogicalName);
-    }
-
-    protected void writeDrop() throws IOException {
-        String tableName = table.getTableName();
-        LOG.info("table={}", tableName);
-        writeln("drop table ", tableName, ";");
-    }
-
-    protected void writeCreate() throws IOException {
-        String tableName = table.getTableName();
-        writeln("create table ", tableName);
+        writeln(")", eos);
     }
 
     protected void writeField(Row row) throws IOException {

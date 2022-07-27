@@ -1,19 +1,23 @@
-package com.tsurugidb.benchmark.costaccounting.ddl.common;
+package com.tsurugidb.benchmark.costaccounting.generate.util;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.Writer;
 
 public class WriterWrapper {
 
-    protected final BufferedWriter writer;
+    private Writer writer;
     private final String tabString;
 
-    public WriterWrapper(BufferedWriter writer, String tab) {
+    public WriterWrapper(Writer writer, String tab) {
         this.writer = writer;
         this.tabString = tab;
     }
 
     // Writer
+
+    protected void setWriter(Writer writer) {
+        this.writer = writer;
+    }
 
     protected void writeln(int tab, String... ss) throws IOException {
         for (int i = 0; i < tab; i++) {

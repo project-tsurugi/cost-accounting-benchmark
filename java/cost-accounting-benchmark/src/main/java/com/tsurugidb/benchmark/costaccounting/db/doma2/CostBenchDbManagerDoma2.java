@@ -66,6 +66,11 @@ public class CostBenchDbManagerDoma2 extends CostBenchDbManager {
     }
 
     @Override
+    public void executeDdl(String... sqls) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void execute(TgTmSetting setting, Runnable runnable) {
         tm.required(runnable);
     }

@@ -1,4 +1,4 @@
-package com.tsurugidb.benchmark.costaccounting.init;
+package com.tsurugidb.benchmark.costaccounting.util;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import com.tsurugidb.benchmark.costaccounting.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.domain.MeasurementType;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.MeasurementMaster;

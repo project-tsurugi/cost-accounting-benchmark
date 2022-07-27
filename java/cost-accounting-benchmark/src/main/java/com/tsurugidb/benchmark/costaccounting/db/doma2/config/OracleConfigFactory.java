@@ -9,7 +9,7 @@ import oracle.ucp.jdbc.PoolDataSourceFactory;
 import org.seasar.doma.jdbc.dialect.Dialect;
 import org.seasar.doma.jdbc.dialect.OracleDialect;
 
-import com.tsurugidb.benchmark.costaccounting.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 public class OracleConfigFactory implements JdbcConfigFactory {
 

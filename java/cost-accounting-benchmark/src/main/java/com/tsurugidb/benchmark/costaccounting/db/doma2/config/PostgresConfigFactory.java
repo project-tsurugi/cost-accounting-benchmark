@@ -7,7 +7,7 @@ import org.postgresql.ds.PGSimpleDataSource;
 import org.seasar.doma.jdbc.dialect.Dialect;
 import org.seasar.doma.jdbc.dialect.PostgresDialect;
 
-import com.tsurugidb.benchmark.costaccounting.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 public class PostgresConfigFactory implements JdbcConfigFactory {
 

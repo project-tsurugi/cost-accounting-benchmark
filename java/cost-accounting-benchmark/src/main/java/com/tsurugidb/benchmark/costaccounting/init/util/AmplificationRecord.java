@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.TreeMap;
 
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.HasDateRange;
-import com.tsurugidb.benchmark.costaccounting.init.BenchRandom;
+import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 
 // thread safe
 public abstract class AmplificationRecord<T extends HasDateRange> {

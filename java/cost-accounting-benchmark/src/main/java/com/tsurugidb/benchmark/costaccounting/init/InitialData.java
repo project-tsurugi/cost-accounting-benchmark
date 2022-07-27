@@ -12,14 +12,25 @@ import java.util.concurrent.ForkJoinTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.tsurugidb.benchmark.costaccounting.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.HasDateRange;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class InitialData {
-    private static final Logger LOG = LoggerFactory.getLogger(InitialData.class);
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
+
+    public static void main(String[] args) throws Exception {
+        InitialData00CreateTable.main(args);
+        InitialData01MeasurementMaster.main(args);
+        InitialData02FactoryMaster.main(args);
+        InitialData03ItemMaster.main(args);
+        InitialData04ItemManufacturingMaster.main(args);
+        InitialData05CostMaster.main(args);
+        InitialData06ResultTable.main(args);
+    }
 
     public static final LocalDate DEFAULT_BATCH_DATE = BenchConst.initBatchDate();
     protected static final TgTmSetting TX_INIT = TgTmSetting.of(TgTxOption.ofOCC());

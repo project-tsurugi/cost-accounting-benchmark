@@ -7,10 +7,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
-import com.tsurugidb.benchmark.costaccounting.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
-import com.tsurugidb.benchmark.costaccounting.init.BenchRandom;
 import com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 
 public abstract class BenchOnlineTask {
 

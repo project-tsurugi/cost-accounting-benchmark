@@ -1,4 +1,4 @@
-package com.tsurugidb.benchmark.costaccounting.ddl.common;
+package com.tsurugidb.benchmark.costaccounting.generate.util;
 
 import java.util.ArrayList;
 import java.util.List;

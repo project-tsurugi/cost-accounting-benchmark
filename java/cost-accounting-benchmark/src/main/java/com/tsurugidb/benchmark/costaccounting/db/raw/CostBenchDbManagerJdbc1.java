@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import com.tsurugidb.benchmark.costaccounting.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 public class CostBenchDbManagerJdbc1 extends CostBenchDbManagerJdbc {
 

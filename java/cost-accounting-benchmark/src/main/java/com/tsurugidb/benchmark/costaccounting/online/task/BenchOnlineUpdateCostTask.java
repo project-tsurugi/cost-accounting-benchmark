@@ -9,7 +9,7 @@ import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
-import com.tsurugidb.benchmark.costaccounting.init.MeasurementUtil;
+import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 

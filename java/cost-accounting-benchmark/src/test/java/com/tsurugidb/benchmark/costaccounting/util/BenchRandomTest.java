@@ -1,4 +1,4 @@
-package com.tsurugidb.benchmark.costaccounting.init;
+package com.tsurugidb.benchmark.costaccounting.util;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;

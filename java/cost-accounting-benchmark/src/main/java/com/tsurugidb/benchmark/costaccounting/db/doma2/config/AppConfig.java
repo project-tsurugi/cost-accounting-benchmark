@@ -8,8 +8,8 @@ import org.seasar.doma.jdbc.tx.LocalTransactionDataSource;
 import org.seasar.doma.jdbc.tx.LocalTransactionManager;
 import org.seasar.doma.jdbc.tx.TransactionManager;
 
-import com.tsurugidb.benchmark.costaccounting.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.log.MyLoggingJdbcLogger;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 // https://doma.readthedocs.io/en/2.5.1/transaction/
 @SingletonConfig

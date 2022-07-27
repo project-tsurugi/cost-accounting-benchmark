@@ -1,4 +1,4 @@
-package com.tsurugidb.benchmark.costaccounting;
+package com.tsurugidb.benchmark.costaccounting.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,6 +8,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Properties;
+
+import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
 
 public class BenchConst {
 
@@ -53,6 +55,26 @@ public class BenchConst {
 
     public static final String PACKAGE_DOMAIN = "com.tsurugidb.benchmark.costaccounting.db.doma2.domain";
     public static final String PACKAGE_ENTITY = "com.tsurugidb.benchmark.costaccounting.db.doma2.entity";
+
+    public static DbmsType dbmsType() {
+        String jdbcUrl = getProperty("jdbc.url", false);
+        if (jdbcUrl != null) {
+            if (jdbcUrl.contains("jdbc:oracle")) {
+                return DbmsType.ORACLE;
+            }
+            if (jdbcUrl.contains("jdbc:postgresql")) {
+                return DbmsType.POSTGRESQL;
+            }
+            throw new AssertionError(jdbcUrl);
+        }
+
+        String tsurugiEndpoint = getProperty("tsurugi.endpoint", false);
+        if (tsurugiEndpoint != null) {
+            return DbmsType.TSURUGI;
+        }
+
+        throw new AssertionError();
+    }
 
     // batch
     public static int batchExecuteType() {
@@ -121,6 +143,8 @@ public class BenchConst {
         int defaultValue = Runtime.getRuntime().availableProcessors();
         return getPropertyInt("init.parallelism", defaultValue);
     }
+
+    // properties
 
     private static Properties properties;
 

@@ -23,17 +23,19 @@
 
 このシェルは以下のプログラムを実行する。
 
-1. InitialData01MeasurementMaster
+1. InitialData00CreateTable
+   - テーブルを作成する。
+2. InitialData01MeasurementMaster
    - measurement.xlsxを読み込み、度量衡マスターにinsertする。
-2. InitialData02FactoryMaster
+3. InitialData02FactoryMaster
    - 工場マスターのデータを生成する。
-3. InitialData03ItemMaster
+4. InitialData03ItemMaster
    - 品目マスター・品目構成マスターのデータを生成する。
-4. InitialData04ItemManufacturingMaster
+5. InitialData04ItemManufacturingMaster
    - 製造品目マスターのデータを生成する。
-5. InitialData05CostMaster
+6. InitialData05CostMaster
    - 原価マスターのデータを生成する。
-6. InitialData06ResultTable
+7. InitialData06ResultTable
    - 結果テーブルをクリアする。
 
 この初期データ作成処理で生成されたデータは、指定された基準日のデータしか整合性が保証されない。
@@ -101,11 +103,16 @@
   - JDBCの接続URL
 - jdbc.user, jdbc.password
   - DBに接続するユーザー・パスワード
+- tsurugi.endpoint
+  - Tsurugiに接続する場合のエンドポイント
+- tsurugi.user, tsurugi.password
+  - Tsurugiに接続する場合のユーザー・パスワード
 - *.jdbc.type
   - JDBC実行に使用するライブラリー
     - 1: Doma2
     - 2: 生JDBC
     - 3: コネクション（トランザクション管理）はDoma2を使用し、SQLの実行は生JDBCを使う方式
+    - 4: Tsurugi（Iceaxe）
 - decimal.scale
   - BigDecimalの除算時の小数点以下の桁数
 
