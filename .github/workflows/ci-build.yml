@@ -48,7 +48,7 @@ jobs:
       - id: Assemble
         name: Assemble
         run: |
-          ./gradlew -i showIceaxeManifest clean assemble
+          ./gradlew -i showTsubakuroManifest showIceaxeManifest clean assemble
 
       - id: Check
         name: Check
