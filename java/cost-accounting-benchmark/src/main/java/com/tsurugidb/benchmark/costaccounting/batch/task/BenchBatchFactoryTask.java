@@ -13,14 +13,12 @@ import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
-import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 // 1 thread
 public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
     private static final Logger LOG = LoggerFactory.getLogger(BenchBatchFactoryTask.class);
 
-    private static final TgTmSetting TX_BATCH = TgTmSetting.of( //
-            TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
+    private static final TgTmSetting TX_BATCH = TgTmSetting.of(new BenchBatchTxOption());
 
     private final CostBenchDbManager dbManager;
     private final int commitRatio;

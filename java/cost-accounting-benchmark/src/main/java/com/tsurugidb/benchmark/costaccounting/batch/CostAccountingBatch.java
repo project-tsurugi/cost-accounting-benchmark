@@ -93,18 +93,23 @@ public class CostAccountingBatch {
             int type = BenchConst.batchExecuteType();
             switch (type) {
             case 1:
+                LOG.info("batch.execute.type=sequential");
                 executeSequential(batchDate, factoryList);
                 break;
             case 2:
+                LOG.info("batch.execute.type=parallel");
                 executeParallelFactory(batchDate, factoryList);
                 break;
             case 3:
+                LOG.info("batch.execute.type=stream");
                 executeStream(batchDate, factoryList);
                 break;
             case 4:
+                LOG.info("batch.execute.type=queue");
                 executeQueue(batchDate, factoryList);
                 break;
             case 5:
+                LOG.info("batch.execute.type=debug");
                 executeForDebug1(batchDate);
                 break;
             default:
