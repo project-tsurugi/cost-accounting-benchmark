@@ -32,16 +32,22 @@ public class CostBenchDbManagerJdbc2 extends CostBenchDbManagerJdbc {
     }
 
     @Override
-    public void commit() {
+    public void commit(Runnable listener) {
         if (transaction.isActive()) {
             transaction.commit();
+            if (listener != null) {
+                listener.run();
+            }
         }
     }
 
     @Override
-    public void rollback() {
+    public void rollback(Runnable listener) {
         if (transaction.isActive()) {
             transaction.rollback();
+            if (listener != null) {
+                listener.run();
+            }
         }
     }
 

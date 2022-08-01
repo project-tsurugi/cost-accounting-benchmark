@@ -76,13 +76,15 @@ public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
     public void commitOrRollback(int count) {
         int n = random.random(0, 99);
         if (n < commitRatio) {
-            dbManager.commit();
-            commitCount += count;
-            LOG.info("commit ({}, {}), count={}", batchDate, factoryId, count);
+            dbManager.commit(() -> {
+                commitCount += count;
+                LOG.info("commit ({}, {}), count={}", batchDate, factoryId, count);
+            });
         } else {
-            dbManager.rollback();
-            rollbackCount += count;
-            LOG.info("rollback ({}, {}), count={}", batchDate, factoryId, count);
+            dbManager.rollback(() -> {
+                rollbackCount += count;
+                LOG.info("rollback ({}, {}), count={}", batchDate, factoryId, count);
+            });
         }
     }
 

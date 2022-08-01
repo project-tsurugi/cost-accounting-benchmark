@@ -81,13 +81,20 @@ public class CostBenchDbManagerDoma2 extends CostBenchDbManager {
     }
 
     @Override
-    public void commit() {
-        // do nothing
+    public void commit(Runnable listener) {
+        // FIXME 本当のコミット時に実行したい
+        if (listener != null) {
+            listener.run();
+        }
     }
 
     @Override
-    public void rollback() {
+    public void rollback(Runnable listener) {
         tm.setRollbackOnly();
+        // FIXME 本当のロールバック時に実行したい
+        if (listener != null) {
+            listener.run();
+        }
     }
 
     @Override

@@ -127,9 +127,17 @@ public abstract class CostBenchDbManager implements Closeable {
 
     public abstract <T> T execute(TgTmSetting setting, Supplier<T> supplier);
 
-    public abstract void commit();
+    public final void commit() {
+        commit(null);
+    }
 
-    public abstract void rollback();
+    public abstract void commit(Runnable listener);
+
+    public final void rollback() {
+        rollback(null);
+    }
+
+    public abstract void rollback(Runnable listener);
 
     @Override
     public abstract void close();
