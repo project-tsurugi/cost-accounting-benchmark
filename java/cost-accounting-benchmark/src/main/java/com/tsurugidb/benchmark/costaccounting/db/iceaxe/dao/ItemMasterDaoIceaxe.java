@@ -56,24 +56,21 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
 
     @Override
     public List<ItemMaster> selectByIds(Iterable<Integer> ids, LocalDate date) {
-        StringBuilder sb = new StringBuilder();
-        var variableList = TgVariableList.of();
+        var vlist = TgVariableList.of();
+        var inSql = new SqlIn(I_ID.name());
         var param = TgParameterList.of();
         int i = 0;
         for (int id : ids) {
-            var variable = I_ID.copy(Integer.toString(i++));
-            variableList.add(variable);
-            if (sb.length() != 0) {
-                sb.append(',');
-            }
-            sb.append(variable.sqlName());
+            var variable = I_ID.copy("id" + (i++));
+            vlist.add(variable);
+            inSql.add(variable);
             param.add(variable.bind(id));
         }
-        variableList.add(vDate);
+        vlist.add(vDate);
         param.add(vDate.bind(date));
 
-        var sql = getSelectEntitySql() + " where i_id in (" + sb + ") and " + TG_COND_DATE;
-        var parameterMapping = TgParameterMapping.of(variableList);
+        var sql = getSelectEntitySql() + " where " + inSql + " and " + TG_COND_DATE;
+        var parameterMapping = TgParameterMapping.of(vlist);
         var resultMapping = getEntityResultMapping();
         try (var ps = createPreparedQuery(sql, parameterMapping, resultMapping)) {
             return executeAndGetList(ps, param);
@@ -138,7 +135,7 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
 
     private synchronized TsurugiPreparedStatementQuery1<TgParameterList, ItemMaster> getSelectByIdPs() {
         if (this.selectById == null) {
-            var sql = getSelectEntitySql() + " where i_id = :id and " + TG_COND_DATE;
+            var sql = getSelectEntitySql() + " where i_id = " + vId + " and " + TG_COND_DATE;
             var parameterMapping = TgParameterMapping.of(vId, vDate);
             var resultMapping = getEntityResultMapping();
             this.selectById = createPreparedQuery(sql, parameterMapping, resultMapping);

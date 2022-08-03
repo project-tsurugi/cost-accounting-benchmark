@@ -81,18 +81,19 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
     @Override
     public int deleteByFactories(List<Integer> factoryIdList, LocalDate date) {
         var vlist = TgVariableList.of();
+        var inSql = new SqlIn(R_F_ID.name());
         var param = TgParameterList.of();
         int i = 0;
         for (var factoryId : factoryIdList) {
-            var variable = R_F_ID.copy(Integer.toString(i++));
+            var variable = R_F_ID.copy("id" + (i++));
             vlist.add(variable);
+            inSql.add(variable);
             param.add(variable.bind(factoryId));
         }
-        var in = vlist.getSqlNames();
         vlist.add(vDate);
         param.add(vDate.bind(date));
 
-        var sql = "delete from " + TABLE_NAME + " where r_f_id in (" + in + ") and " + TG_COND_DATE;
+        var sql = "delete from " + TABLE_NAME + " where " + inSql + " and " + TG_COND_DATE;
         var parameterMapping = TgParameterMapping.of(vlist);
         try (var ps = createPreparedStatement(sql, parameterMapping)) {
             return executeAndGetCount(ps, param);

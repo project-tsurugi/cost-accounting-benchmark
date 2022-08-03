@@ -17,6 +17,7 @@ import com.tsurugidb.benchmark.costaccounting.db.doma2.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMaster;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMasterIds;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMasterKey;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.SqlBetween;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.statement.TgVariable;
 
@@ -29,7 +30,7 @@ public interface ItemConstructionMasterDao {
     static final String COND_DATE = "/* date */'2020-09-23' between ic_effective_date and ic_expired_date";
 
     public static final TgVariable<LocalDate> vDate = BenchVariable.ofDate("date");
-    public static final String TG_COND_DATE = vDate.sqlName() + " between ic_effective_date and ic_expired_date";
+    public static final String TG_COND_DATE = new SqlBetween(vDate, "ic_effective_date", "ic_expired_date").toString();
 
     @Delete
 //	@Sql("delete from " + TABLE_NAME)

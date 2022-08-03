@@ -153,20 +153,20 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
         var param = TgParameterList.of();
         param.add(vDate.bind(date));
 
-        var in = TgVariableList.of();
+        var inSql = new SqlIn("i_type");
         int i = 0;
         for (var type : typeList) {
-            var variable = BenchVariable.ofItemType(Integer.toString(i++));
-            in.add(variable);
+            var variable = BenchVariable.ofItemType("t" + (i++));
+            vlist.add(variable);
+            inSql.add(variable);
             param.add(variable.bind(type));
         }
-        vlist.add(in);
 
         var sql = "select ic_parent_i_id, ic_i_id, ic_effective_date" //
                 + " from " + TABLE_NAME + " ic" //
                 + " left join " + ItemMasterDao.TABLE_NAME + " i on i_id=ic_i_id and " + ItemMasterDaoIceaxe.TG_COND_DATE //
                 + " where " + TG_COND_DATE //
-                + " and i_type in(" + in.getSqlNames() + ")" //
+                + " and " + inSql //
         ;
         var parameterMapping = TgParameterMapping.of(vlist);
         var resultMapping = TgResultMapping.of(ItemConstructionMasterKey::new) //
