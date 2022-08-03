@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.IceaxeColumn.RecordGetter;
 import com.tsurugidb.iceaxe.result.TgEntityResultMapping;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
@@ -29,7 +29,7 @@ import com.tsurugidb.iceaxe.transaction.TsurugiTransactionRuntimeException;
 
 public abstract class IceaxeDao<E> {
 
-    protected final CostBenchDbManagerIxeaxe dbManager;
+    protected final CostBenchDbManagerIceaxe dbManager;
     private final String tableName;
     private final List<IceaxeColumn<E, ?>> columnList;
     private final Supplier<E> entitySupplier;
@@ -43,7 +43,7 @@ public abstract class IceaxeDao<E> {
         list.add(new IceaxeColumn<>(variable, entitySetter, entityGetter, recordGetter, primaryKey));
     }
 
-    public IceaxeDao(CostBenchDbManagerIxeaxe dbManager, String tableName, List<IceaxeColumn<E, ?>> columnList, Supplier<E> entitySupplier) {
+    public IceaxeDao(CostBenchDbManagerIceaxe dbManager, String tableName, List<IceaxeColumn<E, ?>> columnList, Supplier<E> entitySupplier) {
         this.dbManager = dbManager;
         this.tableName = tableName;
         this.columnList = columnList;

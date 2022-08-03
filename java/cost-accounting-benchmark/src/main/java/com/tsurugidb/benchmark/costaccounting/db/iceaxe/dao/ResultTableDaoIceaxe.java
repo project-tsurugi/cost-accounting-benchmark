@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ResultTable;
-import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
@@ -49,7 +49,7 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
         COLUMN_LIST = list;
     }
 
-    public ResultTableDaoIceaxe(CostBenchDbManagerIxeaxe dbManager) {
+    public ResultTableDaoIceaxe(CostBenchDbManagerIceaxe dbManager) {
         super(dbManager, TABLE_NAME, COLUMN_LIST, ResultTable::new);
     }
 

@@ -14,7 +14,7 @@ import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemManufacturingMast
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ResultTableDao;
-import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.raw.CostBenchDbManagerJdbc1;
 import com.tsurugidb.benchmark.costaccounting.db.raw.CostBenchDbManagerJdbc2;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
@@ -45,7 +45,7 @@ public abstract class CostBenchDbManager implements Closeable {
                 manager = new CostBenchDbManagerJdbc2();
                 break;
             case 4:
-                manager = new CostBenchDbManagerIxeaxe();
+                manager = new CostBenchDbManagerIceaxe();
                 break;
             }
         }

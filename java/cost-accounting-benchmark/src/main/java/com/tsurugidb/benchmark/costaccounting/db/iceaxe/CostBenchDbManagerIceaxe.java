@@ -34,15 +34,15 @@ import com.tsurugidb.iceaxe.transaction.TsurugiTransactionException;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransactionManager;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransactionRuntimeException;
 
-public class CostBenchDbManagerIxeaxe extends CostBenchDbManager {
-    private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManagerIxeaxe.class);
+public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
+    private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManagerIceaxe.class);
 
     private final TsurugiSession session;
     private final TsurugiTransactionManager transactionManager;
 
     private final ThreadLocal<TsurugiTransaction> transactionThreadLocal = new ThreadLocal<>();
 
-    public CostBenchDbManagerIxeaxe() {
+    public CostBenchDbManagerIceaxe() {
         var endpoint = BenchConst.tsurugiEndpoint();
         var connector = TsurugiConnector.createConnector(endpoint);
         try {

@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.CostMaster;
-import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
@@ -30,7 +30,7 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
         COLUMN_LIST = list;
     }
 
-    public CostMasterDaoIceaxe(CostBenchDbManagerIxeaxe dbManager) {
+    public CostMasterDaoIceaxe(CostBenchDbManagerIceaxe dbManager) {
         super(dbManager, TABLE_NAME, COLUMN_LIST, CostMaster::new);
     }
 

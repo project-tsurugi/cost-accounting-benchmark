@@ -9,7 +9,7 @@ import java.util.List;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemMaster;
-import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
@@ -40,7 +40,7 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
         COLUMN_LIST = list;
     }
 
-    public ItemMasterDaoIceaxe(CostBenchDbManagerIxeaxe dbManager) {
+    public ItemMasterDaoIceaxe(CostBenchDbManagerIceaxe dbManager) {
         super(dbManager, TABLE_NAME, COLUMN_LIST, ItemMaster::new);
     }
 

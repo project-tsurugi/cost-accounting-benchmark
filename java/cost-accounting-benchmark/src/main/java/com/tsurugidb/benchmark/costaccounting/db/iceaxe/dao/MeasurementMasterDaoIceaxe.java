@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.MeasurementMaster;
-import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 
 public class MeasurementMasterDaoIceaxe extends IceaxeDao<MeasurementMaster> implements MeasurementMasterDao {
@@ -21,7 +21,7 @@ public class MeasurementMasterDaoIceaxe extends IceaxeDao<MeasurementMaster> imp
         COLUMN_LIST = list;
     }
 
-    public MeasurementMasterDaoIceaxe(CostBenchDbManagerIxeaxe dbManager) {
+    public MeasurementMasterDaoIceaxe(CostBenchDbManagerIceaxe dbManager) {
         super(dbManager, TABLE_NAME, COLUMN_LIST, MeasurementMaster::new);
     }
 

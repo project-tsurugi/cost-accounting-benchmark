@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.FactoryMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.FactoryMaster;
-import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
@@ -24,7 +24,7 @@ public class FactoryMasterDaoIceaxe extends IceaxeDao<FactoryMaster> implements 
         COLUMN_LIST = list;
     }
 
-    public FactoryMasterDaoIceaxe(CostBenchDbManagerIxeaxe dbManager) {
+    public FactoryMasterDaoIceaxe(CostBenchDbManagerIceaxe dbManager) {
         super(dbManager, TABLE_NAME, COLUMN_LIST, FactoryMaster::new);
     }
 

@@ -13,7 +13,7 @@ import com.tsurugidb.benchmark.costaccounting.db.doma2.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMaster;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMasterIds;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMasterKey;
-import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
@@ -40,7 +40,7 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
         COLUMN_LIST = list;
     }
 
-    public ItemConstructionMasterDaoIceaxe(CostBenchDbManagerIxeaxe dbManager) {
+    public ItemConstructionMasterDaoIceaxe(CostBenchDbManagerIceaxe dbManager) {
         super(dbManager, TABLE_NAME, COLUMN_LIST, ItemConstructionMaster::new);
     }
 

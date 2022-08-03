@@ -8,6 +8,7 @@ import com.tsurugidb.iceaxe.result.TsurugiResultRecord;
 import com.tsurugidb.iceaxe.statement.TgDataType;
 import com.tsurugidb.iceaxe.statement.TgEntityParameterMapping;
 import com.tsurugidb.iceaxe.statement.TgVariable;
+import com.tsurugidb.iceaxe.transaction.TsurugiTransactionException;
 
 /**
  * column for Iceaxe
@@ -19,7 +20,7 @@ public class IceaxeColumn<E, V> {
 
     @FunctionalInterface
     public interface RecordGetter<V> {
-        public V get(TsurugiResultRecord record) throws IOException;
+        public V get(TsurugiResultRecord record) throws IOException, TsurugiTransactionException;
     }
 
     private final TgVariable<V> variable;
@@ -62,7 +63,7 @@ public class IceaxeColumn<E, V> {
     }
 
     // entity.setFId(record.getInt("f_id"));
-    public void fillEntity(E entity, TsurugiResultRecord record) throws IOException {
+    public void fillEntity(E entity, TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
         V value = recordGetter.get(record);
         entitySetter.accept(entity, value);
     }

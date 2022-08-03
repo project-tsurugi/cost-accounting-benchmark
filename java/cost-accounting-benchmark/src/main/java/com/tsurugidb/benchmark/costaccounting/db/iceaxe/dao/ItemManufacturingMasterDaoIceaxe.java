@@ -12,7 +12,7 @@ import org.seasar.doma.jdbc.SelectOptions;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemManufacturingMasterIds;
-import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIxeaxe;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
@@ -37,7 +37,7 @@ public class ItemManufacturingMasterDaoIceaxe extends IceaxeDao<ItemManufacturin
         COLUMN_LIST = list;
     }
 
-    public ItemManufacturingMasterDaoIceaxe(CostBenchDbManagerIxeaxe dbManager) {
+    public ItemManufacturingMasterDaoIceaxe(CostBenchDbManagerIceaxe dbManager) {
         super(dbManager, TABLE_NAME, COLUMN_LIST, ItemManufacturingMaster::new);
     }
 
