@@ -22,10 +22,10 @@ import org.slf4j.LoggerFactory;
 import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchFactoryTask;
 import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchItemTask;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.FactoryMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemManufacturingMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ResultTableDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemManufacturingMaster;
+import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
@@ -121,7 +121,7 @@ public class CostAccountingBatch {
     }
 
     private CostBenchDbManager createDbManager() {
-        int type = BenchConst.batchJdbcType();
+        int type = BenchConst.batchDbManagerType();
         return CostBenchDbManager.createInstance(type);
     }
 

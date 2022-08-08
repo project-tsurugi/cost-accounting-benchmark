@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.tsurugidb.benchmark.costaccounting.db.doma2.domain.MeasurementType;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.MeasurementMaster;
+import com.tsurugidb.benchmark.costaccounting.db.domain.MeasurementType;
+import com.tsurugidb.benchmark.costaccounting.db.entity.MeasurementMaster;
 
 public class MeasurementUtilTestSupport {
 

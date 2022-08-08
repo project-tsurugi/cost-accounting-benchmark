@@ -11,10 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 
 import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchItemTask.BomNode;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.CostMaster;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMaster;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemManufacturingMaster;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemConstructionMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtilTestSupport;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementValue;
 

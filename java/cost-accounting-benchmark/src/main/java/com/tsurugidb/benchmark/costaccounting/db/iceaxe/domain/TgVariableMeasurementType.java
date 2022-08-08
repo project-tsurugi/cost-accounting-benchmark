@@ -1,6 +1,6 @@
 package com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain;
 
-import com.tsurugidb.benchmark.costaccounting.db.doma2.domain.MeasurementType;
+import com.tsurugidb.benchmark.costaccounting.db.domain.MeasurementType;
 import com.tsurugidb.iceaxe.statement.TgDataType;
 import com.tsurugidb.iceaxe.statement.TgParameter;
 import com.tsurugidb.iceaxe.statement.TgVariable;

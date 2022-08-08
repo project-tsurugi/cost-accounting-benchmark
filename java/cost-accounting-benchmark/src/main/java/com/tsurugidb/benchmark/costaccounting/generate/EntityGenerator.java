@@ -5,7 +5,6 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -21,15 +20,14 @@ public class EntityGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(EntityGenerator.class);
 
     public static void main(String[] args) throws Exception {
-        // new EntityExample().main(args[0], args[1]);
-        new EntityGenerator().main(BenchConst.tableXlsxPath(), BenchConst.srcDir() + "/" + BenchConst.PACKAGE_ENTITY.replace('.', '/'));
+        Path src = Path.of(BenchConst.tableXlsxPath());
+        Path dst = Path.of(/* src/main/java/ full path */args[0], BenchConst.PACKAGE_ENTITY.replace('.', '/'));
+        new EntityGenerator().main(src, dst);
     }
 
-    private void main(String src, String dst) throws Exception {
-        File srcFile = new File(src);
+    private void main(Path src, Path dstDir) throws Exception {
+        File srcFile = src.toFile();
         LOG.info("src={}", srcFile);
-
-        Path dstDir = Paths.get(dst);
 
         try (Workbook workbook = WorkbookFactory.create(srcFile)) {
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {

@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.MeasurementMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.domain.MeasurementType;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.MeasurementMaster;
+import com.tsurugidb.benchmark.costaccounting.db.dao.MeasurementMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.domain.MeasurementType;
+import com.tsurugidb.benchmark.costaccounting.db.entity.MeasurementMaster;
 
 public class MeasurementUtil {
 

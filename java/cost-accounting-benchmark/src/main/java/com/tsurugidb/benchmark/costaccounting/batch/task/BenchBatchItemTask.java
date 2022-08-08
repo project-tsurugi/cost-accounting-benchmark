@@ -21,22 +21,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.CostBenchDbManagerDoma2;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.CostMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemConstructionMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemManufacturingMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ResultTableDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.CostMaster;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMaster;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemManufacturingMaster;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemMaster;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ResultTable;
+import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemConstructionMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
+import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemConstructionMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ResultTable;
+import com.tsurugidb.benchmark.costaccounting.db.jdbc.CostBenchDbManagerJdbc;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
-import com.tsurugidb.benchmark.costaccounting.util.MeasurementValue;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil.ValuePair;
+import com.tsurugidb.benchmark.costaccounting.util.MeasurementValue;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
@@ -586,7 +586,7 @@ public class BenchBatchItemTask {
     }
 
     static void test1() {
-        CostBenchDbManager manager = new CostBenchDbManagerDoma2();
+        CostBenchDbManager manager = new CostBenchDbManagerJdbc();
         BenchBatchItemTask task = new BenchBatchItemTask(manager, InitialData.DEFAULT_BATCH_DATE);
 
         var setting = TgTmSetting.of(TgTxOption.ofRTX());
@@ -616,7 +616,7 @@ public class BenchBatchItemTask {
         int itemId = 11649;
         LocalDate date = InitialData.DEFAULT_BATCH_DATE;
 
-        CostBenchDbManager manager = new CostBenchDbManagerDoma2();
+        CostBenchDbManager manager = new CostBenchDbManagerJdbc();
         BenchBatchItemTask task = new BenchBatchItemTask(manager, date);
 
         var setting = TgTmSetting.of(TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));

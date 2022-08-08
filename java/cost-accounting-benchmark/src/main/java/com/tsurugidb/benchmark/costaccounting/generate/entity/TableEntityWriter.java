@@ -22,11 +22,6 @@ public class TableEntityWriter extends WriterWrapper {
     private final TableSheet table;
 
     private final Set<String> importSet = new TreeSet<>();
-    {
-        importSet.add("org.seasar.doma.Column");
-        importSet.add("org.seasar.doma.Entity");
-        importSet.add("org.seasar.doma.Table");
-    }
 
     public TableEntityWriter(TableSheet table, BufferedWriter writer) {
         super(writer, "    ");
@@ -56,21 +51,20 @@ public class TableEntityWriter extends WriterWrapper {
         table.getRows().forEach(row -> {
             // initialize importSet
             getType(row);
-
-            if (isPrimaryKey(row)) {
-                importSet.add("org.seasar.doma.Id");
-            }
         });
 
-        for (String s : importSet) {
-            writeln("import ", s, ";");
+        if (!importSet.isEmpty()) {
+            for (String s : importSet) {
+                writeln("import ", s, ";");
+            }
+            writeln();
         }
-        writeln();
     }
 
     private void writeClassName() throws IOException {
-        writeln("@Entity");
-        writeln("@Table(name = \"", table.getTableName(), "\")");
+        writeln("/**");
+        writeln(" * ", table.getTableName());
+        writeln(" */");
         String dateRange = table.hasDateRange() ? ", HasDateRange" : "";
         writeln("public class ", table.getClassName(), " implements Cloneable", dateRange, " {");
     }
@@ -79,12 +73,8 @@ public class TableEntityWriter extends WriterWrapper {
         table.getRows().forEachOrdered(row -> {
             try {
                 writeln();
-                writeln(1, "/** ", getTypeComment(row), " */");
-                writeln(1, "@Column(name = \"", table.getColumnName(row), "\")");
-                if (isPrimaryKey(row)) {
-                    writeln(1, "@Id");
-                }
-                writeln(1, getType(row), " ", table.getColumnFieldName(row), ";");
+                writeln(1, "/** ", table.getColumnName(row), " ", getTypeComment(row), " */");
+                writeln(1, "private ", getType(row), " ", table.getColumnFieldName(row), ";");
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }

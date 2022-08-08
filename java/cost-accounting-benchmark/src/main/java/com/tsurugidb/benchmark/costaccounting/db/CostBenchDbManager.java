@@ -6,17 +6,15 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.tsurugidb.benchmark.costaccounting.db.doma2.CostBenchDbManagerDoma2;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.CostMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.FactoryMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemConstructionMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemManufacturingMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.MeasurementMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ResultTableDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemConstructionMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.MeasurementMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
-import com.tsurugidb.benchmark.costaccounting.db.raw.CostBenchDbManagerJdbc1;
-import com.tsurugidb.benchmark.costaccounting.db.raw.CostBenchDbManagerJdbc2;
+import com.tsurugidb.benchmark.costaccounting.db.jdbc.CostBenchDbManagerJdbc;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 
@@ -36,15 +34,9 @@ public abstract class CostBenchDbManager implements Closeable {
         {
             switch (type) {
             default:
-                manager = new CostBenchDbManagerDoma2();
+                manager = new CostBenchDbManagerJdbc();
                 break;
             case 2:
-                manager = new CostBenchDbManagerJdbc1();
-                break;
-            case 3:
-                manager = new CostBenchDbManagerJdbc2();
-                break;
-            case 4:
                 manager = new CostBenchDbManagerIceaxe();
                 break;
             }

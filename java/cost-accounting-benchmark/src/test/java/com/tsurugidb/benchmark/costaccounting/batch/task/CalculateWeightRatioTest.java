@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchItemTask.BomNode;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemManufacturingMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtilTestSupport;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementValue;

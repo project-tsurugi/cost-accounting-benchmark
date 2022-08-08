@@ -4,7 +4,6 @@ plugins {
     id 'java-library-distribution'
 
     id 'com.diffplug.eclipse.apt' version '3.24.0'
-    id 'org.seasar.doma.compile' version '1.1.0'
     id 'com.github.spotbugs' version '4.7.1'
 }
 
@@ -84,10 +83,6 @@ dependencies {
   // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml
   implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '4.1.2'
 
-  // https://mvnrepository.com/artifact/org.seasar.doma/doma
-  implementation "org.seasar.doma:doma-core:2.41.0"
-  annotationProcessor "org.seasar.doma:doma-processor:2.41.0"
-
   // https://mvnrepository.com/artifact/org.apache.commons/commons-math3
   implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
 
@@ -123,20 +118,5 @@ task showIceaxeManifest {
         }
         def version = resources.text.fromArchiveEntry(iceaxeJar, "META-INF/MANIFEST.MF")
         print(version.asString())
-    }
-}
-
-eclipse {
-    classpath {
-        file {
-            whenMerged { classpath ->
-                classpath.entries.removeAll { it.path == '.apt_generated' }
-            }
-            withXml { provider ->
-                def node = provider.asNode()
-                // specify output path for .apt_generated
-                node.appendNode( 'classpathentry', [ kind: 'src', output: 'bin/main', path: '.apt_generated'])
-            }
-        }
     }
 }

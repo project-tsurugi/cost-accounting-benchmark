@@ -3,8 +3,8 @@ package com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.MeasurementMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.MeasurementMaster;
+import com.tsurugidb.benchmark.costaccounting.db.dao.MeasurementMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.entity.MeasurementMaster;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 

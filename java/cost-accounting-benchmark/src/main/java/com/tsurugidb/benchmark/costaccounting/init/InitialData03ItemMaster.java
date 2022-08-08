@@ -13,11 +13,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemConstructionMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.domain.ItemType;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMaster;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemMaster;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemConstructionMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemConstructionMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.util.AmplificationRecord;
 import com.tsurugidb.benchmark.costaccounting.init.util.DaoListTask;
 import com.tsurugidb.benchmark.costaccounting.init.util.DaoSplitTask;

@@ -7,11 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.seasar.doma.jdbc.SelectOptions;
-
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemManufacturingMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemManufacturingMaster;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemManufacturingMasterIds;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMasterIds;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
@@ -161,11 +159,6 @@ public class ItemManufacturingMasterDaoIceaxe extends IceaxeDao<ItemManufacturin
             this.selectByIdPs = createPreparedQuery(sql, parameterMapping, resultMapping);
         }
         return this.selectByIdPs;
-    }
-
-    @Override
-    public ItemManufacturingMaster selectByIdOptions(int factoryId, int itemId, LocalDate date, SelectOptions options) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

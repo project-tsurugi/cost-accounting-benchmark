@@ -13,6 +13,20 @@ import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
 
 public class BenchConst {
 
+    public static DbmsType dbmsType() {
+        String type = getProperty("dbms.type");
+        switch (type.toLowerCase()) {
+        case "oracle":
+            return DbmsType.ORACLE;
+        case "postgresql":
+            return DbmsType.POSTGRESQL;
+        case "tsurugi":
+            return DbmsType.TSURUGI;
+        default:
+            throw new UnsupportedOperationException("unsupported dbms.type=" + type);
+        }
+    }
+
     public static String jdbcUrl() {
         return getProperty("jdbc.url");
     }
@@ -49,40 +63,16 @@ public class BenchConst {
         return docDir() + "/measurement.xlsx";
     }
 
-    public static String srcDir() {
-        return getProperty("src.dir");
-    }
-
-    public static final String PACKAGE_DOMAIN = "com.tsurugidb.benchmark.costaccounting.db.doma2.domain";
-    public static final String PACKAGE_ENTITY = "com.tsurugidb.benchmark.costaccounting.db.doma2.entity";
-
-    public static DbmsType dbmsType() {
-        String jdbcUrl = getProperty("jdbc.url", false);
-        if (jdbcUrl != null) {
-            if (jdbcUrl.contains("jdbc:oracle")) {
-                return DbmsType.ORACLE;
-            }
-            if (jdbcUrl.contains("jdbc:postgresql")) {
-                return DbmsType.POSTGRESQL;
-            }
-            throw new AssertionError(jdbcUrl);
-        }
-
-        String tsurugiEndpoint = getProperty("tsurugi.endpoint", false);
-        if (tsurugiEndpoint != null) {
-            return DbmsType.TSURUGI;
-        }
-
-        throw new AssertionError();
-    }
+    public static final String PACKAGE_DOMAIN = "com.tsurugidb.benchmark.costaccounting.db.domain";
+    public static final String PACKAGE_ENTITY = "com.tsurugidb.benchmark.costaccounting.db.entity";
 
     // batch
     public static int batchExecuteType() {
         return getPropertyInt("batch.execute.type", 2);
     }
 
-    public static int batchJdbcType() {
-        return getPropertyInt("batch.jdbc.type", 1);
+    public static int batchDbManagerType() {
+        return getPropertyInt("batch.dbmanager.type", 1);
     }
 
     public static int batchParallelism() {
@@ -98,8 +88,8 @@ public class BenchConst {
         return Paths.get(s);
     }
 
-    public static int onlineJdbcType() {
-        return getPropertyInt("online.jdbc.type", 1);
+    public static int onlineDbManagerType() {
+        return getPropertyInt("online.dbmanager.type", 1);
     }
 
     public static int onlineTaskRatio(String taskName) {
@@ -111,8 +101,8 @@ public class BenchConst {
     }
 
     // initial data
-    public static int initJdbcType() {
-        return getPropertyInt("init.jdbc.type", 1);
+    public static int initDbManagerType() {
+        return getPropertyInt("init.dbmanager.type", 1);
     }
 
     public static LocalDate initBatchDate() {

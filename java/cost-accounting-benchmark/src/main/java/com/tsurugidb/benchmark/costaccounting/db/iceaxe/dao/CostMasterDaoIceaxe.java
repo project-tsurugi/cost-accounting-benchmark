@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.CostMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.CostMaster;
+import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.statement.TgParameterList;

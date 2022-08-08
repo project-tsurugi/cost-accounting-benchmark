@@ -5,8 +5,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
-import com.tsurugidb.benchmark.costaccounting.db.doma2.domain.ItemType;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.domain.MeasurementType;
+import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
+import com.tsurugidb.benchmark.costaccounting.db.domain.MeasurementType;
 import com.tsurugidb.iceaxe.result.TsurugiResultRecord;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransactionException;
 

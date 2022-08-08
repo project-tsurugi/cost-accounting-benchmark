@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.TreeMap;
 
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.HasDateRange;
+import com.tsurugidb.benchmark.costaccounting.db.entity.HasDateRange;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 
 // thread safe

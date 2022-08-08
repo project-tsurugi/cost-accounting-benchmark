@@ -10,7 +10,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.ConstraintCheck.ConstraintCheckException;
 
 class ConstraintCheckTest {

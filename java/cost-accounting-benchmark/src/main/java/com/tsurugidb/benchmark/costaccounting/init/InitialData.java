@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.HasDateRange;
+import com.tsurugidb.benchmark.costaccounting.db.entity.HasDateRange;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
@@ -55,7 +55,7 @@ public class InitialData {
     }
 
     static CostBenchDbManager createDbManager() {
-        int type = BenchConst.initJdbcType();
+        int type = BenchConst.initDbManagerType();
         return CostBenchDbManager.createInstance(type);
     }
 

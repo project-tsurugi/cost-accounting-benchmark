@@ -8,8 +8,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ResultTableDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ResultTable;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ResultTable;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.result.TgResultMapping;

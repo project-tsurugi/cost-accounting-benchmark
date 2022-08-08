@@ -1,7 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.init;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ResultTableDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 
 public class InitialData06ResultTable extends InitialData {
 

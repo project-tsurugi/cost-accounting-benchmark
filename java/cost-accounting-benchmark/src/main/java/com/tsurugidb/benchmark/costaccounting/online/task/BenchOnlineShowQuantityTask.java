@@ -3,12 +3,12 @@ package com.tsurugidb.benchmark.costaccounting.online.task;
 import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.FactoryMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ResultTableDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.FactoryMaster;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemMaster;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ResultTable;
+import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
+import com.tsurugidb.benchmark.costaccounting.db.entity.FactoryMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ResultTable;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;

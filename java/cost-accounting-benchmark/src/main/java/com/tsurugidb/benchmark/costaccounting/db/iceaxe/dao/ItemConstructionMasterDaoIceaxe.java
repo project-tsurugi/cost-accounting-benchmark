@@ -7,12 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemConstructionMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.dao.ItemMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.domain.ItemType;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMaster;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMasterIds;
-import com.tsurugidb.benchmark.costaccounting.db.doma2.entity.ItemConstructionMasterKey;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemConstructionMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemConstructionMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemConstructionMasterIds;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemConstructionMasterKey;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.result.TgResultMapping;

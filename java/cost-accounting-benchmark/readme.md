@@ -2,12 +2,11 @@
 
 ## 開発環境構築
 
+Eclipseのプロジェクトは以下のコマンドで作成する。
+
 ````bash
 ./gradlew cleanEclipse eclipse
 ````
-
-Eclipse上で、Doma2のDAOのsqlファイルが見つからなくてコンパイルエラーになるかもしれない。
-その場合、src/main/resourcesのビルドパス（出力先）を修正する。（bin/mainをbin/defaultにする）
 
 
 
@@ -23,7 +22,7 @@ Eclipse上で、Doma2のDAOのsqlファイルが見つからなくてコンパ�
   - table.xlsxを読み込み、ddlファイル（create table）を作成する。
   - ただし、initdata.shを使用する場合はその中でテーブルを作成するので、ddlファイルを使ってテーブルを作成する必要は無い。
 - EntityGenerator
-  - table.xlsxを読み込み、Doma2のEntityクラスのソースファイルを生成する。
+  - table.xlsxを読み込み、Entityクラスのソースファイルを生成する。
 
 
 

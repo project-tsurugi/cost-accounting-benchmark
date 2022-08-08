@@ -91,7 +91,7 @@
 プロパティーは、プロパティーファイルに記述する他に、javaコマンドの引数で指定できる。
 
 - プロパティーファイルで指定する場合、javaコマンドに `-Dproperty="プロパティーファイルのパス"` を指定する。
-- 個別に指定する場合、javaコマンドの-Dオプションで指定する。（例 `-Donline.jdbc.type=3` ）
+- 個別に指定する場合、javaコマンドの-Dオプションで指定する。（例 `-Donline.dbmanager.type=1` ）
 
 
 
@@ -107,12 +107,10 @@
   - Tsurugiに接続する場合のエンドポイント
 - tsurugi.user, tsurugi.password
   - Tsurugiに接続する場合のユーザー・パスワード
-- *.jdbc.type
+- *.dbmanager.type
   - JDBC実行に使用するライブラリー
-    - 1: Doma2
-    - 2: 生JDBC
-    - 3: コネクション（トランザクション管理）はDoma2を使用し、SQLの実行は生JDBCを使う方式
-    - 4: Tsurugi（Iceaxe）
+    - 1: JDBC
+    - 2: Tsurugi（Iceaxe）
 - decimal.scale
   - BigDecimalの除算時の小数点以下の桁数
 
