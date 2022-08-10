@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.domain.MeasurementType;
 import com.tsurugidb.iceaxe.result.TsurugiResultRecord;
-import com.tsurugidb.iceaxe.transaction.TsurugiTransactionException;
+import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 
 public class IceaxeRecordUtil {
 

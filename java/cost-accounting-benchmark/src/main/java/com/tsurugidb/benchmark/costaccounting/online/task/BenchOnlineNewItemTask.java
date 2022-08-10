@@ -5,6 +5,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
@@ -22,6 +25,7 @@ import com.tsurugidb.iceaxe.transaction.TgTxOption;
  * 新規開発商品の追加
  */
 public class BenchOnlineNewItemTask extends BenchOnlineTask {
+    private static final Logger LOG = LoggerFactory.getLogger(BenchOnlineNewItemTask.class);
 
     private static final TgTmSetting TX_PRE = TgTmSetting.of( //
             TgTxOption.ofOCC(), //
@@ -36,20 +40,27 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 
     @Override
     protected boolean execute1() {
-        ItemMaster item;
-        for (;;) {
-            ItemMaster i = dbManager.execute(TX_PRE, () -> {
-                return executeMain();
-            });
-            if (i != null) {
-                item = i;
-                break;
-            }
-        }
+        ItemMaster item = getNewItemMasger();
         dbManager.execute(TX_MAIN, () -> {
             executeMain2(item);
         });
         return true;
+    }
+
+    protected ItemMaster getNewItemMasger() {
+        for (;;) {
+            try {
+                ItemMaster i = dbManager.execute(TX_PRE, () -> {
+                    return executeMain();
+                });
+                if (i != null) {
+                    return i;
+                }
+            } catch (UniqueConstraintException e) {
+                LOG.debug("duplicate item_master (transaction)", e);
+                continue;
+            }
+        }
     }
 
     protected ItemMaster executeMain() {
@@ -103,6 +114,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
         try {
             itemMasterDao.insert(entity);
         } catch (UniqueConstraintException e) {
+            LOG.debug("duplicate item_master (insert)", e);
             return null;
         } catch (Exception e) {
             e.printStackTrace();

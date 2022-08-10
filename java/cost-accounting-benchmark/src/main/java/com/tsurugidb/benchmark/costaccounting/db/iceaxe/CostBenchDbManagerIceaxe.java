@@ -7,7 +7,9 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.nautilus_technologies.tsubakuro.exception.SqlServiceCode;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
+import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemConstructionMasterDao;
@@ -30,9 +32,10 @@ import com.tsurugidb.iceaxe.session.TsurugiSession;
 import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
-import com.tsurugidb.iceaxe.transaction.TsurugiTransactionException;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransactionManager;
-import com.tsurugidb.iceaxe.transaction.TsurugiTransactionRuntimeException;
+import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
+import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionIOException;
+import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionRuntimeException;
 
 public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManagerIceaxe.class);
@@ -145,6 +148,16 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                     transactionThreadLocal.remove();
                 }
             });
+        } catch (TsurugiTransactionIOException e) {
+            var causeOpt = e.findTransactionException();
+            causeOpt.ifPresent(cause -> {
+                var code = cause.getDiagnosticCode();
+                // FIXME コミット時の一意制約違反の判定方法
+                if (code == SqlServiceCode.ERR_ALREADY_EXISTS || code == SqlServiceCode.ERR_ABORTED) {
+                    throw new UniqueConstraintException(e);
+                }
+            });
+            throw new UncheckedIOException(e);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

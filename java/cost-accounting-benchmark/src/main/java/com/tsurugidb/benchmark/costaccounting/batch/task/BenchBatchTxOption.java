@@ -7,7 +7,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 import com.tsurugidb.iceaxe.transaction.TgTxOptionAlways;
 import com.tsurugidb.iceaxe.transaction.TgTxState;
-import com.tsurugidb.iceaxe.transaction.TsurugiTransactionException;
+import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 
 public class BenchBatchTxOption extends TgTxOptionAlways {
     private static final Logger LOG = LoggerFactory.getLogger(BenchBatchTxOption.class);

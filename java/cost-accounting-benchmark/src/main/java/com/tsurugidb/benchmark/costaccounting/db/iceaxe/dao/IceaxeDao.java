@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import com.nautilus_technologies.tsubakuro.exception.SqlServiceCode;
+import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.IceaxeColumn.RecordGetter;
 import com.tsurugidb.iceaxe.result.TgEntityResultMapping;
@@ -24,8 +26,8 @@ import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery1;
 import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate0;
 import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate1;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
-import com.tsurugidb.iceaxe.transaction.TsurugiTransactionException;
-import com.tsurugidb.iceaxe.transaction.TsurugiTransactionRuntimeException;
+import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
+import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionRuntimeException;
 
 public abstract class IceaxeDao<E> {
 
@@ -74,7 +76,6 @@ public abstract class IceaxeDao<E> {
 
     protected final int doInsert(E entity) {
         var ps = getInsertPs();
-        // TODO ユニークキー制約違反時、UniqueConstraintExceptionを発生させる
         return executeAndGetCount(ps, entity);
     }
 
@@ -219,8 +220,20 @@ public abstract class IceaxeDao<E> {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } catch (TsurugiTransactionException e) {
+            if (isUniqueConstraint(e)) {
+                throw new UniqueConstraintException(e);
+            }
             throw new TsurugiTransactionRuntimeException(e);
         }
+    }
+
+    private boolean isUniqueConstraint(TsurugiTransactionException e) {
+        var code = e.getDiagnosticCode();
+        if (code == SqlServiceCode.ERR_ALREADY_EXISTS) {
+            // 同一トランザクション内でinsertの一意制約違反
+            return true;
+        }
+        return false;
     }
 
     protected final <R> TsurugiPreparedStatementQuery0<R> createPreparedQuery(String sql, TgResultMapping<R> resultMapping) {

@@ -4,6 +4,9 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
@@ -19,6 +22,7 @@ import com.tsurugidb.iceaxe.transaction.TgTxOption;
  * 生産数の変更
  */
 public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
+    private static final Logger LOG = LoggerFactory.getLogger(BenchOnlineUpdateManufacturingTask.class);
 
     private static final TgTmSetting TX_PRE = TgTmSetting.of( //
             TgTxOption.ofOCC(), //
@@ -42,11 +46,16 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
         int newQuantity = random.random(0, 500) * 100;
 
         for (;;) {
-            boolean ok = dbManager.execute(TX_MAIN, () -> {
-                return executeMain(productId, newQuantity);
-            });
-            if (ok) {
-                return true;
+            try {
+                boolean ok = dbManager.execute(TX_MAIN, () -> {
+                    return executeMain(productId, newQuantity);
+                });
+                if (ok) {
+                    return true;
+                }
+            } catch (UniqueConstraintException e) {
+                LOG.debug("duplicate item_manufacturing_master (transaction)", e);
+                continue;
             }
         }
     }
@@ -89,6 +98,7 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
             try {
                 itemManufacturingMasterDao.insert(entity);
             } catch (UniqueConstraintException e) {
+                LOG.debug("duplicate item_manufacturing_master (insert)", e);
                 return false;
             }
         } else {
