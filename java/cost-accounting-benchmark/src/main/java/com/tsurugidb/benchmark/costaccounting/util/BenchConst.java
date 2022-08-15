@@ -79,6 +79,10 @@ public class BenchConst {
         return getPropertyInt("batch.parallelism", 0);
     }
 
+    public static String batchTsurugiTxOption() {
+        return getProperty("batch.tsurugi.tx.option");
+    }
+
     public static final int DECIMAL_SCALE = getPropertyInt("decimal.scale", 20);
 
     // online

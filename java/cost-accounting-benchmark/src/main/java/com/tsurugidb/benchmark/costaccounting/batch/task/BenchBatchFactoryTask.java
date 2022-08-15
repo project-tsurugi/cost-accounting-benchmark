@@ -18,8 +18,6 @@ import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
     private static final Logger LOG = LoggerFactory.getLogger(BenchBatchFactoryTask.class);
 
-    private static final TgTmSetting TX_BATCH = TgTmSetting.of(new BenchBatchTxOption());
-
     private final CostBenchDbManager dbManager;
     private final int commitRatio;
     private final LocalDate batchDate;
@@ -41,7 +39,11 @@ public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
     public void run() {
         BenchBatchItemTask itemTask = new BenchBatchItemTask(dbManager, batchDate);
 
-        dbManager.execute(TX_BATCH, () -> {
+        var option = BenchBatchTxOption.of(factoryId);
+        LOG.info("tx={}", option);
+        TgTmSetting setting = TgTmSetting.of(option);
+
+        dbManager.execute(setting, () -> {
             deleteResult();
 
             int[] count = { 0 };

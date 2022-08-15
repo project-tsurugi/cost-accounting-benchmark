@@ -1,8 +1,28 @@
 package com.tsurugidb.benchmark.costaccounting.batch;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class StringUtil {
+
+    public static List<Integer> toIntegerList(String arg) {
+        List<Integer> list = new ArrayList<>();
+
+        String[] ss = arg.split(",");
+        for (String s : ss) {
+            int n = s.indexOf('-');
+            if (n >= 0) {
+                int start = Integer.parseInt(s.substring(0, n).trim());
+                int end = Integer.parseInt(s.substring(n + 1).trim());
+                IntStream.rangeClosed(start, end).forEach(id -> list.add(id));
+            } else {
+                list.add(Integer.parseInt(s.trim()));
+            }
+        }
+
+        return list;
+    }
 
     public static String toString(List<Integer> list) {
         StringBuilder sb = new StringBuilder();

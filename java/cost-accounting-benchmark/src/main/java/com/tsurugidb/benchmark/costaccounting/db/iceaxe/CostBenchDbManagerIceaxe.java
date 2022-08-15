@@ -133,7 +133,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                 }
             });
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(Thread.currentThread().getName(), e);
         }
     }
 
@@ -157,9 +157,9 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                     throw new UniqueConstraintException(e);
                 }
             });
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(Thread.currentThread().getName(), e);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(Thread.currentThread().getName(), e);
         }
     }
 

@@ -3,7 +3,6 @@ package com.tsurugidb.benchmark.costaccounting.batch;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -13,7 +12,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -49,20 +47,10 @@ public class CostAccountingBatch {
             batchDate = LocalDate.parse(args[0]);
         }
 
-        List<Integer> factoryList = new ArrayList<>();
+        List<Integer> factoryList = null;
         if (args.length >= 2) {
             if (!args[1].trim().equalsIgnoreCase("all")) {
-                String[] ss = args[1].split(",");
-                for (String s : ss) {
-                    int n = s.indexOf('-');
-                    if (n >= 0) {
-                        int start = Integer.parseInt(s.substring(0, n).trim());
-                        int end = Integer.parseInt(s.substring(n + 1).trim());
-                        IntStream.rangeClosed(start, end).forEach(id -> factoryList.add(id));
-                    } else {
-                        factoryList.add(Integer.parseInt(s.trim()));
-                    }
-                }
+                factoryList = StringUtil.toIntegerList(args[1]);
             }
         }
 
