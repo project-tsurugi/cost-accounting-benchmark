@@ -305,6 +305,8 @@ public abstract class IceaxeDao<E> {
                     rs.close();
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
+                } catch (TsurugiTransactionException e) {
+                    throw new TsurugiTransactionRuntimeException(e);
                 }
             });
         } catch (IOException e) {
