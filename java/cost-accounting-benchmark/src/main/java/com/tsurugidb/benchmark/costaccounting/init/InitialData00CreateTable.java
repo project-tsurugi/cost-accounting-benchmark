@@ -3,7 +3,7 @@ package com.tsurugidb.benchmark.costaccounting.init;
 import java.io.IOException;
 
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
-import com.tsurugidb.benchmark.costaccounting.generate.ddl.DdlGenarator;
+import com.tsurugidb.benchmark.costaccounting.generate.ddl.DdlGenerator;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 public class InitialData00CreateTable extends InitialData {
@@ -20,7 +20,7 @@ public class InitialData00CreateTable extends InitialData {
     private void main(DbmsType dbmsType) throws IOException {
         logStart();
 
-        var generator = DdlGenarator.createDdlGenerator(dbmsType);
+        var generator = DdlGenerator.createDdlGenerator(dbmsType);
         try (var manager = initializeDbManager()) {
             generator.executeDdl(manager);
         }

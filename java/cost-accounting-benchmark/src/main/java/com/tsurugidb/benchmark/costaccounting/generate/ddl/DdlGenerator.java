@@ -14,23 +14,23 @@ import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
-import com.tsurugidb.benchmark.costaccounting.generate.OracleDdlGenarator;
-import com.tsurugidb.benchmark.costaccounting.generate.PostgresqlDdlGenarator;
-import com.tsurugidb.benchmark.costaccounting.generate.TsurugiDdlGenarator;
+import com.tsurugidb.benchmark.costaccounting.generate.OracleDdlGenerator;
+import com.tsurugidb.benchmark.costaccounting.generate.PostgresqlDdlGenerator;
+import com.tsurugidb.benchmark.costaccounting.generate.TsurugiDdlGenerator;
 import com.tsurugidb.benchmark.costaccounting.generate.util.TableSheet;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
-public abstract class DdlGenarator {
+public abstract class DdlGenerator {
     private final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    public static DdlGenarator createDdlGenerator(DbmsType dbmsType) {
+    public static DdlGenerator createDdlGenerator(DbmsType dbmsType) {
         switch (dbmsType) {
         case ORACLE:
-            return new OracleDdlGenarator();
+            return new OracleDdlGenerator();
         case POSTGRESQL:
-            return new PostgresqlDdlGenarator();
+            return new PostgresqlDdlGenerator();
         case TSURUGI:
-            return new TsurugiDdlGenarator();
+            return new TsurugiDdlGenerator();
         default:
             throw new AssertionError(dbmsType);
         }

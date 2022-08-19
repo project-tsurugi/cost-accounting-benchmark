@@ -2,15 +2,15 @@ package com.tsurugidb.benchmark.costaccounting.generate;
 
 import java.io.BufferedWriter;
 
-import com.tsurugidb.benchmark.costaccounting.generate.ddl.DdlGenarator;
+import com.tsurugidb.benchmark.costaccounting.generate.ddl.DdlGenerator;
 import com.tsurugidb.benchmark.costaccounting.generate.ddl.PostgresqlTableDdlWriter;
 import com.tsurugidb.benchmark.costaccounting.generate.ddl.TableDdlWriter;
 import com.tsurugidb.benchmark.costaccounting.generate.util.TableSheet;
 
-public class PostgresqlDdlGenarator extends DdlGenarator {
+public class PostgresqlDdlGenerator extends DdlGenerator {
 
     public static void main(String[] args) throws Exception {
-        new PostgresqlDdlGenarator().writeDdlFile("ddl-postgresql.txt");
+        new PostgresqlDdlGenerator().writeDdlFile("ddl-postgresql.txt");
     }
 
     @Override
