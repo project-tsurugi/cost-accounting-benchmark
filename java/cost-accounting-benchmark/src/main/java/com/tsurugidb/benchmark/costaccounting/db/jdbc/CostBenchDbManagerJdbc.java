@@ -33,37 +33,43 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
     private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManagerJdbc.class);
 
     private final List<Connection> connectionList = new CopyOnWriteArrayList<>();
-
     private final ThreadLocal<Connection> connectionThreadLocal = new ThreadLocal<Connection>() {
 
         @Override
         protected Connection initialValue() {
-            try {
-                Connection c = createConnection();
-                connectionList.add(c);
-                return c;
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+            Connection c = createConnection();
+            connectionList.add(c);
+            return c;
         }
     };
 
     public CostBenchDbManagerJdbc() {
     }
 
-    private Connection createConnection() throws SQLException {
+    private Connection createConnection() {
         String url = BenchConst.jdbcUrl();
         String user = BenchConst.jdbcUser();
         String password = BenchConst.jdbcPassword();
-        Connection c = DriverManager.getConnection(url, user, password);
-
-        c.setAutoCommit(false);
-
-        return c;
+        try {
+            Connection c = DriverManager.getConnection(url, user, password);
+            c.setAutoCommit(false);
+            return c;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Connection getConnection() {
+        if (isSingleTransaction()) {
+            if (connectionList.isEmpty()) {
+                Connection c = createConnection();
+                connectionList.add(c);
+            }
+            return connectionList.get(0);
+        }
+
         return connectionThreadLocal.get();
+
     }
 
     @Override

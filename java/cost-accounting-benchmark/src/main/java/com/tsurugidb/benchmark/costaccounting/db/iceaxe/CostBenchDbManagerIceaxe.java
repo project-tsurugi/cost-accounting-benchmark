@@ -43,6 +43,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     private final TsurugiSession session;
     private final TsurugiTransactionManager transactionManager;
 
+    private TsurugiTransaction singleTransaction;
     private final ThreadLocal<TsurugiTransaction> transactionThreadLocal = new ThreadLocal<>();
 
     public CostBenchDbManagerIceaxe() {
@@ -61,8 +62,27 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
         return this.session;
     }
 
+    private void setCurrentTransaction(TsurugiTransaction transaction) {
+        if (isSingleTransaction()) {
+            this.singleTransaction = transaction;
+            return;
+        }
+        transactionThreadLocal.set(transaction);
+    }
+
     public TsurugiTransaction getCurrentTransaction() {
+        if (isSingleTransaction()) {
+            return this.singleTransaction;
+        }
         return transactionThreadLocal.get();
+    }
+
+    private void removeCurrentTransaction() {
+        if (isSingleTransaction()) {
+            this.singleTransaction = null;
+            return;
+        }
+        transactionThreadLocal.remove();
     }
 
     @Override
@@ -125,11 +145,11 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     public void execute(TgTmSetting setting, Runnable runnable) {
         try {
             transactionManager.execute(setting, transaction -> {
-                transactionThreadLocal.set(transaction);
+                setCurrentTransaction(transaction);
                 try {
                     runnable.run();
                 } finally {
-                    transactionThreadLocal.remove();
+                    removeCurrentTransaction();
                 }
             });
         } catch (IOException e) {
@@ -141,11 +161,11 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     public <T> T execute(TgTmSetting setting, Supplier<T> supplier) {
         try {
             return transactionManager.execute(setting, transaction -> {
-                transactionThreadLocal.set(transaction);
+                setCurrentTransaction(transaction);
                 try {
                     return supplier.get();
                 } finally {
-                    transactionThreadLocal.remove();
+                    removeCurrentTransaction();
                 }
             });
         } catch (TsurugiTransactionIOException e) {

@@ -154,8 +154,15 @@
 
 - batch.execute.type
   - バッチ処理の実行方式
-    - 1: 全工場を直列に実行する（シングルスレッド）
-    - 2: 工場毎に並列で実行する（マルチスレッド）
+    - sequential-single-tx: 全工場を直列に実行する（全工場を1トランザクションで処理）
+    - sequential-factory-tx: 全工場を直列に実行する（工場毎にコミット）
+    - parallel-single-tx: 工場毎に並列で実行する（全工場を1トランザクションで処理）
+    - parallel-factory-tx: 工場毎に並列で実行する（工場毎にコミット）
+- batch.tsurugi.tx.option
+  - Tsurugiのトランザクションオプション
+    - OCC
+    - LTX
+    - LTX[n]：工場IDを指定する。指定された工場はLTX、それ以外の工場はOCC
 
 
 

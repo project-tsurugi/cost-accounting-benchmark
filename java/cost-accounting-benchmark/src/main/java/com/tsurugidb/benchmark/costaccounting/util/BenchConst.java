@@ -67,8 +67,8 @@ public class BenchConst {
     public static final String PACKAGE_ENTITY = "com.tsurugidb.benchmark.costaccounting.db.entity";
 
     // batch
-    public static int batchExecuteType() {
-        return getPropertyInt("batch.execute.type", 2);
+    public static String batchExecuteType() {
+        return getProperty("batch.execute.type");
     }
 
     public static int batchDbManagerType() {

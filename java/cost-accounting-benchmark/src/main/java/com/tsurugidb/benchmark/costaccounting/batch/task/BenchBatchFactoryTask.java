@@ -44,18 +44,23 @@ public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
         TgTmSetting setting = TgTmSetting.of(option);
 
         dbManager.execute(setting, () -> {
-            deleteResult();
-
-            int[] count = { 0 };
-            try (Stream<ItemManufacturingMaster> stream = selectManufacturingItem()) {
-                stream.forEach(item -> {
-                    count[0]++;
-                    itemTask.execute(item);
-                });
-            }
-
-            commitOrRollback(count[0]);
+            int count = runInTransaction(itemTask);
+            commitOrRollback(count);
         });
+    }
+
+    public int runInTransaction(BenchBatchItemTask itemTask) {
+        deleteResult();
+
+        int[] count = { 0 };
+        try (Stream<ItemManufacturingMaster> stream = selectManufacturingItem()) {
+            stream.forEach(item -> {
+                count[0]++;
+                itemTask.execute(item);
+            });
+        }
+
+        return count[0];
     }
 
     private void deleteResult() {

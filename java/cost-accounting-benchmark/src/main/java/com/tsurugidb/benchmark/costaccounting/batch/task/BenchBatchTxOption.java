@@ -14,6 +14,10 @@ import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 public class BenchBatchTxOption extends TgTxOptionAlways {
     private static final Logger LOG = LoggerFactory.getLogger(BenchBatchTxOption.class);
 
+    public static BenchBatchTxOption of() {
+        return new BenchBatchTxOption(getTxOption(0));
+    }
+
     public static BenchBatchTxOption of(int factoryId) {
         return new BenchBatchTxOption(getTxOption(factoryId));
     }
@@ -31,7 +35,7 @@ public class BenchBatchTxOption extends TgTxOptionAlways {
         if (n >= 0) {
             int m = s.indexOf(']', n);
             var list = StringUtil.toIntegerList(s.substring(n + 1, m));
-            if (list.contains(factoryId)) {
+            if (list.contains(factoryId) || factoryId == 0) {
                 return s.startsWith("LTX") ? createTxOption("LTX") : createTxOption("OCC");
             } else {
                 return s.startsWith("LTX") ? createTxOption("OCC") : createTxOption("LTX");

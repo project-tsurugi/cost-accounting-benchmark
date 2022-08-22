@@ -29,6 +29,8 @@ public abstract class CostBenchDbManager implements Closeable {
     private CostMasterDao costMasterDao;
     private ResultTableDao resultTableDao;
 
+    private boolean isSingleTransaction = false;
+
     public static CostBenchDbManager createInstance(int type) {
         CostBenchDbManager manager;
         {
@@ -47,6 +49,8 @@ public abstract class CostBenchDbManager implements Closeable {
 
         return manager;
     }
+
+    // DAO
 
     public MeasurementMasterDao getMeasurementMasterDao() {
         if (measurementMasterDao == null) {
@@ -112,6 +116,14 @@ public abstract class CostBenchDbManager implements Closeable {
     protected abstract ResultTableDao newResultTableDao();
 
     // execute
+
+    public void setSingleTransaction(boolean isSingleTransaction) {
+        this.isSingleTransaction = isSingleTransaction;
+    }
+
+    public boolean isSingleTransaction() {
+        return this.isSingleTransaction;
+    }
 
     public abstract void executeDdl(String... sqls);
 
