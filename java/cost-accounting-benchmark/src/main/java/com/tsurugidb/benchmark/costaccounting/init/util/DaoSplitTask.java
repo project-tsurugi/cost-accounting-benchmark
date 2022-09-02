@@ -4,7 +4,7 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
-import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 @SuppressWarnings("serial")
 public abstract class DaoSplitTask extends RecursiveAction {

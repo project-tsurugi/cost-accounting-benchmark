@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.RecursiveAction;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
-import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 @SuppressWarnings("serial")
 public abstract class DaoListTask<T> extends RecursiveAction {

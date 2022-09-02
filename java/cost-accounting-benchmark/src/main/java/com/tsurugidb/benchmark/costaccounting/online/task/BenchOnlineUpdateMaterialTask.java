@@ -14,8 +14,8 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.ItemConstructionMasterKe
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData03ItemMaster;
-import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
+import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 /**
  * 原材料の変更

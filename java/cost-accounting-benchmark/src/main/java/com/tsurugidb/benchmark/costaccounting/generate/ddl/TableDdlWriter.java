@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.generate.util.TableSheet;
 import com.tsurugidb.benchmark.costaccounting.generate.util.WriterWrapper;
-import com.tsurugidb.iceaxe.util.IoRunnable;
+import com.tsurugidb.iceaxe.util.function.IoRunnable;
 
 public abstract class TableDdlWriter extends WriterWrapper {
     private static final Logger LOG = LoggerFactory.getLogger(TableDdlWriter.class);

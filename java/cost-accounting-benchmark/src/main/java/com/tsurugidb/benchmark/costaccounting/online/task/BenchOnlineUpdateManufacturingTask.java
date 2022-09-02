@@ -15,8 +15,8 @@ import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData04ItemManufacturingMaster;
-import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
+import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 /**
  * 生産数の変更

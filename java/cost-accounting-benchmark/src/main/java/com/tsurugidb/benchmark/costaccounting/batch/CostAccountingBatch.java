@@ -28,8 +28,8 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
-import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
+import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 public class CostAccountingBatch {
     private static final Logger LOG = LoggerFactory.getLogger(CostAccountingBatch.class);

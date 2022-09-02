@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.nautilus_technologies.tsubakuro.exception.SqlServiceCode;
 import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.IceaxeColumn.RecordGetter;
@@ -28,6 +27,7 @@ import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate1;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionRuntimeException;
+import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
 public abstract class IceaxeDao<E> {
 
@@ -228,7 +228,7 @@ public abstract class IceaxeDao<E> {
     }
 
     private boolean isUniqueConstraint(TsurugiTransactionException e) {
-        var code = e.getDiagnosticCode();
+        var code = e.getLowDiagnosticCode();
         if (code == SqlServiceCode.ERR_ALREADY_EXISTS) {
             // 同一トランザクション内でinsertの一意制約違反
             return true;

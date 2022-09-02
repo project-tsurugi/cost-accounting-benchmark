@@ -17,8 +17,8 @@ import org.slf4j.LoggerFactory;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
-import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
+import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 public class CostAccountingOnline {
     private static final Logger LOG = LoggerFactory.getLogger(CostAccountingOnline.class);

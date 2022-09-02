@@ -23,11 +23,11 @@ import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.FactoryMasterDaoJdbc;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.ItemConstructionMasterDaoJdbc;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.ItemManufacturingMasterDaoJdbc;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.ItemMasterDaoJdbc;
-import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.MeasurementMasterDaoJdbc;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcDao;
+import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.MeasurementMasterDaoJdbc;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.ResultTableDaoJdbc;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
-import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 public class CostBenchDbManagerJdbc extends CostBenchDbManager {
     private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManagerJdbc.class);

@@ -12,7 +12,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
-import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 // 1 thread
 public class BenchBatchFactoryTask implements Runnable, Callable<Void> {

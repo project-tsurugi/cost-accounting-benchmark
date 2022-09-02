@@ -37,8 +37,8 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil.ValuePair;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementValue;
-import com.tsurugidb.iceaxe.transaction.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
+import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 public class BenchBatchItemTask {
     private static final Logger LOG = LoggerFactory.getLogger(BenchBatchItemTask.class);

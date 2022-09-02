@@ -16,7 +16,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.CostBenchDbManagerJdbc;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
-import com.tsurugidb.iceaxe.transaction.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 public abstract class CostBenchDbManager implements Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManager.class);
