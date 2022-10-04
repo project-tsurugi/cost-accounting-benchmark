@@ -43,7 +43,8 @@ public abstract class DdlGenerator {
         File dstFile = new File(srcFile.getParent(), ddlFileName);
         LOG.info("dst={}", dstFile);
 
-        try (Workbook workbook = WorkbookFactory.create(srcFile); BufferedWriter writer = Files.newBufferedWriter(dstFile.toPath(), StandardCharsets.UTF_8)) {
+        try (Workbook workbook = WorkbookFactory.create(srcFile, null, true); //
+                BufferedWriter writer = Files.newBufferedWriter(dstFile.toPath(), StandardCharsets.UTF_8)) {
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
                 Sheet sheet = workbook.getSheetAt(i);
                 TableSheet table = new TableSheet(sheet);
@@ -58,7 +59,7 @@ public abstract class DdlGenerator {
         File srcFile = new File(BenchConst.tableXlsxPath());
         LOG.info("src={}", srcFile);
 
-        try (Workbook workbook = WorkbookFactory.create(srcFile)) {
+        try (Workbook workbook = WorkbookFactory.create(srcFile, null, true)) {
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
                 Sheet sheet = workbook.getSheetAt(i);
                 TableSheet table = new TableSheet(sheet);

@@ -37,7 +37,7 @@ public class InitialData01MeasurementMaster extends InitialData {
             File srcFile = new File(src);
             LOG.info("src={}", srcFile);
 
-            try (Workbook workbook = WorkbookFactory.create(srcFile)) {
+            try (Workbook workbook = WorkbookFactory.create(srcFile, null, true)) {
                 Sheet sheet = workbook.getSheet("measurement");
                 TableSheet table = new TableSheet(sheet);
 

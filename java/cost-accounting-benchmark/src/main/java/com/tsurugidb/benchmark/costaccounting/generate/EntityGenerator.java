@@ -29,7 +29,7 @@ public class EntityGenerator {
         File srcFile = src.toFile();
         LOG.info("src={}", srcFile);
 
-        try (Workbook workbook = WorkbookFactory.create(srcFile)) {
+        try (Workbook workbook = WorkbookFactory.create(srcFile, null, true)) {
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
                 Sheet sheet = workbook.getSheetAt(i);
                 TableSheet table = new TableSheet(sheet);
