@@ -126,6 +126,19 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
             public void executeDdl() {
                 var setting = TgTmSetting.of(TgTxOption.ofOCC());
                 for (var sql : sqls) {
+                    if (sql.startsWith("drop table")) {
+                        int n = sql.lastIndexOf(" ");
+                        String tableName = sql.substring(n + 1).trim();
+                        try {
+                            var opt = session.findTableMetadata(tableName);
+                            if (opt.isEmpty()) {
+                                continue;
+                            }
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    }
+
                     try (var ps = createPreparedStatement(sql)) {
                         ps.executeAndGetCount(transactionManager, setting);
                     } catch (IOException e) {
