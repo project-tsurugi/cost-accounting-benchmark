@@ -73,7 +73,7 @@ public class CostAccountingOnline {
 
             pool.invokeAll(threadList);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOG.debug("InterruptedException", e);
         } finally {
             try {
                 pool.shutdownNow();

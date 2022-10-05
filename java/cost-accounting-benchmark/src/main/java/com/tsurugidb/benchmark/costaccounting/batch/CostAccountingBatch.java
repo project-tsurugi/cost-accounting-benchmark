@@ -240,7 +240,7 @@ public class CostAccountingBatch {
         try {
             resultList = pool.invokeAll(threadList);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOG.debug("InterruptedException", e);
         } finally {
             pool.shutdownNow();
         }
@@ -248,7 +248,7 @@ public class CostAccountingBatch {
             try {
                 result.get(); // 例外が発生していた場合にそれを取り出す
             } catch (Exception e) {
-                e.printStackTrace();
+                LOG.error("future exception", e);
             }
         }
     }
@@ -327,7 +327,7 @@ public class CostAccountingBatch {
         try {
             pool.invokeAll(list);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOG.debug("InterruptedException", e);
         } finally {
             pool.shutdown();
         }
