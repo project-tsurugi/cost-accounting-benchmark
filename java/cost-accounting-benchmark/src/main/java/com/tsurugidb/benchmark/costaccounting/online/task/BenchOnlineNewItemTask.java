@@ -117,7 +117,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
             LOG.debug("duplicate item_master (insert)", e);
             return null;
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.warn("exception", e);
             throw e;
         }
 
