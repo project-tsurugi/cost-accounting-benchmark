@@ -35,6 +35,7 @@ import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionIOException;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionRuntimeException;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.manager.TsurugiTransactionManager;
+import com.tsurugidb.tsubakuro.channel.common.connection.UsernamePasswordCredential;
 import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
 public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
@@ -50,7 +51,8 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
         var endpoint = BenchConst.tsurugiEndpoint();
         var connector = TsurugiConnector.createConnector(endpoint);
         try {
-            var info = TgSessionInfo.of(BenchConst.tsurugiUser(), BenchConst.tsurugiPassword());
+            var credential = new UsernamePasswordCredential(BenchConst.tsurugiUser(), BenchConst.tsurugiPassword());
+            var info = TgSessionInfo.of(credential);
             this.session = connector.createSession(info);
             this.transactionManager = session.createTransactionManager();
         } catch (IOException e) {
