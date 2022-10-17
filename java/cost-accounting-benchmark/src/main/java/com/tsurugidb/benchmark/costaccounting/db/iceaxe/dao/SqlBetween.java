@@ -16,6 +16,6 @@ public class SqlBetween {
 
     @Override
     public String toString() {
-        return exp1 + " between " + exp2 + " and " + exp3;
+        return "(" + exp2 + " <= " + exp1 + " and " + exp1 + " <= " + exp3 + ")";
     }
 }
