@@ -25,8 +25,8 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
         add(list, C_F_ID, CostMaster::setCFId, CostMaster::getCFId, IceaxeRecordUtil::getInt, true);
         add(list, C_I_ID, CostMaster::setCIId, CostMaster::getCIId, IceaxeRecordUtil::getInt, true);
         add(list, BenchVariable.ofString("c_stock_unit"), CostMaster::setCStockUnit, CostMaster::getCStockUnit, IceaxeRecordUtil::getString);
-        add(list, BenchVariable.ofDecimal("c_stock_quantity"), CostMaster::setCStockQuantity, CostMaster::getCStockQuantity, IceaxeRecordUtil::getDecimal);
-        add(list, BenchVariable.ofDecimal("c_stock_amount"), CostMaster::setCStockAmount, CostMaster::getCStockAmount, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("c_stock_quantity", CostMaster.C_STOCK_QUANTITY_SCALE), CostMaster::setCStockQuantity, CostMaster::getCStockQuantity, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("c_stock_amount", CostMaster.C_STOCK_AMOUNT_SCALE), CostMaster::setCStockAmount, CostMaster::getCStockAmount, IceaxeRecordUtil::getDecimal);
         COLUMN_LIST = list;
     }
 
@@ -92,8 +92,8 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
         return in;
     }
 
-    private static final TgVariable<BigDecimal> vQuantity = BenchVariable.ofDecimal("quantity");
-    private static final TgVariable<BigDecimal> vAmount = BenchVariable.ofDecimal("amount");
+    private static final TgVariable<BigDecimal> vQuantity = BenchVariable.ofDecimal("quantity", CostMaster.C_STOCK_QUANTITY_SCALE);
+    private static final TgVariable<BigDecimal> vAmount = BenchVariable.ofDecimal("amount", CostMaster.C_STOCK_AMOUNT_SCALE);
 
     @Override
     public int updateIncrease(CostMaster entity, BigDecimal quantity, BigDecimal amount) {

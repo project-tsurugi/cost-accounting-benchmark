@@ -35,8 +35,10 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
         add(list, BenchVariable.ofDate("ic_effective_date"), ItemConstructionMaster::setIcEffectiveDate, ItemConstructionMaster::getIcEffectiveDate, IceaxeRecordUtil::getDate, true);
         add(list, BenchVariable.ofDate("ic_expired_date"), ItemConstructionMaster::setIcExpiredDate, ItemConstructionMaster::getIcExpiredDate, IceaxeRecordUtil::getDate);
         add(list, BenchVariable.ofString("ic_material_unit"), ItemConstructionMaster::setIcMaterialUnit, ItemConstructionMaster::getIcMaterialUnit, IceaxeRecordUtil::getString);
-        add(list, BenchVariable.ofDecimal("ic_material_quantity"), ItemConstructionMaster::setIcMaterialQuantity, ItemConstructionMaster::getIcMaterialQuantity, IceaxeRecordUtil::getDecimal);
-        add(list, BenchVariable.ofDecimal("ic_loss_ratio"), ItemConstructionMaster::setIcLossRatio, ItemConstructionMaster::getIcLossRatio, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("ic_material_quantity", ItemConstructionMaster.IC_MATERIAL_QUANTITY_SCALE), ItemConstructionMaster::setIcMaterialQuantity,
+                ItemConstructionMaster::getIcMaterialQuantity, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("ic_loss_ratio", ItemConstructionMaster.IC_LOSS_RATIO_SCALE), ItemConstructionMaster::setIcLossRatio, ItemConstructionMaster::getIcLossRatio,
+                IceaxeRecordUtil::getDecimal);
         COLUMN_LIST = list;
     }
 

@@ -2,6 +2,7 @@ package com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
@@ -23,8 +24,8 @@ public class BenchVariable {
         return TgVariable.ofCharacter(name);
     }
 
-    public static TgVariable<BigDecimal> ofDecimal(String name) {
-        return TgVariable.ofDecimal(name);
+    public static TgVariable<BigDecimal> ofDecimal(String name, int scale) {
+        return TgVariable.ofDecimal(name, scale, RoundingMode.HALF_UP);
     }
 
     public static TgVariable<BigInteger> ofBigInt(String name) {

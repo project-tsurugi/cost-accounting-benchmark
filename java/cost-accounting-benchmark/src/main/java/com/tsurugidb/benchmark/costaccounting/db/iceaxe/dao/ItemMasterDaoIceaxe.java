@@ -33,9 +33,9 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
         add(list, BenchVariable.ofString("i_name"), ItemMaster::setIName, ItemMaster::getIName, IceaxeRecordUtil::getString);
         add(list, I_TYPE, ItemMaster::setIType, ItemMaster::getIType, IceaxeRecordUtil::getItemType);
         add(list, BenchVariable.ofString("i_unit"), ItemMaster::setIUnit, ItemMaster::getIUnit, IceaxeRecordUtil::getString);
-        add(list, BenchVariable.ofDecimal("i_weight_ratio"), ItemMaster::setIWeightRatio, ItemMaster::getIWeightRatio, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("i_weight_ratio", ItemMaster.I_WEIGHT_RATIO_SCALE), ItemMaster::setIWeightRatio, ItemMaster::getIWeightRatio, IceaxeRecordUtil::getDecimal);
         add(list, BenchVariable.ofString("i_weight_unit"), ItemMaster::setIWeightUnit, ItemMaster::getIWeightUnit, IceaxeRecordUtil::getString);
-        add(list, BenchVariable.ofDecimal("i_price"), ItemMaster::setIPrice, ItemMaster::getIPrice, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("i_price", ItemMaster.I_PRICE_SCALE), ItemMaster::setIPrice, ItemMaster::getIPrice, IceaxeRecordUtil::getDecimal);
         add(list, BenchVariable.ofString("i_price_unit"), ItemMaster::setIPriceUnit, ItemMaster::getIPriceUnit, IceaxeRecordUtil::getString);
         COLUMN_LIST = list;
     }

@@ -8,6 +8,9 @@ import java.math.BigDecimal;
  */
 public class MeasurementMaster implements Cloneable {
 
+    /** m_scale unsigned numeric(13, 6) */
+    public static final int M_SCALE_SCALE = 6;
+
     /** m_unit variable text(5) */
     private String mUnit;
 

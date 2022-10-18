@@ -9,6 +9,12 @@ import java.time.LocalDate;
  */
 public class ItemMaster implements Cloneable, HasDateRange {
 
+    /** i_weight_ratio unsigned numeric(9, 2) */
+    public static final int I_WEIGHT_RATIO_SCALE = 2;
+
+    /** i_price unsigned numeric(11, 2) */
+    public static final int I_PRICE_SCALE = 2;
+
     /** i_id unique ID(9) */
     private Integer iId;
 

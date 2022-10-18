@@ -34,6 +34,7 @@ public class TableEntityWriter extends WriterWrapper {
         writePackage();
         writeImport();
         writeClassName();
+        writeStaticField();
         writeField();
         writeSetterGetter();
         writeClone();
@@ -67,6 +68,21 @@ public class TableEntityWriter extends WriterWrapper {
         writeln(" */");
         String dateRange = table.hasDateRange() ? ", HasDateRange" : "";
         writeln("public class ", table.getClassName(), " implements Cloneable", dateRange, " {");
+    }
+
+    private void writeStaticField() {
+        table.getRows().filter(row -> table.getColumnType(row).contains("numeric")).forEachOrdered(row -> {
+            Integer scale = table.getColumnTypeScale(row);
+            if (scale != null) {
+                try {
+                    writeln();
+                    writeln(1, "/** ", table.getColumnName(row), " ", getTypeComment(row), " */");
+                    writeln(1, "public static final int ", table.getColumnName(row).toUpperCase() + "_SCALE", " = ", scale.toString(), ";");
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        });
     }
 
     private void writeField() {

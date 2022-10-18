@@ -8,6 +8,12 @@ import java.time.LocalDate;
  */
 public class ItemConstructionMaster implements Cloneable, HasDateRange {
 
+    /** ic_material_quantity unsigned numeric(15, 4) */
+    public static final int IC_MATERIAL_QUANTITY_SCALE = 4;
+
+    /** ic_loss_ratio unsigned numeric(5, 2) */
+    public static final int IC_LOSS_RATIO_SCALE = 2;
+
     /** ic_parent_i_id unique ID(9) */
     private Integer icParentIId;
 

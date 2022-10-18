@@ -17,7 +17,7 @@ public class MeasurementMasterDaoIceaxe extends IceaxeDao<MeasurementMaster> imp
         add(list, BenchVariable.ofString("m_name"), MeasurementMaster::setMName, MeasurementMaster::getMName, IceaxeRecordUtil::getString);
         add(list, BenchVariable.ofMeasurementType("m_type"), MeasurementMaster::setMType, MeasurementMaster::getMType, IceaxeRecordUtil::getMeasurementType);
         add(list, BenchVariable.ofString("m_default_unit"), MeasurementMaster::setMDefaultUnit, MeasurementMaster::getMDefaultUnit, IceaxeRecordUtil::getString);
-        add(list, BenchVariable.ofDecimal("m_scale"), MeasurementMaster::setMScale, MeasurementMaster::getMScale, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("m_scale", MeasurementMaster.M_SCALE_SCALE), MeasurementMaster::setMScale, MeasurementMaster::getMScale, IceaxeRecordUtil::getDecimal);
         COLUMN_LIST = list;
     }
 

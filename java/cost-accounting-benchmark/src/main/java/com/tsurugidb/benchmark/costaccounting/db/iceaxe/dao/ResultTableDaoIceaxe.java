@@ -34,18 +34,22 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
         add(list, BenchVariable.ofInt("r_i_id"), ResultTable::setRIId, ResultTable::getRIId, IceaxeRecordUtil::getInt, true);
         add(list, BenchVariable.ofBigInt("r_manufacturing_quantity"), ResultTable::setRManufacturingQuantity, ResultTable::getRManufacturingQuantity, IceaxeRecordUtil::getBigInt);
         add(list, BenchVariable.ofString("r_weight_unit"), ResultTable::setRWeightUnit, ResultTable::getRWeightUnit, IceaxeRecordUtil::getString);
-        add(list, BenchVariable.ofDecimal("r_weight"), ResultTable::setRWeight, ResultTable::getRWeight, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("r_weight", ResultTable.R_WEIGHT_SCALE), ResultTable::setRWeight, ResultTable::getRWeight, IceaxeRecordUtil::getDecimal);
         add(list, BenchVariable.ofString("r_weight_total_unit"), ResultTable::setRWeightTotalUnit, ResultTable::getRWeightTotalUnit, IceaxeRecordUtil::getString);
-        add(list, BenchVariable.ofDecimal("r_weight_total"), ResultTable::setRWeightTotal, ResultTable::getRWeightTotal, IceaxeRecordUtil::getDecimal);
-        add(list, BenchVariable.ofDecimal("r_weight_ratio"), ResultTable::setRWeightRatio, ResultTable::getRWeightRatio, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("r_weight_total", ResultTable.R_WEIGHT_TOTAL_SCALE), ResultTable::setRWeightTotal, ResultTable::getRWeightTotal, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("r_weight_ratio", ResultTable.R_WEIGHT_RATIO_SCALE), ResultTable::setRWeightRatio, ResultTable::getRWeightRatio, IceaxeRecordUtil::getDecimal);
         add(list, BenchVariable.ofString("r_standard_quantity_unit"), ResultTable::setRStandardQuantityUnit, ResultTable::getRStandardQuantityUnit, IceaxeRecordUtil::getString);
-        add(list, BenchVariable.ofDecimal("r_standard_quantity"), ResultTable::setRStandardQuantity, ResultTable::getRStandardQuantity, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("r_standard_quantity", ResultTable.R_STANDARD_QUANTITY_SCALE), ResultTable::setRStandardQuantity, ResultTable::getRStandardQuantity,
+                IceaxeRecordUtil::getDecimal);
         add(list, BenchVariable.ofString("r_required_quantity_unit"), ResultTable::setRRequiredQuantityUnit, ResultTable::getRRequiredQuantityUnit, IceaxeRecordUtil::getString);
-        add(list, BenchVariable.ofDecimal("r_required_quantity"), ResultTable::setRRequiredQuantity, ResultTable::getRRequiredQuantity, IceaxeRecordUtil::getDecimal);
-        add(list, BenchVariable.ofDecimal("r_unit_cost"), ResultTable::setRUnitCost, ResultTable::getRUnitCost, IceaxeRecordUtil::getDecimal);
-        add(list, BenchVariable.ofDecimal("r_total_unit_cost"), ResultTable::setRTotalUnitCost, ResultTable::getRTotalUnitCost, IceaxeRecordUtil::getDecimal);
-        add(list, BenchVariable.ofDecimal("r_manufacturing_cost"), ResultTable::setRManufacturingCost, ResultTable::getRManufacturingCost, IceaxeRecordUtil::getDecimal);
-        add(list, BenchVariable.ofDecimal("r_total_manufacturing_cost"), ResultTable::setRTotalManufacturingCost, ResultTable::getRTotalManufacturingCost, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("r_required_quantity", ResultTable.R_REQUIRED_QUANTITY_SCALE), ResultTable::setRRequiredQuantity, ResultTable::getRRequiredQuantity,
+                IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("r_unit_cost", ResultTable.R_UNIT_COST_SCALE), ResultTable::setRUnitCost, ResultTable::getRUnitCost, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("r_total_unit_cost", ResultTable.R_TOTAL_UNIT_COST_SCALE), ResultTable::setRTotalUnitCost, ResultTable::getRTotalUnitCost, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("r_manufacturing_cost", ResultTable.R_MANUFACTURING_COST_SCALE), ResultTable::setRManufacturingCost, ResultTable::getRManufacturingCost,
+                IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("r_total_manufacturing_cost", ResultTable.R_TOTAL_MANUFACTURING_COST_SCALE), ResultTable::setRTotalManufacturingCost, ResultTable::getRTotalManufacturingCost,
+                IceaxeRecordUtil::getDecimal);
         COLUMN_LIST = list;
     }
 

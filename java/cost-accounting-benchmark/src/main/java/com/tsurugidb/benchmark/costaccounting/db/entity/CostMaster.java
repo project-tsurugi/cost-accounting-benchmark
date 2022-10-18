@@ -7,6 +7,12 @@ import java.math.BigDecimal;
  */
 public class CostMaster implements Cloneable {
 
+    /** c_stock_quantity unsigned numeric(15, 4) */
+    public static final int C_STOCK_QUANTITY_SCALE = 4;
+
+    /** c_stock_amount unsigned numeric(13, 2) */
+    public static final int C_STOCK_AMOUNT_SCALE = 2;
+
     /** c_f_id unique ID(4) */
     private Integer cFId;
 

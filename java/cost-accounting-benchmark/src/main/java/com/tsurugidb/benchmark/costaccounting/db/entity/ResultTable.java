@@ -9,6 +9,33 @@ import java.time.LocalDate;
  */
 public class ResultTable implements Cloneable {
 
+    /** r_weight unsigned numeric(9, 2) */
+    public static final int R_WEIGHT_SCALE = 2;
+
+    /** r_weight_total unsigned numeric(11, 2) */
+    public static final int R_WEIGHT_TOTAL_SCALE = 2;
+
+    /** r_weight_ratio unsigned numeric(7, 3) */
+    public static final int R_WEIGHT_RATIO_SCALE = 3;
+
+    /** r_standard_quantity unsigned numeric(15, 4) */
+    public static final int R_STANDARD_QUANTITY_SCALE = 4;
+
+    /** r_required_quantity unsigned numeric(15, 4) */
+    public static final int R_REQUIRED_QUANTITY_SCALE = 4;
+
+    /** r_unit_cost unsigned numeric(11, 2) */
+    public static final int R_UNIT_COST_SCALE = 2;
+
+    /** r_total_unit_cost unsigned numeric(11, 2) */
+    public static final int R_TOTAL_UNIT_COST_SCALE = 2;
+
+    /** r_manufacturing_cost unsigned numeric(11, 2) */
+    public static final int R_MANUFACTURING_COST_SCALE = 2;
+
+    /** r_total_manufacturing_cost unsigned numeric(11, 2) */
+    public static final int R_TOTAL_MANUFACTURING_COST_SCALE = 2;
+
     /** r_f_id unique ID(4) */
     private Integer rFId;
 
