@@ -228,7 +228,7 @@ public abstract class IceaxeDao<E> {
     }
 
     private boolean isUniqueConstraint(TsurugiTransactionException e) {
-        var code = e.getLowDiagnosticCode();
+        var code = e.getDiagnosticCode();
         if (code == SqlServiceCode.ERR_ALREADY_EXISTS) {
             // 同一トランザクション内でinsertの一意制約違反
             return true;

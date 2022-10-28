@@ -184,7 +184,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                 }
             });
         } catch (TsurugiTransactionIOException e) {
-            var code = e.getLowDiagnosticCode();
+            var code = e.getDiagnosticCode();
             // FIXME コミット時の一意制約違反の判定方法
             if (code == SqlServiceCode.ERR_ALREADY_EXISTS || code == SqlServiceCode.ERR_ABORTED) {
                 throw new UniqueConstraintException(e);
