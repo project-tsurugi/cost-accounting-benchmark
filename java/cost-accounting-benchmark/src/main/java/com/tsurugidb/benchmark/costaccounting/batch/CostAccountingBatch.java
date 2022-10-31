@@ -55,7 +55,10 @@ public class CostAccountingBatch {
             commitRatio = Integer.parseInt(args[2].trim());
         }
 
-        new CostAccountingBatch(batchDate, commitRatio).main(factoryList);
+        int exitCode = new CostAccountingBatch(batchDate, commitRatio).main(factoryList);
+        if (exitCode != 0) {
+            System.exit(exitCode);
+        }
     }
 
     private final LocalDate batchDate;
@@ -71,9 +74,10 @@ public class CostAccountingBatch {
         this.commitRatio = commitRatio;
     }
 
-    public void main(List<Integer> factoryList) {
+    public int main(List<Integer> factoryList) {
         logStart();
 
+        int exitCode;
         try (CostBenchDbManager manager = createDbManager()) {
             this.dbManager = manager;
 
@@ -91,25 +95,25 @@ public class CostAccountingBatch {
             LOG.info("batch.execute.type={}", type);
             switch (type) {
             case "sequential-single-tx":
-                executeSequentialSingleTx();
+                exitCode = executeSequentialSingleTx();
                 break;
             case "sequential-factory-tx":
-                executeSequentialFactoryTx();
+                exitCode = executeSequentialFactoryTx();
                 break;
             case "parallel-single-tx":
-                executeParallelSingleTx();
+                exitCode = executeParallelSingleTx();
                 break;
             case "parallel-factory-tx":
-                executeParallelFactoryTx();
+                exitCode = executeParallelFactoryTx();
                 break;
             case "stream":
-                executeStream();
+                exitCode = executeStream();
                 break;
             case "queue":
-                executeQueue();
+                exitCode = executeQueue();
                 break;
             case "debug":
-                executeForDebug1();
+                exitCode = executeForDebug1();
                 break;
             default:
                 throw new UnsupportedOperationException(type);
@@ -117,6 +121,7 @@ public class CostAccountingBatch {
         }
 
         logEnd();
+        return exitCode;
     }
 
     private CostBenchDbManager createDbManager() {
@@ -144,7 +149,7 @@ public class CostAccountingBatch {
         return dbManager.execute(setting, dao::selectAllId);
     }
 
-    private void executeSequentialSingleTx() {
+    private int executeSequentialSingleTx() {
         BenchBatchItemTask itemTask = newBenchBatchItemTask(batchDate);
 
         var option = BenchBatchTxOption.of();
@@ -163,6 +168,7 @@ public class CostAccountingBatch {
 
             commitOrRollback(batchDate, count);
         });
+        return 0;
     }
 
     private void commitOrRollback(LocalDate batchDate, int count) {
@@ -181,16 +187,17 @@ public class CostAccountingBatch {
         }
     }
 
-    private void executeSequentialFactoryTx() {
+    private int executeSequentialFactoryTx() {
         for (int factoryId : factoryList) {
             BenchBatchFactoryTask thread = newBenchBatchFactoryThread(batchDate, factoryId);
 
             thread.run();
             addCount(thread);
         }
+        return 0;
     }
 
-    private void executeParallelSingleTx() {
+    private int executeParallelSingleTx() {
         var count = new AtomicInteger(0);
         var threadList = factoryList.stream().map(factoryId -> {
             var thread = newBenchBatchFactoryThread(batchDate, factoryId);
@@ -217,19 +224,24 @@ public class CostAccountingBatch {
 
             commitOrRollback(batchDate, count.get());
         });
+        return 0;
     }
 
-    private void executeParallelFactoryTx() {
+    private int executeParallelFactoryTx() {
         List<BenchBatchFactoryTask> threadList = factoryList.stream().map(factoryId -> newBenchBatchFactoryThread(batchDate, factoryId)).collect(Collectors.toList());
 
-        executeParallel(threadList);
+        int exitCode = executeParallel(threadList);
 
         for (BenchBatchFactoryTask thread : threadList) {
             addCount(thread);
         }
+
+        return exitCode;
     }
 
-    private void executeParallel(List<? extends Callable<Void>> threadList) {
+    private int executeParallel(List<? extends Callable<Void>> threadList) {
+        int exitCode = 0;
+
         int batchParallelism = BenchConst.batchParallelism();
         if (batchParallelism <= 0) {
             batchParallelism = factoryList.size();
@@ -241,16 +253,20 @@ public class CostAccountingBatch {
             resultList = pool.invokeAll(threadList);
         } catch (InterruptedException e) {
             LOG.debug("InterruptedException", e);
+            exitCode = 1;
         } finally {
             pool.shutdownNow();
         }
+
         for (Future<Void> result : resultList) {
             try {
                 result.get(); // 例外が発生していた場合にそれを取り出す
             } catch (Exception e) {
                 LOG.error("future exception", e);
+                exitCode |= 2;
             }
         }
+        return exitCode;
     }
 
     protected BenchBatchFactoryTask newBenchBatchFactoryThread(LocalDate batchDate, int factoryId) {
@@ -258,7 +274,7 @@ public class CostAccountingBatch {
         return task;
     }
 
-    private void executeStream() {
+    private int executeStream() {
         dbManager.execute(TX_BATCH, () -> {
             ResultTableDao resultTableDao = dbManager.getResultTableDao();
             resultTableDao.deleteByFactories(factoryList, batchDate);
@@ -281,9 +297,10 @@ public class CostAccountingBatch {
             thread.commitOrRollback(count[0]);
             addCount(thread);
         });
+        return 0;
     }
 
-    private void executeQueue() {
+    private int executeQueue() {
         ResultTableDao resultTableDao = dbManager.getResultTableDao();
 
         ConcurrentLinkedDeque<ItemManufacturingMaster> queue = dbManager.execute(TX_BATCH, () -> {
@@ -324,17 +341,20 @@ public class CostAccountingBatch {
             }
         }).limit(size).collect(Collectors.toList());
 
+        int exitCode = 0;
         try {
             pool.invokeAll(list);
         } catch (InterruptedException e) {
             LOG.debug("InterruptedException", e);
+            exitCode = 1;
         } finally {
             pool.shutdown();
         }
+        return exitCode;
     }
 
     // TODO delete executeForDebug1()
-    private void executeForDebug1() {
+    private int executeForDebug1() {
         int factoryId = 1;
         int productId = 345859;
 
@@ -350,6 +370,7 @@ public class CostAccountingBatch {
 
             itemTask.execute(manufact);
         });
+        return 0;
     }
 
     protected BenchBatchItemTask newBenchBatchItemTask(LocalDate batchDate) {
