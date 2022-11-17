@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -37,10 +38,15 @@ public abstract class DdlGenerator {
     }
 
     public void writeDdlFile(String ddlFileName) throws Exception {
+        Path dstFile = Path.of(BenchConst.tableXlsxPath(), ddlFileName);
+        writeDdlFile(dstFile);
+    }
+
+    public void writeDdlFile(Path ddlFilePath) throws Exception {
         File srcFile = new File(BenchConst.tableXlsxPath());
         LOG.info("src={}", srcFile);
 
-        File dstFile = new File(srcFile.getParent(), ddlFileName);
+        File dstFile = ddlFilePath.toFile();
         LOG.info("dst={}", dstFile);
 
         try (Workbook workbook = WorkbookFactory.create(srcFile, null, true); //

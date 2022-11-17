@@ -5,7 +5,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 
 public class InitialData06ResultTable extends InitialData {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         new InitialData06ResultTable().main();
     }
 

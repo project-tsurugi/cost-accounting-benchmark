@@ -28,7 +28,7 @@ import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
 @SuppressWarnings("serial")
 public class InitialData03ItemMaster extends InitialData {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         InitialData03ItemMaster instance = getDefaultInstance();
         instance.main();
     }

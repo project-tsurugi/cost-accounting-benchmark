@@ -25,7 +25,7 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 
 public class InitialData04ItemManufacturingMaster extends InitialData {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         LocalDate batchDate = DEFAULT_BATCH_DATE;
         int manufacturingSize = BenchConst.initItemManufacturingSize();
         new InitialData04ItemManufacturingMaster(manufacturingSize, batchDate).main();

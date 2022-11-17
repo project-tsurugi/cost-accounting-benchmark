@@ -21,7 +21,7 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 public class InitialData01MeasurementMaster extends InitialData {
     private static final Logger LOG = LoggerFactory.getLogger(InitialData01MeasurementMaster.class);
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
 //		new InitialDataMeasureMaster().main(args[0]);
         new InitialData01MeasurementMaster().main(BenchConst.measurementXlsxPath());
     }
