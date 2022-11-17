@@ -7,7 +7,7 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 public class InitialData02FactoryMaster extends InitialData {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         int factorySize = BenchConst.initFactorySize();
         new InitialData02FactoryMaster().main(factorySize);
     }

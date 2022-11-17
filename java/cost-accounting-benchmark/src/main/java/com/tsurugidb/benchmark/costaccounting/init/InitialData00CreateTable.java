@@ -8,7 +8,7 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 public class InitialData00CreateTable extends InitialData {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         var dbmsType = BenchConst.dbmsType();
         new InitialData00CreateTable().main(dbmsType);
     }

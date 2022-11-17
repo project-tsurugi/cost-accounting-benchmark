@@ -15,16 +15,7 @@ public class BenchConst {
 
     public static DbmsType dbmsType() {
         String type = getProperty("dbms.type");
-        switch (type.toLowerCase()) {
-        case "oracle":
-            return DbmsType.ORACLE;
-        case "postgresql":
-            return DbmsType.POSTGRESQL;
-        case "tsurugi":
-            return DbmsType.TSURUGI;
-        default:
-            throw new UnsupportedOperationException("unsupported dbms.type=" + type);
-        }
+        return DbmsType.of(type);
     }
 
     public static String jdbcUrl() {

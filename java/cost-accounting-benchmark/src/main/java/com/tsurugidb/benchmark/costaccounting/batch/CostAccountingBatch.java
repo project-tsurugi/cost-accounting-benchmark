@@ -55,43 +55,43 @@ public class CostAccountingBatch {
             commitRatio = Integer.parseInt(args[2].trim());
         }
 
-        int exitCode = new CostAccountingBatch(batchDate, commitRatio).main(factoryList);
+        String executeType = BenchConst.batchExecuteType();
+        var config = new BatchConfig(executeType, batchDate, factoryList, commitRatio);
+        config.setTxOptions(BenchConst.batchTsurugiTxOption());
+
+        int exitCode = new CostAccountingBatch().main(config);
         if (exitCode != 0) {
             System.exit(exitCode);
         }
     }
 
-    private final LocalDate batchDate;
-    private List<Integer> factoryList;
-    private final int commitRatio;
-
+    private BatchConfig config;
     private CostBenchDbManager dbManager;
     private final AtomicInteger commitCount = new AtomicInteger();
     private final AtomicInteger rollbackCount = new AtomicInteger();
 
-    public CostAccountingBatch(LocalDate batchDate, int commitRatio) {
-        this.batchDate = batchDate;
-        this.commitRatio = commitRatio;
+    public CostAccountingBatch() {
     }
 
-    public int main(List<Integer> factoryList) {
+    public int main(BatchConfig config) {
+        this.config = config;
         logStart();
 
         int exitCode;
         try (CostBenchDbManager manager = createDbManager()) {
             this.dbManager = manager;
 
+            List<Integer> factoryList = config.getFactoryList();
             if (factoryList == null || factoryList.isEmpty()) {
-                this.factoryList = getAllFactory();
-            } else {
-                this.factoryList = factoryList;
+                factoryList = getAllFactory();
+                config.setFactoryList(factoryList);
             }
 
-            LOG.info("batchDate={}", batchDate);
-            LOG.info("factory={}", StringUtil.toString(this.factoryList));
-            LOG.info("commitRatio={}", commitRatio);
+            LOG.info("batchDate={}", config.getBatchDate());
+            LOG.info("factory={}", StringUtil.toString(config.getFactoryList()));
+            LOG.info("commitRatio={}", config.getCommitRatio());
 
-            String type = BenchConst.batchExecuteType();
+            String type = config.getExecuteType();
             LOG.info("batch.execute.type={}", type);
             switch (type) {
             case "sequential-single-tx":
@@ -150,9 +150,12 @@ public class CostAccountingBatch {
     }
 
     private int executeSequentialSingleTx() {
+        var batchDate = config.getBatchDate();
+        var factoryList = config.getFactoryList();
+
         BenchBatchItemTask itemTask = newBenchBatchItemTask(batchDate);
 
-        var option = BenchBatchTxOption.of();
+        var option = BenchBatchTxOption.of(config);
         LOG.info("tx={}", option);
         TgTmSetting setting = TgTmSetting.of(option);
 
@@ -172,6 +175,8 @@ public class CostAccountingBatch {
     }
 
     private void commitOrRollback(LocalDate batchDate, int count) {
+        int commitRatio = config.getCommitRatio();
+
         var random = new BenchRandom();
         int n = random.random(0, 99);
         if (n < commitRatio) {
@@ -188,6 +193,9 @@ public class CostAccountingBatch {
     }
 
     private int executeSequentialFactoryTx() {
+        var batchDate = config.getBatchDate();
+        var factoryList = config.getFactoryList();
+
         for (int factoryId : factoryList) {
             BenchBatchFactoryTask thread = newBenchBatchFactoryThread(batchDate, factoryId);
 
@@ -198,6 +206,9 @@ public class CostAccountingBatch {
     }
 
     private int executeParallelSingleTx() {
+        var batchDate = config.getBatchDate();
+        var factoryList = config.getFactoryList();
+
         var count = new AtomicInteger(0);
         var threadList = factoryList.stream().map(factoryId -> {
             var thread = newBenchBatchFactoryThread(batchDate, factoryId);
@@ -214,7 +225,7 @@ public class CostAccountingBatch {
             };
         }).collect(Collectors.toList());
 
-        var option = BenchBatchTxOption.of();
+        var option = BenchBatchTxOption.of(config);
         LOG.info("tx={}", option);
         TgTmSetting setting = TgTmSetting.of(option);
 
@@ -228,6 +239,9 @@ public class CostAccountingBatch {
     }
 
     private int executeParallelFactoryTx() {
+        var batchDate = config.getBatchDate();
+        var factoryList = config.getFactoryList();
+
         List<BenchBatchFactoryTask> threadList = factoryList.stream().map(factoryId -> newBenchBatchFactoryThread(batchDate, factoryId)).collect(Collectors.toList());
 
         int exitCode = executeParallel(threadList);
@@ -244,6 +258,7 @@ public class CostAccountingBatch {
 
         int batchParallelism = BenchConst.batchParallelism();
         if (batchParallelism <= 0) {
+            var factoryList = config.getFactoryList();
             batchParallelism = factoryList.size();
         }
 
@@ -270,11 +285,14 @@ public class CostAccountingBatch {
     }
 
     protected BenchBatchFactoryTask newBenchBatchFactoryThread(LocalDate batchDate, int factoryId) {
-        BenchBatchFactoryTask task = new BenchBatchFactoryTask(dbManager, commitRatio, batchDate, factoryId);
+        BenchBatchFactoryTask task = new BenchBatchFactoryTask(config, dbManager, factoryId);
         return task;
     }
 
     private int executeStream() {
+        var batchDate = config.getBatchDate();
+        var factoryList = config.getFactoryList();
+
         dbManager.execute(TX_BATCH, () -> {
             ResultTableDao resultTableDao = dbManager.getResultTableDao();
             resultTableDao.deleteByFactories(factoryList, batchDate);
@@ -301,6 +319,9 @@ public class CostAccountingBatch {
     }
 
     private int executeQueue() {
+        var batchDate = config.getBatchDate();
+        var factoryList = config.getFactoryList();
+
         ResultTableDao resultTableDao = dbManager.getResultTableDao();
 
         ConcurrentLinkedDeque<ItemManufacturingMaster> queue = dbManager.execute(TX_BATCH, () -> {
@@ -355,6 +376,7 @@ public class CostAccountingBatch {
 
     // TODO delete executeForDebug1()
     private int executeForDebug1() {
+        var batchDate = config.getBatchDate();
         int factoryId = 1;
         int productId = 345859;
 

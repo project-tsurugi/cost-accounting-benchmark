@@ -20,7 +20,7 @@ import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
 
 public class InitialData05CostMaster extends InitialData {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         LocalDate batchDate = DEFAULT_BATCH_DATE;
         new InitialData05CostMaster(batchDate).main();
     }

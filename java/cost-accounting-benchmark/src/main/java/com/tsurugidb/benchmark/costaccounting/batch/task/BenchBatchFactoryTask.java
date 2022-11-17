@@ -1,12 +1,12 @@
 package com.tsurugidb.benchmark.costaccounting.batch.task;
 
-import java.time.LocalDate;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.tsurugidb.benchmark.costaccounting.batch.BatchConfig;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
@@ -18,9 +18,8 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
     private static final Logger LOG = LoggerFactory.getLogger(BenchBatchFactoryTask.class);
 
+    private final BatchConfig config;
     private final CostBenchDbManager dbManager;
-    private final int commitRatio;
-    private final LocalDate batchDate;
     private final int factoryId;
 
     private final BenchRandom random = new BenchRandom();
@@ -28,18 +27,18 @@ public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
     private int commitCount = 0;
     private int rollbackCount = 0;
 
-    public BenchBatchFactoryTask(CostBenchDbManager dbManager, int commitRatio, LocalDate batchDate, int factoryId) {
+    public BenchBatchFactoryTask(BatchConfig config, CostBenchDbManager dbManager, int factoryId) {
+        this.config = config;
         this.dbManager = dbManager;
-        this.commitRatio = commitRatio;
-        this.batchDate = batchDate;
         this.factoryId = factoryId;
     }
 
     @Override
     public void run() {
+        var batchDate = config.getBatchDate();
         BenchBatchItemTask itemTask = new BenchBatchItemTask(dbManager, batchDate);
 
-        var option = BenchBatchTxOption.of(factoryId);
+        var option = BenchBatchTxOption.of(config, factoryId);
         LOG.info("tx={}", option);
         TgTmSetting setting = TgTmSetting.of(option);
 
@@ -65,12 +64,15 @@ public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
 
     private void deleteResult() {
         ResultTableDao dao = dbManager.getResultTableDao();
+
+        var batchDate = config.getBatchDate();
         dao.deleteByFactory(factoryId, batchDate);
     }
 
     private Stream<ItemManufacturingMaster> selectManufacturingItem() {
         ItemManufacturingMasterDao dao = dbManager.getItemManufacturingMasterDao();
 
+        var batchDate = config.getBatchDate();
         return dao.selectByFactory(factoryId, batchDate);
     }
 
@@ -81,6 +83,9 @@ public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
     }
 
     public void commitOrRollback(int count) {
+        var batchDate = config.getBatchDate();
+        int commitRatio = config.getCommitRatio();
+
         int n = random.random(0, 99);
         if (n < commitRatio) {
             dbManager.commit(() -> {
