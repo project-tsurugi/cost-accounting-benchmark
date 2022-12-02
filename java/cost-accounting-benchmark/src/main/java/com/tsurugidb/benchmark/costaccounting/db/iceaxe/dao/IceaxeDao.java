@@ -68,7 +68,7 @@ public abstract class IceaxeDao<E> {
             var transaction = getTransaction();
             return ps.executeAndGetCount(transaction);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
             throw new TsurugiTransactionRuntimeException(e);
         }
@@ -201,7 +201,7 @@ public abstract class IceaxeDao<E> {
         try {
             return getSession().createPreparedStatement(sql);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e.getMessage(), e);
         }
     }
 
@@ -209,7 +209,7 @@ public abstract class IceaxeDao<E> {
         try {
             return getSession().createPreparedStatement(sql, parameterMapping);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e.getMessage(), e);
         }
     }
 
@@ -218,7 +218,7 @@ public abstract class IceaxeDao<E> {
             var transaction = getTransaction();
             return ps.executeAndGetCount(transaction, parameter);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
             if (isUniqueConstraint(e)) {
                 throw new UniqueConstraintException(e);
@@ -240,7 +240,7 @@ public abstract class IceaxeDao<E> {
         try {
             return getSession().createPreparedQuery(sql, resultMapping);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e.getMessage(), e);
         }
     }
 
@@ -249,7 +249,7 @@ public abstract class IceaxeDao<E> {
             var transaction = getTransaction();
             return ps.executeAndGetList(transaction);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
             throw new TsurugiTransactionRuntimeException(e);
         }
@@ -259,7 +259,7 @@ public abstract class IceaxeDao<E> {
         try {
             return getSession().createPreparedQuery(sql, parameterMapping, resultMapping);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e.getMessage(), e);
         }
     }
 
@@ -268,7 +268,7 @@ public abstract class IceaxeDao<E> {
             var transaction = getTransaction();
             return ps.executeAndFindRecord(transaction).orElse(null);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
             throw new TsurugiTransactionRuntimeException(e);
         }
@@ -279,7 +279,7 @@ public abstract class IceaxeDao<E> {
             var transaction = getTransaction();
             return ps.executeAndFindRecord(transaction, parameter).orElse(null);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
             throw new TsurugiTransactionRuntimeException(e);
         }
@@ -290,7 +290,7 @@ public abstract class IceaxeDao<E> {
             var transaction = getTransaction();
             return ps.executeAndGetList(transaction, parameter);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
             throw new TsurugiTransactionRuntimeException(e);
         }
@@ -304,13 +304,13 @@ public abstract class IceaxeDao<E> {
                 try {
                     rs.close();
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw new UncheckedIOException(e.getMessage(), e);
                 } catch (TsurugiTransactionException e) {
                     throw new TsurugiTransactionRuntimeException(e);
                 }
             });
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
             throw new TsurugiTransactionRuntimeException(e);
         }

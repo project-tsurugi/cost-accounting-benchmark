@@ -15,6 +15,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.CostBenchDbManagerJdbc;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
@@ -31,12 +32,12 @@ public abstract class CostBenchDbManager implements Closeable {
 
     private boolean isSingleTransaction = false;
 
-    public static CostBenchDbManager createInstance(int type) {
+    public static CostBenchDbManager createInstance(int type, IsolationLevel isolationLevel) {
         CostBenchDbManager manager;
         {
             switch (type) {
             default:
-                manager = new CostBenchDbManagerJdbc();
+                manager = new CostBenchDbManagerJdbc(isolationLevel);
                 break;
             case 2:
                 manager = new CostBenchDbManagerIceaxe();

@@ -31,7 +31,8 @@ public class CostAccountingOnline {
 
     public static CostBenchDbManager createCostBenchDbManager() {
         int type = BenchConst.onlineDbManagerType();
-        return CostBenchDbManager.createInstance(type);
+        var isolationLevel = BenchConst.onlineJdbcIsolationLevel();
+        return CostBenchDbManager.createInstance(type, isolationLevel);
     }
 
     private static void main0(String[] args, CostBenchDbManager manager) {

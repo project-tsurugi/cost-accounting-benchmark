@@ -36,8 +36,8 @@ ls build/distributions/
 実行環境で解凍する。
 
 ```bash
-tar xf cost-accounting-benchmark.tar.tar
-cd cost-accounting-benchmark.tar/bin
+tar xf cost-accounting-benchmark.tar
+cd cost-accounting-benchmark/bin
 chmod +x *.sh
 ```
 

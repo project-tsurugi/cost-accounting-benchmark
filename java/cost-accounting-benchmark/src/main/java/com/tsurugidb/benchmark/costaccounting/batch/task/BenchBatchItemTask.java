@@ -34,6 +34,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.ResultTable;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.CostBenchDbManagerJdbc;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil.ValuePair;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementValue;
@@ -129,7 +130,7 @@ public class BenchBatchItemTask {
             if (itemEntity == null) {
                 this.itemEntity = selectItemMaster(itemId);
                 if (itemEntity == null) {
-                    throw new RuntimeException(MessageFormat.format("itemId={}, batchDate={}", itemId, batchDate));
+                    throw new RuntimeException(MessageFormat.format("not found item_master. itemId={0}, batchDate={1}", itemId, batchDate));
                 }
             }
             return itemEntity;
@@ -579,6 +580,7 @@ public class BenchBatchItemTask {
         node.totalManufacturingCost = node.totalManufacturingCost.add(right.totalManufacturingCost);
     }
 
+    // TODO remove test method
     // for test
     public static void main(String[] args) {
         test1();
@@ -586,7 +588,7 @@ public class BenchBatchItemTask {
     }
 
     static void test1() {
-        CostBenchDbManager manager = new CostBenchDbManagerJdbc();
+        CostBenchDbManager manager = new CostBenchDbManagerJdbc(IsolationLevel.READ_COMMITTED);
         BenchBatchItemTask task = new BenchBatchItemTask(manager, InitialData.DEFAULT_BATCH_DATE);
 
         var setting = TgTmSetting.of(TgTxOption.ofRTX());
@@ -616,7 +618,7 @@ public class BenchBatchItemTask {
         int itemId = 11649;
         LocalDate date = InitialData.DEFAULT_BATCH_DATE;
 
-        CostBenchDbManager manager = new CostBenchDbManagerJdbc();
+        CostBenchDbManager manager = new CostBenchDbManagerJdbc(IsolationLevel.READ_COMMITTED);
         BenchBatchItemTask task = new BenchBatchItemTask(manager, date);
 
         var setting = TgTmSetting.of(TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
