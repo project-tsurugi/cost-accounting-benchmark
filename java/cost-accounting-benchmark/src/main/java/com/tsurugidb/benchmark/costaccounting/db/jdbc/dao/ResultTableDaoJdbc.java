@@ -1,6 +1,11 @@
 package com.tsurugidb.benchmark.costaccounting.db.jdbc.dao;
 
-import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.*;
+import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.getDate;
+import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.getDecimal;
+import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.getInt;
+import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.getString;
+import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.setDate;
+import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.setInt;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -8,6 +13,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -150,5 +156,10 @@ public class ResultTableDaoJdbc extends JdbcDao<ResultTable> implements ResultTa
         ResultTable entity = new ResultTable();
         fillEntity(entity, rs);
         return entity;
+    }
+
+    @Override
+    public void forEach(Consumer<ResultTable> entityConsumer) {
+        doForEach(ResultTable::new, entityConsumer);
     }
 }

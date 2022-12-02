@@ -75,6 +75,10 @@ public class MeasurementMaster implements Cloneable {
         }
     }
 
+    public String toCsv(String suffix) {
+        return mUnit + "," + mName + "," + mType + "," + mDefaultUnit + "," + mScale + suffix;
+    }
+
     @Override
     public String toString() {
         return "MeasurementMaster(m_unit=" + mUnit + ", m_name=" + mName + ", m_type=" + mType + ", m_default_unit=" + mDefaultUnit + ", m_scale=" + mScale + ")";

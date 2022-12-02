@@ -9,6 +9,7 @@ import com.tsurugidb.benchmark.costaccounting.generate.command.DdlCommand;
 import com.tsurugidb.benchmark.costaccounting.init.command.CheckConstraintCommand;
 import com.tsurugidb.benchmark.costaccounting.init.command.CreateTableCommand;
 import com.tsurugidb.benchmark.costaccounting.init.command.CreateTestDataCommand;
+import com.tsurugidb.benchmark.costaccounting.init.command.DumpCsvCommand;
 
 public class Main {
 
@@ -18,6 +19,7 @@ public class Main {
         addCommand("createTable", CreateTableCommand::new);
         addCommand("createTestData", CreateTestDataCommand::new);
         addCommand("checkConstraint", CheckConstraintCommand::new);
+        addCommand("dumpCsv", DumpCsvCommand::new);
         addCommand("executeBatch", BatchCommand::new);
     }
 

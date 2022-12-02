@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
@@ -208,5 +209,10 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
             this.selectCostPs = createPreparedQuery(sql, parameterMapping, resultMapping);
         }
         return this.selectCostPs;
+    }
+
+    @Override
+    public void forEach(Consumer<ResultTable> entityConsumer) {
+        doForEach(entityConsumer);
     }
 }

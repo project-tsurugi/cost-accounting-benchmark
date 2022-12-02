@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,8 +27,7 @@ public class ItemManufacturingMasterDaoJdbc extends JdbcDao<ItemManufacturingMas
         add(list, "im_i_id", ItemManufacturingMaster::setImIId, ItemManufacturingMaster::getImIId, JdbcUtil::setInt, JdbcUtil::getInt, true);
         add(list, "im_effective_date", ItemManufacturingMaster::setImEffectiveDate, ItemManufacturingMaster::getImEffectiveDate, JdbcUtil::setDate, JdbcUtil::getDate, true);
         add(list, "im_expired_date", ItemManufacturingMaster::setImExpiredDate, ItemManufacturingMaster::getImExpiredDate, JdbcUtil::setDate, JdbcUtil::getDate);
-        add(list, "im_manufacturing_quantity", ItemManufacturingMaster::setImManufacturingQuantity, ItemManufacturingMaster::getImManufacturingQuantity, JdbcUtil::setBigInt,
-                JdbcUtil::getBigInt);
+        add(list, "im_manufacturing_quantity", ItemManufacturingMaster::setImManufacturingQuantity, ItemManufacturingMaster::getImManufacturingQuantity, JdbcUtil::setBigInt, JdbcUtil::getBigInt);
         COLUMN_LIST = list;
     }
 
@@ -132,5 +132,10 @@ public class ItemManufacturingMasterDaoJdbc extends JdbcDao<ItemManufacturingMas
         ItemManufacturingMaster entity = new ItemManufacturingMaster();
         fillEntity(entity, rs);
         return entity;
+    }
+
+    @Override
+    public void forEach(Consumer<ItemManufacturingMaster> entityConsumer) {
+        doForEach(ItemManufacturingMaster::new, entityConsumer);
     }
 }

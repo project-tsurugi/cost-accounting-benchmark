@@ -1,12 +1,17 @@
 package com.tsurugidb.benchmark.costaccounting.db.jdbc.dao;
 
-import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.*;
+import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.getDate;
+import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.getInt;
+import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.setDate;
+import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.setInt;
+import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.setItemType;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -143,5 +148,10 @@ public class ItemConstructionMasterDaoJdbc extends JdbcDao<ItemConstructionMaste
         ItemConstructionMaster entity = new ItemConstructionMaster();
         fillEntity(entity, rs);
         return entity;
+    }
+
+    @Override
+    public void forEach(Consumer<ItemConstructionMaster> entityConsumer) {
+        doForEach(ItemConstructionMaster::new, entityConsumer);
     }
 }

@@ -1,6 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.db.dao;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.entity.FactoryMaster;
 
@@ -37,4 +38,6 @@ public interface FactoryMasterDao {
      * </pre>
      */
     FactoryMaster selectById(int factoryId);
+
+    void forEach(Consumer<FactoryMaster> entityConsumer);
 }

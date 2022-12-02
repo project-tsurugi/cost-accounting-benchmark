@@ -2,6 +2,7 @@ package com.tsurugidb.benchmark.costaccounting.db.dao;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
@@ -125,4 +126,6 @@ public interface ItemManufacturingMasterDao {
      * </pre>
      */
     List<Integer> selectIdByFactory(int factoryId, LocalDate date);
+
+    void forEach(Consumer<ItemManufacturingMaster> entityConsumer);
 }

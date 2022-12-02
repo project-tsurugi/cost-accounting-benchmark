@@ -2,6 +2,7 @@ package com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.MeasurementMaster;
@@ -38,5 +39,10 @@ public class MeasurementMasterDaoIceaxe extends IceaxeDao<MeasurementMaster> imp
     @Override
     public List<MeasurementMaster> selectAll() {
         return doSelectAll();
+    }
+
+    @Override
+    public void forEach(Consumer<MeasurementMaster> entityConsumer) {
+        doForEach(entityConsumer);
     }
 }

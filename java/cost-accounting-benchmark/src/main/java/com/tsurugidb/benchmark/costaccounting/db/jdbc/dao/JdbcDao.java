@@ -12,6 +12,7 @@ import java.util.NoSuchElementException;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -345,5 +346,23 @@ public abstract class JdbcDao<E> {
         String where = columnList.stream().filter(c -> c.isPrimaryKey()).map(c -> c.getName() + "=?").collect(Collectors.joining(" and "));
         String sql = "update " + tableName + " set " + set + " where " + where;
         return sql;
+    }
+
+    protected void doForEach(Supplier<E> entitySupplier, Consumer<E> entityConsumer) {
+        String names = columnList.stream().map(c -> c.getName()).collect(Collectors.joining(","));
+        String key = columnList.stream().filter(c -> c.isPrimaryKey()).map(c -> c.getName()).collect(Collectors.joining(","));
+        String sql = "select " + names + " from " + tableName + " order by " + key;
+
+        E entity = entitySupplier.get();
+        try (PreparedStatement ps = preparedStatement(sql)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    fillEntity(entity, rs);
+                    entityConsumer.accept(entity);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

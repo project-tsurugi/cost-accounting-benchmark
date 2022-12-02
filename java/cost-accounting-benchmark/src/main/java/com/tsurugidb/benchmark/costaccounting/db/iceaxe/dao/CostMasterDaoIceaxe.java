@@ -3,6 +3,7 @@ package com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
@@ -135,5 +136,10 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
             this.updateDecreasePs = createPreparedStatement(sql, parameterMapping);
         }
         return this.updateDecreasePs;
+    }
+
+    @Override
+    public void forEach(Consumer<CostMaster> entityConsumer) {
+        doForEach(entityConsumer);
     }
 }

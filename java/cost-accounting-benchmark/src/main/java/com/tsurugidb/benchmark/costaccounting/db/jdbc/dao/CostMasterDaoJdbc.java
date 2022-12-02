@@ -1,12 +1,14 @@
 package com.tsurugidb.benchmark.costaccounting.db.jdbc.dao;
 
-import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.*;
+import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.setDecimal;
+import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.setInt;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
@@ -102,5 +104,10 @@ public class CostMasterDaoJdbc extends JdbcDao<CostMaster> implements CostMaster
         CostMaster entity = new CostMaster();
         fillEntity(entity, rs);
         return entity;
+    }
+
+    @Override
+    public void forEach(Consumer<CostMaster> entityConsumer) {
+        doForEach(CostMaster::new, entityConsumer);
     }
 }
