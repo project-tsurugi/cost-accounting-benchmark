@@ -7,6 +7,10 @@ import java.util.stream.IntStream;
 public class StringUtil {
 
     public static List<Integer> toIntegerList(String arg) {
+        if (arg.trim().equalsIgnoreCase("all")) {
+            return List.of();
+        }
+
         List<Integer> list = new ArrayList<>();
 
         String[] ss = arg.split(",");

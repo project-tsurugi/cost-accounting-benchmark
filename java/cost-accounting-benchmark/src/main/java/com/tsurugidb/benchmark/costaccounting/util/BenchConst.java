@@ -7,7 +7,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
 
@@ -58,6 +61,15 @@ public class BenchConst {
     public static final String PACKAGE_ENTITY = "com.tsurugidb.benchmark.costaccounting.db.entity";
 
     // batch
+    /** sequential / single-tx */
+    public static final String SEQUENTIAL_SINGLE_TX = "sequential-single-tx";
+    /** sequential / tx per factory */
+    public static final String SEQUENTIAL_FACTORY_TX = "sequential-factory-tx";
+    /** parallel / single-tx */
+    public static final String PARALLEL_SINGLE_TX = "parallel-single-tx";
+    /** parallel / tx per factory */
+    public static final String PARALLEL_FACTORY_TX = "parallel-factory-tx";
+
     public static String batchExecuteType() {
         return getProperty("batch.execute.type");
     }
@@ -70,8 +82,56 @@ public class BenchConst {
         return getPropertyInt("batch.parallelism", 0);
     }
 
+    /**
+     * トランザクション分離レベル
+     */
+    public enum IsolationLevel {
+        SERIALIZABLE, READ_COMMITTED;
+    }
+
+    public static IsolationLevel batchJdbcIsolationLevel() {
+        return getIsolationLevel("batch.jdbc.isolation.level");
+    }
+
+    private static IsolationLevel getIsolationLevel(String key) {
+        String s = getProperty(key, false);
+        if (s == null) {
+            return IsolationLevel.READ_COMMITTED;
+        }
+        try {
+            return IsolationLevel.valueOf(s.toUpperCase());
+        } catch (Exception e) {
+            throw new RuntimeException("invalid IsolationLevel. " + key + "=" + s, e);
+        }
+    }
+
     public static String batchTsurugiTxOption() {
         return getProperty("batch.tsurugi.tx.option");
+    }
+
+    public static String batchCommandExecuteType() {
+        String s = getProperty("batch-command.execute.type", false);
+        if (s == null) {
+            return String.join(",", SEQUENTIAL_SINGLE_TX, SEQUENTIAL_FACTORY_TX, PARALLEL_SINGLE_TX, PARALLEL_FACTORY_TX);
+        }
+        return s;
+    }
+
+    public static String batchCommandFactoryList() {
+        return getProperty("batch-command.factory.list");
+    }
+
+    public static List<IsolationLevel> batchCommandIsolationLevel() {
+        String s = getProperty("batch-command.isolation.level", false);
+        if (s != null) {
+            return Arrays.stream(s.split(",")).map(String::trim).map(String::toUpperCase).map(IsolationLevel::valueOf).collect(Collectors.toList());
+        }
+
+        if (dbmsType() == DbmsType.TSURUGI) {
+            return List.of(IsolationLevel.SERIALIZABLE);
+        } else {
+            return List.of(IsolationLevel.READ_COMMITTED, IsolationLevel.SERIALIZABLE);
+        }
     }
 
     public static final int DECIMAL_SCALE = getPropertyInt("decimal.scale", 20);
@@ -85,6 +145,10 @@ public class BenchConst {
 
     public static int onlineDbManagerType() {
         return getPropertyInt("online.dbmanager.type", 1);
+    }
+
+    public static IsolationLevel onlineJdbcIsolationLevel() {
+        return getIsolationLevel("online.jdbc.isolation.level");
     }
 
     public static int onlineTaskRatio(String taskName) {

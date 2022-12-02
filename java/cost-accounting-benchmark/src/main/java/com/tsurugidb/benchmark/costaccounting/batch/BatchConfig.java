@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class BatchConfig {
@@ -14,6 +15,7 @@ public class BatchConfig {
     private final LocalDate batchDate;
     private List<Integer> factoryList;
     private final int commitRatio;
+    private IsolationLevel isolationLevel;
     private TgTxOption defaultTxOption;
     private Map<Integer, TgTxOption> txOptionMap;
 
@@ -59,6 +61,14 @@ public class BatchConfig {
         return this.txOptionMap;
     }
 
+    public void setIsolationLevel(IsolationLevel level) {
+        this.isolationLevel = level;
+    }
+
+    public IsolationLevel getIsolationLevel() {
+        return this.isolationLevel;
+    }
+
     public void setTxOptions(String txOptionProperty) {
         String s = txOptionProperty.toUpperCase();
 
@@ -94,6 +104,10 @@ public class BatchConfig {
         default:
             throw new UnsupportedOperationException(s);
         }
+    }
+
+    public TgTxOption getDefaultTxOption() {
+        return this.defaultTxOption;
     }
 
     public TgTxOption getTxOption(int factoryId) {

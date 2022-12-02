@@ -27,10 +27,13 @@ import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcDao;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.MeasurementMasterDaoJdbc;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.ResultTableDaoJdbc;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 public class CostBenchDbManagerJdbc extends CostBenchDbManager {
     private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManagerJdbc.class);
+
+    private final IsolationLevel isolationLevel;
 
     private final List<Connection> connectionList = new CopyOnWriteArrayList<>();
     private final ThreadLocal<Connection> connectionThreadLocal = new ThreadLocal<Connection>() {
@@ -43,7 +46,8 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
         }
     };
 
-    public CostBenchDbManagerJdbc() {
+    public CostBenchDbManagerJdbc(IsolationLevel isolationLevel) {
+        this.isolationLevel = isolationLevel;
     }
 
     private Connection createConnection() {
@@ -53,6 +57,16 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
         try {
             Connection c = DriverManager.getConnection(url, user, password);
             c.setAutoCommit(false);
+            switch (isolationLevel) {
+            case READ_COMMITTED:
+                c.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+                break;
+            case SERIALIZABLE:
+                c.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+                break;
+            default:
+                throw new AssertionError(isolationLevel);
+            }
             return c;
         } catch (SQLException e) {
             throw new RuntimeException(e);

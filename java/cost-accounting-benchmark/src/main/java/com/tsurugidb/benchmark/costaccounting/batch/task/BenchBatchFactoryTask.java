@@ -1,6 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.batch.task;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
     private final BatchConfig config;
     private final CostBenchDbManager dbManager;
     private final int factoryId;
+    private final AtomicInteger tryCounter = new AtomicInteger(0);
 
     private final BenchRandom random = new BenchRandom();
 
@@ -43,6 +45,7 @@ public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
         TgTmSetting setting = TgTmSetting.of(option);
 
         dbManager.execute(setting, () -> {
+            tryCounter.incrementAndGet();
             int count = runInTransaction(itemTask);
             commitOrRollback(count);
         });
@@ -98,6 +101,14 @@ public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
                 LOG.info("rollback ({}, {}), count={}", batchDate, factoryId, count);
             });
         }
+    }
+
+    public final int getTryCount() {
+        return tryCounter.get();
+    }
+
+    public final int getAbortCount() {
+        return tryCounter.get() - 1;
     }
 
     public final int getCommitCount() {

@@ -45,9 +45,7 @@ public class CostAccountingBatch {
 
         List<Integer> factoryList = null;
         if (args.length >= 2) {
-            if (!args[1].trim().equalsIgnoreCase("all")) {
-                factoryList = StringUtil.toIntegerList(args[1]);
-            }
+            factoryList = StringUtil.toIntegerList(args[1]);
         }
 
         int commitRatio = 100;
@@ -57,6 +55,7 @@ public class CostAccountingBatch {
 
         String executeType = BenchConst.batchExecuteType();
         var config = new BatchConfig(executeType, batchDate, factoryList, commitRatio);
+        config.setIsolationLevel(BenchConst.batchJdbcIsolationLevel());
         config.setTxOptions(BenchConst.batchTsurugiTxOption());
 
         int exitCode = new CostAccountingBatch().main(config);
@@ -67,8 +66,10 @@ public class CostAccountingBatch {
 
     private BatchConfig config;
     private CostBenchDbManager dbManager;
-    private final AtomicInteger commitCount = new AtomicInteger();
-    private final AtomicInteger rollbackCount = new AtomicInteger();
+    private final AtomicInteger tryCounter = new AtomicInteger(0);
+    private final AtomicInteger abortCounter = new AtomicInteger(0);
+    private final AtomicInteger commitCount = new AtomicInteger(0);
+    private final AtomicInteger rollbackCount = new AtomicInteger(0);
 
     public CostAccountingBatch() {
     }
@@ -90,20 +91,21 @@ public class CostAccountingBatch {
             LOG.info("batchDate={}", config.getBatchDate());
             LOG.info("factory={}", StringUtil.toString(config.getFactoryList()));
             LOG.info("commitRatio={}", config.getCommitRatio());
+            LOG.info("isolation={}", config.getIsolationLevel());
 
             String type = config.getExecuteType();
             LOG.info("batch.execute.type={}", type);
             switch (type) {
-            case "sequential-single-tx":
+            case BenchConst.SEQUENTIAL_SINGLE_TX:
                 exitCode = executeSequentialSingleTx();
                 break;
-            case "sequential-factory-tx":
+            case BenchConst.SEQUENTIAL_FACTORY_TX:
                 exitCode = executeSequentialFactoryTx();
                 break;
-            case "parallel-single-tx":
+            case BenchConst.PARALLEL_SINGLE_TX:
                 exitCode = executeParallelSingleTx();
                 break;
-            case "parallel-factory-tx":
+            case BenchConst.PARALLEL_FACTORY_TX:
                 exitCode = executeParallelFactoryTx();
                 break;
             case "stream":
@@ -126,7 +128,7 @@ public class CostAccountingBatch {
 
     private CostBenchDbManager createDbManager() {
         int type = BenchConst.batchDbManagerType();
-        return CostBenchDbManager.createInstance(type);
+        return CostBenchDbManager.createInstance(type, config.getIsolationLevel());
     }
 
     private LocalDateTime startTime;
@@ -159,7 +161,11 @@ public class CostAccountingBatch {
         LOG.info("tx={}", option);
         TgTmSetting setting = TgTmSetting.of(option);
 
+        AtomicInteger tryInThisTx = new AtomicInteger(0);
         dbManager.execute(setting, () -> {
+            tryInThisTx.incrementAndGet();
+            tryCounter.incrementAndGet();
+
             int count = 0;
             for (int factoryId : factoryList) {
                 BenchBatchFactoryTask thread = newBenchBatchFactoryThread(batchDate, factoryId);
@@ -171,6 +177,7 @@ public class CostAccountingBatch {
 
             commitOrRollback(batchDate, count);
         });
+        abortCounter.addAndGet(tryInThisTx.get() - 1);
         return 0;
     }
 
@@ -199,7 +206,10 @@ public class CostAccountingBatch {
         for (int factoryId : factoryList) {
             BenchBatchFactoryTask thread = newBenchBatchFactoryThread(batchDate, factoryId);
 
-            thread.run();
+            thread.run(); // not 'start()'
+
+            tryCounter.addAndGet(thread.getTryCount());
+            abortCounter.addAndGet(thread.getAbortCount());
             addCount(thread);
         }
         return 0;
@@ -229,12 +239,17 @@ public class CostAccountingBatch {
         LOG.info("tx={}", option);
         TgTmSetting setting = TgTmSetting.of(option);
 
+        AtomicInteger tryInThisTx = new AtomicInteger(0);
         dbManager.setSingleTransaction(true);
         dbManager.execute(setting, () -> {
+            tryInThisTx.incrementAndGet();
+            tryCounter.incrementAndGet();
+
             executeParallel(threadList);
 
             commitOrRollback(batchDate, count.get());
         });
+        abortCounter.addAndGet(tryInThisTx.get() - 1);
         return 0;
     }
 
@@ -247,6 +262,8 @@ public class CostAccountingBatch {
         int exitCode = executeParallel(threadList);
 
         for (BenchBatchFactoryTask thread : threadList) {
+            tryCounter.addAndGet(thread.getTryCount());
+            abortCounter.addAndGet(thread.getAbortCount());
             addCount(thread);
         }
 
@@ -402,5 +419,13 @@ public class CostAccountingBatch {
     protected void addCount(BenchBatchFactoryTask thread) {
         commitCount.addAndGet(thread.getCommitCount());
         rollbackCount.addAndGet(thread.getRollbackCount());
+    }
+
+    public int getTryCount() {
+        return tryCounter.get();
+    }
+
+    public int getAbortCount() {
+        return abortCounter.get();
     }
 }
