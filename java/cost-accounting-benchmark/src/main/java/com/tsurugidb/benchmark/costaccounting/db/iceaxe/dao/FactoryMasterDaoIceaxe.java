@@ -2,6 +2,7 @@ package com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.FactoryMaster;
@@ -74,5 +75,10 @@ public class FactoryMasterDaoIceaxe extends IceaxeDao<FactoryMaster> implements 
             this.selectByIdPs = createPreparedQuery(sql, parameterMapping, resultMapping);
         }
         return this.selectByIdPs;
+    }
+
+    @Override
+    public void forEach(Consumer<FactoryMaster> entityConsumer) {
+        doForEach(entityConsumer);
     }
 }

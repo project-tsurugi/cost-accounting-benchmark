@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
@@ -104,5 +105,10 @@ public class ItemMasterDaoJdbc extends JdbcDao<ItemMaster> implements ItemMaster
         ItemMaster entity = new ItemMaster();
         fillEntity(entity, rs);
         return entity;
+    }
+
+    @Override
+    public void forEach(Consumer<ItemMaster> entityConsumer) {
+        doForEach(ItemMaster::new, entityConsumer);
     }
 }

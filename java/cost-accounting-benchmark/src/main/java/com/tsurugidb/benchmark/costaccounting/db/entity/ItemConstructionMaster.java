@@ -120,6 +120,10 @@ public class ItemConstructionMaster implements Cloneable, HasDateRange {
         setIcExpiredDate(value);
     }
 
+    public String toCsv(String suffix) {
+        return icParentIId + "," + icIId + "," + icEffectiveDate + "," + icExpiredDate + "," + icMaterialUnit + "," + icMaterialQuantity + "," + icLossRatio + suffix;
+    }
+
     @Override
     public String toString() {
         return "ItemConstructionMaster(ic_parent_i_id=" + icParentIId + ", ic_i_id=" + icIId + ", ic_effective_date=" + icEffectiveDate + ", ic_expired_date=" + icExpiredDate + ", ic_material_unit=" + icMaterialUnit + ", ic_material_quantity=" + icMaterialQuantity + ", ic_loss_ratio=" + icLossRatio + ")";

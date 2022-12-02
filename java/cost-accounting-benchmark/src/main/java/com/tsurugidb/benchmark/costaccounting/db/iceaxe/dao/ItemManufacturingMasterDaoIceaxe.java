@@ -5,6 +5,7 @@ import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
@@ -208,5 +209,10 @@ public class ItemManufacturingMasterDaoIceaxe extends IceaxeDao<ItemManufacturin
             this.selectIdByFactoryPs = createPreparedQuery(sql, parameterMapping, resultMapping);
         }
         return this.selectIdByFactoryPs;
+    }
+
+    @Override
+    public void forEach(Consumer<ItemManufacturingMaster> entityConsumer) {
+        doForEach(entityConsumer);
     }
 }

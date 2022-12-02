@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.FactoryMaster;
@@ -55,5 +56,10 @@ public class FactoryMasterDaoJdbc extends JdbcDao<FactoryMaster> implements Fact
         FactoryMaster entity = new FactoryMaster();
         fillEntity(entity, rs);
         return entity;
+    }
+
+    @Override
+    public void forEach(Consumer<FactoryMaster> entityConsumer) {
+        doForEach(FactoryMaster::new, entityConsumer);
     }
 }

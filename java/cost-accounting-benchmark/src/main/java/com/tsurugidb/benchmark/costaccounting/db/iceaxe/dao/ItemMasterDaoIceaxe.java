@@ -5,6 +5,7 @@ import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
@@ -141,5 +142,10 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
             this.selectById = createPreparedQuery(sql, parameterMapping, resultMapping);
         }
         return this.selectById;
+    }
+
+    @Override
+    public void forEach(Consumer<ItemMaster> entityConsumer) {
+        doForEach(entityConsumer);
     }
 }

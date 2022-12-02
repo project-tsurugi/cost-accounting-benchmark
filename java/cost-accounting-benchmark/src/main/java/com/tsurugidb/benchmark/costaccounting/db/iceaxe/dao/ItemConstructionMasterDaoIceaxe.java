@@ -5,6 +5,7 @@ import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemConstructionMasterDao;
@@ -206,5 +207,10 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
             this.deletePs = createPreparedStatement(sql, parameterMapping);
         }
         return this.deletePs;
+    }
+
+    @Override
+    public void forEach(Consumer<ItemConstructionMaster> entityConsumer) {
+        doForEach(entityConsumer);
     }
 }

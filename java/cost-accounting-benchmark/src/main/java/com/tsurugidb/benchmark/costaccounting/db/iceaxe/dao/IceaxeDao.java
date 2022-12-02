@@ -5,6 +5,7 @@ import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import com.tsurugidb.iceaxe.result.TgEntityResultMapping;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
 import com.tsurugidb.iceaxe.statement.TgEntityParameterMapping;
+import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
 import com.tsurugidb.iceaxe.statement.TgVariable;
 import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery0;
@@ -313,6 +315,22 @@ public abstract class IceaxeDao<E> {
             throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
             throw new TsurugiTransactionRuntimeException(e);
+        }
+    }
+
+    protected void doForEach(Consumer<E> entityConsumer) {
+        String key = columnList.stream().filter(c -> c.isPrimaryKey()).map(c -> c.getName()).collect(Collectors.joining(","));
+        var sql = getSelectEntitySql() + " order by " + key;
+        var resultMapping = getEntityResultMapping();
+        try (var ps = createPreparedQuery(sql,TgParameterMapping.of(), resultMapping)) {
+            var transaction = getTransaction();
+            try (var rs = ps.execute(transaction,TgParameterList.of())) {
+                rs.forEach(entityConsumer);
+            } catch (TsurugiTransactionException e) {
+                throw new TsurugiTransactionRuntimeException(e);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e.getMessage(), e);
         }
     }
 }

@@ -39,6 +39,7 @@ public class TableEntityWriter extends WriterWrapper {
         writeSetterGetter();
         writeClone();
         writeDateRange();
+        writeToCsv();
         writeToString();
         writeln("}");
     }
@@ -256,6 +257,19 @@ public class TableEntityWriter extends WriterWrapper {
             }
         }
         return null;
+    }
+
+    protected void writeToCsv() throws IOException {
+        writeln();
+        writeln(1, "public String toCsv(String suffix) {");
+
+        String s = table.getRows().map(row -> {
+            String fname = table.getColumnFieldName(row);
+            return fname;
+        }).collect(Collectors.joining(" + \",\" + "));
+        writeln(2, "return " + s + " + suffix;");
+
+        writeln(1, "}");
     }
 
     protected void writeToString() throws IOException {

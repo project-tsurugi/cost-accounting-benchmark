@@ -2,6 +2,7 @@ package com.tsurugidb.benchmark.costaccounting.db.jdbc.dao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.MeasurementMaster;
@@ -37,5 +38,10 @@ public class MeasurementMasterDaoJdbc extends JdbcDao<MeasurementMaster> impleme
     @Override
     public List<MeasurementMaster> selectAll() {
         return doSelectAll(MeasurementMaster::new);
+    }
+
+    @Override
+    public void forEach(Consumer<MeasurementMaster> entityConsumer) {
+        doForEach(MeasurementMaster::new, entityConsumer);
     }
 }

@@ -1,6 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.db.dao;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.entity.MeasurementMaster;
 
@@ -28,5 +29,7 @@ public interface MeasurementMasterDao {
      * select * from measurement_master
      * </pre>
      */
-    public List<MeasurementMaster> selectAll();
+    List<MeasurementMaster> selectAll();
+
+    void forEach(Consumer<MeasurementMaster> entityConsumer);
 }

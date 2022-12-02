@@ -2,6 +2,7 @@ package com.tsurugidb.benchmark.costaccounting.db.dao;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 
@@ -68,4 +69,6 @@ public interface CostMasterDao {
      * </pre>
      */
     int updateDecrease(CostMaster entity, BigDecimal quantity);
+
+    void forEach(Consumer<CostMaster> entityConsumer);
 }
