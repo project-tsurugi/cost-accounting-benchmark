@@ -15,6 +15,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.CostBenchDbManagerJdbc;
+import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.CostBenchDbManagerTsubakuro;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
@@ -41,6 +42,9 @@ public abstract class CostBenchDbManager implements Closeable {
                 break;
             case 2:
                 manager = new CostBenchDbManagerIceaxe();
+                break;
+            case 3:
+                manager = new CostBenchDbManagerTsubakuro();
                 break;
             }
         }
