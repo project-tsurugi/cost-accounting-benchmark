@@ -35,7 +35,7 @@ class BenchRandomTest {
     @Test
     void testRandomExclude() {
         for (int i = 0; i < 10000; i++) {
-            BigDecimal r = random.randomExclude(D_START, D_END);
+            BigDecimal r = random.randomExclude(i, D_START, D_END);
             assertTrue(D_START.compareTo(r) < 0 && r.compareTo(D_END) < 0, () -> "r=" + r);
             assertEquals(1, r.scale());
         }
@@ -52,14 +52,16 @@ class BenchRandomTest {
 
     @Test
     void testSplit1() {
-        BigDecimal[] rs = random.split(BigDecimal.TEN, 1);
+        int seed = 1;
+        BigDecimal[] rs = random.split(seed, BigDecimal.TEN, 1);
         assertArrayEquals(new BigDecimal[] { BigDecimal.TEN }, rs);
     }
 
     @Test
     void testSplit_sizeLess() {
+        int seed = 1;
         BigDecimal value = new BigDecimal("1.0");
-        BigDecimal[] rs = random.split(value, 20);
+        BigDecimal[] rs = random.split(seed, value, 20);
 //		System.out.println(Arrays.toString(rs));
         assertEquals(20, rs.length);
         BigDecimal sum = BigDecimal.ZERO;
@@ -72,8 +74,9 @@ class BenchRandomTest {
 
     @Test
     void testSplit_sizeEquals() {
+        int seed = 1;
         BigDecimal value = new BigDecimal("2.0");
-        BigDecimal[] rs = random.split(value, 20);
+        BigDecimal[] rs = random.split(seed, value, 20);
 //		System.out.println(Arrays.toString(rs));
         assertEquals(20, rs.length);
         BigDecimal sum = BigDecimal.ZERO;
@@ -86,8 +89,9 @@ class BenchRandomTest {
 
     @Test
     void testSplit_sizeLarge() {
+        int seed = 1;
         BigDecimal value = new BigDecimal("100.0");
-        BigDecimal[] rs = random.split(value, 20);
+        BigDecimal[] rs = random.split(seed, value, 20);
 //		System.out.println(Arrays.toString(rs));
         assertEquals(20, rs.length);
         BigDecimal sum = BigDecimal.ZERO;

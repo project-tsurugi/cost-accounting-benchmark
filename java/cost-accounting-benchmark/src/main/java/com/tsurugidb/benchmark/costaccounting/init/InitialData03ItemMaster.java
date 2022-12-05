@@ -364,8 +364,9 @@ public class InitialData03ItemMaster extends InitialData {
         public void setWeight(BigDecimal weight) {
             this.weight = weight;
 
+            int seed = entity.getIId();
             if (!childList.isEmpty()) {
-                BigDecimal[] ws = random.split(weight, childList.size());
+                BigDecimal[] ws = random.split(seed, weight, childList.size());
 
                 int i = 0;
                 for (Node child : childList) {

@@ -37,9 +37,9 @@ public class BenchRandom {
         return r;
     }
 
-    public BigDecimal randomExclude(BigDecimal start, BigDecimal end) {
-        for (;;) {
-            BigDecimal r = random(start, end);
+    public BigDecimal randomExclude(int seed, BigDecimal start, BigDecimal end) {
+        for (;; seed++) {
+            BigDecimal r = prandom(seed, start, end);
             if (r.compareTo(start) == 0 || r.compareTo(end) == 0) {
                 continue;
             }
@@ -62,7 +62,7 @@ public class BenchRandom {
         }
     }
 
-    public BigDecimal[] split(BigDecimal value, int splitSize) {
+    public BigDecimal[] split(int seed, BigDecimal value, int splitSize) {
         assert splitSize > 0;
 
         if (splitSize == 1) {
@@ -71,10 +71,10 @@ public class BenchRandom {
 
         int valueSize = getSize(value);
         if (valueSize <= splitSize) {
-            return splitUsingUlp(value, valueSize, splitSize);
+            return splitUsingUlp(seed, value, valueSize, splitSize);
         }
 
-        return splitUsingSet(value, splitSize);
+        return splitUsingSet(seed, value, splitSize);
     }
 
     private int getSize(BigDecimal value) {
@@ -83,22 +83,22 @@ public class BenchRandom {
         return (int) v;
     }
 
-    private BigDecimal[] splitUsingUlp(BigDecimal value, int valueSize, int splitSize) {
+    private BigDecimal[] splitUsingUlp(int seed, BigDecimal value, int valueSize, int splitSize) {
         BigDecimal ulp = value.ulp();
 
         BigDecimal[] result = new BigDecimal[splitSize];
         Arrays.fill(result, BigDecimal.ZERO);
         for (int i = 0; i < valueSize; i++) {
-            int n = random.nextInt(splitSize);
+            int n = prandom(seed + i, splitSize);
             result[n] = result[n].add(ulp);
         }
         return result;
     }
 
-    private BigDecimal[] splitUsingSet(BigDecimal value, int splitSize) {
+    private BigDecimal[] splitUsingSet(int seed, BigDecimal value, int splitSize) {
         TreeSet<BigDecimal> set = new TreeSet<>();
         while (set.size() < splitSize - 1) {
-            BigDecimal r = randomExclude(BigDecimal.ZERO, value);
+            BigDecimal r = randomExclude(seed++, BigDecimal.ZERO, value);
             set.add(r);
         }
         assert set.size() == splitSize - 1;
