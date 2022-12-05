@@ -12,12 +12,15 @@ public class SqlIn {
     }
 
     public void add(TgVariable<?> variable) {
-        var name = variable.sqlName();
+        var sqlName = variable.sqlName();
+        add(sqlName);
+    }
 
+    public void add(String sqlName) {
         if (sb.length() != 0) {
             sb.append(",");
         }
-        sb.append(name);
+        sb.append(sqlName);
     }
 
     @Override
