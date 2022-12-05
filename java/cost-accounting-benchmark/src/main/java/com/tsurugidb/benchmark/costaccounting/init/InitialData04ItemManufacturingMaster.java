@@ -208,7 +208,8 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
     }
 
     public static void initializeItemManufacturingMasterRandom(BenchRandom random, ItemManufacturingMaster entity) {
-        int quantity = random.random(1, 500) * 100;
+        int seed = entity.getImFId() + entity.getImIId();
+        int quantity = random.prandom(seed, 1, 500) * 100;
         entity.setImManufacturingQuantity(BigInteger.valueOf(quantity));
     }
 }
