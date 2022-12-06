@@ -26,7 +26,8 @@ public class InitialData06ResultTable extends InitialData {
     private void deleteResultTable() {
         ResultTableDao dao = dbManager.getResultTableDao();
 
-        dbManager.execute(TX_INIT, () -> {
+        var setting = getSetting(ResultTableDao.TABLE_NAME);
+        dbManager.execute(setting, () -> {
             dao.deleteAll();
         });
     }

@@ -97,7 +97,8 @@ public class InitialData03ItemMaster extends InitialData {
     }
 
     private void generateItemMaster() {
-        dbManager.execute(TX_INIT, () -> {
+        var setting = getSetting(ItemMasterDao.TABLE_NAME, ItemConstructionMasterDao.TABLE_NAME);
+        dbManager.execute(setting, () -> {
             {
                 ItemMasterDao dao = dbManager.getItemMasterDao();
                 dao.deleteAll();
@@ -118,7 +119,7 @@ public class InitialData03ItemMaster extends InitialData {
 
     private abstract class ItemMasterTask extends DaoSplitTask {
         public ItemMasterTask(int startId, int endId) {
-            super(dbManager, TX_INIT, startId, endId);
+            super(dbManager, getSetting(ItemMasterDao.TABLE_NAME), startId, endId);
         }
     }
 
@@ -314,7 +315,7 @@ public class InitialData03ItemMaster extends InitialData {
         private int idSize = 0;
 
         public ItemMasterWorkTask() {
-            super(dbManager, TX_INIT);
+            super(dbManager, getSetting(ItemMasterDao.TABLE_NAME, ItemConstructionMasterDao.TABLE_NAME));
         }
 
         public void add(int startId, int endId) {
@@ -492,7 +493,7 @@ public class InitialData03ItemMaster extends InitialData {
     // 製品品目の品目構成マスター
     private class ItemConstructionMasterProductTask extends DaoSplitTask {
         public ItemConstructionMasterProductTask(int startId, int endId) {
-            super(dbManager, TX_INIT, startId, endId);
+            super(dbManager, getSetting(ItemConstructionMasterDao.TABLE_NAME), startId, endId);
         }
 
         @Override

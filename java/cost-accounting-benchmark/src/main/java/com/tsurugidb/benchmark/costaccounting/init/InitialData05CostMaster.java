@@ -17,6 +17,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.util.DaoSplitTask;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class InitialData05CostMaster extends InitialData {
 
@@ -47,7 +48,8 @@ public class InitialData05CostMaster extends InitialData {
     private void initializeField() {
         {
             FactoryMasterDao dao = dbManager.getFactoryMasterDao();
-            dbManager.execute(TX_INIT, () -> {
+            var setting = getSetting(() -> TgTxOption.ofRTX());
+            dbManager.execute(setting, () -> {
                 List<Integer> list = dao.selectAllId();
 
                 factoryIdSet.clear();
@@ -57,7 +59,8 @@ public class InitialData05CostMaster extends InitialData {
     }
 
     private void generateCostMaster() {
-        dbManager.execute(TX_INIT, () -> {
+        var setting = getSetting(CostMasterDao.TABLE_NAME);
+        dbManager.execute(setting, () -> {
             CostMasterDao dao = dbManager.getCostMasterDao();
             dao.deleteAll();
         });
@@ -72,7 +75,7 @@ public class InitialData05CostMaster extends InitialData {
     @SuppressWarnings("serial")
     private class CostMasterTask extends DaoSplitTask {
         public CostMasterTask(int startId, int endId) {
-            super(dbManager, TX_INIT, startId, endId);
+            super(dbManager, getSetting(CostMasterDao.TABLE_NAME), startId, endId);
         }
 
         @Override
