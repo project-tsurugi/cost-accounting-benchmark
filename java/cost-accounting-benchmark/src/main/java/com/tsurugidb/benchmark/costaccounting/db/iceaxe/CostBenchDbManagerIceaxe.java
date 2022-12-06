@@ -126,7 +126,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     public void executeDdl(String... sqls) {
         var dao = new IceaxeDao<Object>(this, null, null, null) {
             public void executeDdl() {
-                var setting = TgTmSetting.of(TgTxOption.ofOCC());
+                var setting = TgTmSetting.of(getOption());
                 for (var sql : sqls) {
                     if (sql.startsWith("drop table")) {
                         int n = sql.lastIndexOf(" ");
@@ -150,6 +150,14 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                         }
                         LOG.warn("execption={}", e.getMessage());
                     }
+                }
+            }
+
+            private TgTxOption getOption() {
+                if (BenchConst.initTsurugiTxOption().equalsIgnoreCase("OCC")) {
+                    return TgTxOption.ofOCC();
+                } else {
+                    return TgTxOption.ofLTX();
                 }
             }
         };

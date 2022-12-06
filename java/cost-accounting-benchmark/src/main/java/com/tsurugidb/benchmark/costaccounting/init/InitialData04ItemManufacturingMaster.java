@@ -22,6 +22,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.init.util.AmplificationRecord;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class InitialData04ItemManufacturingMaster extends InitialData {
 
@@ -57,7 +58,8 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
     private void initializeField() {
         {
             FactoryMasterDao dao = dbManager.getFactoryMasterDao();
-            dbManager.execute(TX_INIT, () -> {
+            var setting = getSetting(() -> TgTxOption.ofRTX());
+            dbManager.execute(setting, () -> {
                 List<Integer> list = dao.selectAllId();
 
                 factoryIdSet.clear();
@@ -67,7 +69,8 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
         }
         {
             ItemMasterDao dao = dbManager.getItemMasterDao();
-            dbManager.execute(TX_INIT, () -> {
+            var setting = getSetting(() -> TgTxOption.ofRTX());
+            dbManager.execute(setting, () -> {
                 List<Integer> list = dao.selectIdByType(batchDate, ItemType.PRODUCT);
 
                 productIdSet.clear();
@@ -79,7 +82,8 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
     private void generateItemManufacturingMaster() {
         ItemManufacturingMasterDao dao = dbManager.getItemManufacturingMasterDao();
 
-        dbManager.execute(TX_INIT, () -> {
+        var setting = getSetting(ItemManufacturingMasterDao.TABLE_NAME);
+        dbManager.execute(setting, () -> {
             dao.deleteAll();
             insertItemManufacturingMaster(dao);
         });

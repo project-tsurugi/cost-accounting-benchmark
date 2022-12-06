@@ -164,6 +164,11 @@ public class BenchConst {
         return getPropertyInt("init.dbmanager.type", 1);
     }
 
+    public static String initTsurugiTxOption() {
+        String s = getProperty("init.tsurugi.tx.option", false);
+        return (s != null) ? s : "OCC";
+    }
+
     public static LocalDate initBatchDate() {
         return getPropertyDate("init.batch.date");
     }

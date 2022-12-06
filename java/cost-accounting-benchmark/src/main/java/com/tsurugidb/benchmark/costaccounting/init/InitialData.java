@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,6 @@ public class InitialData {
     }
 
     public static final LocalDate DEFAULT_BATCH_DATE = BenchConst.initBatchDate();
-    protected static final TgTmSetting TX_INIT = TgTmSetting.of(TgTxOption.ofOCC());
 
     protected CostBenchDbManager dbManager;
 
@@ -82,6 +82,20 @@ public class InitialData {
     public LocalDate getRandomExpiredDate(int seed, LocalDate batchDate) {
         LocalDate endDate = batchDate.plusDays(random(seed, 7, 700));
         return endDate;
+    }
+
+    protected TgTmSetting getSetting(String... wp) {
+        return getSetting(() -> TgTxOption.ofLTX(wp));
+    }
+
+    protected TgTmSetting getSetting(Supplier<TgTxOption> longTxSupplier) {
+        String txText = BenchConst.initTsurugiTxOption();
+        switch (txText.toUpperCase()) {
+        case "OCC":
+            return TgTmSetting.of(TgTxOption.ofOCC());
+        default:
+            return TgTmSetting.of(longTxSupplier.get());
+        }
     }
 
     protected void dumpExplainCounter(Object dao) {

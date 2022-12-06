@@ -75,7 +75,8 @@ public class InitialData01MeasurementMaster extends InitialData {
     private void generateMeasurementMaster(TableSheet table) {
         MeasurementMasterDao dao = dbManager.getMeasurementMasterDao();
 
-        dbManager.execute(TX_INIT, () -> {
+        var setting = getSetting(MeasurementMasterDao.TABLE_NAME);
+        dbManager.execute(setting, () -> {
             dao.deleteAll();
             insertMeasureMaster(table, dao);
         });

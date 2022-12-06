@@ -29,7 +29,8 @@ public class InitialData02FactoryMaster extends InitialData {
     private void generateFactoryMaster(int size) {
         FactoryMasterDao dao = dbManager.getFactoryMasterDao();
 
-        dbManager.execute(TX_INIT, () -> {
+        var setting = getSetting(FactoryMasterDao.TABLE_NAME);
+        dbManager.execute(setting, () -> {
             dao.deleteAll();
             insertFactoryMaster(size, dao);
         });
