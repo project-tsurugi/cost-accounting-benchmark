@@ -56,6 +56,60 @@ public class ItemMasterDaoTsubakuro extends TsubakuroDao<ItemMaster> implements 
 
     @Override
     public List<ItemMaster> selectByIds(Iterable<Integer> ids, LocalDate date) {
+//      return selectByIdsSplit(ids, date);
+        return selectByIdsCache(ids, date);
+//      return selectByIds1(ids, date);
+    }
+
+    List<ItemMaster> selectByIdsSplit(Iterable<Integer> ids, LocalDate date) {
+        var sql = getSelectEntitySql() + " where i_id=:id and " + TG_COND_DATE;
+        var placeholders = List.of(Placeholders.of("id", AtomType.INT4), //
+                Placeholders.of(vDate.name(), AtomType.DATE));
+        try (var ps = createPreparedStatement(sql, placeholders)) {
+            var list = new ArrayList<ItemMaster>();
+            var converter = getSelectEntityConverter();
+            for (int id : ids) {
+                var parameters = List.of(Parameters.of("id", id), //
+                        Parameters.of(vDate.name(), date));
+                explain(sql, ps, parameters);
+                list.addAll(executeAndGetList(ps, parameters, converter));
+            }
+            return list;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } catch (ServerException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    List<ItemMaster> selectByIdsCache(Iterable<Integer> ids, LocalDate date) {
+        var ps = getSelectByIdsSplitPs(ids, date);
+
+        var list = new ArrayList<ItemMaster>();
+        var converter = getSelectEntityConverter();
+        for (int id : ids) {
+            var parameters = List.of(Parameters.of("id", id), //
+                    Parameters.of(vDate.name(), date));
+            explain(selectByIdsSplitSql, ps, parameters);
+            list.addAll(executeAndGetList(ps, parameters, converter));
+        }
+        return list;
+    }
+
+    private String selectByIdsSplitSql;
+    private PreparedStatement selectByIdsSplitPs;
+
+    private PreparedStatement getSelectByIdsSplitPs(Iterable<Integer> ids, LocalDate date) {
+        if (this.selectByIdsSplitPs == null) {
+            this.selectByIdsSplitSql = getSelectEntitySql() + " where i_id=:id and " + TG_COND_DATE;
+            var placeholders = List.of(Placeholders.of("id", AtomType.INT4), //
+                    Placeholders.of(vDate.name(), AtomType.DATE));
+            this.selectByIdsSplitPs = createPreparedStatement(selectByIdsSplitSql, placeholders);
+        }
+        return this.selectByIdsSplitPs;
+    }
+
+    List<ItemMaster> selectByIds1(Iterable<Integer> ids, LocalDate date) {
         var inSql = new SqlIn("i_id");
         var placeholders = new ArrayList<Placeholder>();
         var parameters = new ArrayList<Parameter>();
