@@ -49,6 +49,8 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
             generateItemManufacturingMaster();
         }
 
+        dumpExplainCounter(dbManager.getItemMasterDao());
+
         logEnd();
     }
 

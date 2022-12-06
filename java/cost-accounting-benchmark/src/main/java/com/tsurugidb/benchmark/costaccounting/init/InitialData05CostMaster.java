@@ -39,6 +39,8 @@ public class InitialData05CostMaster extends InitialData {
             generateCostMaster();
         }
 
+        dumpExplainCounter(dbManager.getItemMasterDao());
+
         logEnd();
     }
 

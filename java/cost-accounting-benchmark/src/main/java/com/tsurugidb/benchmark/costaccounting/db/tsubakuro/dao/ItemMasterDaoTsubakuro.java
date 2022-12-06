@@ -63,7 +63,7 @@ public class ItemMasterDaoTsubakuro extends TsubakuroDao<ItemMaster> implements 
         for (int id : ids) {
             var variable = "id" + (i++);
             placeholders.add(Placeholders.of(variable, AtomType.INT4));
-            inSql.add(variable);
+            inSql.add(":" + variable);
             parameters.add(Parameters.of(variable, id));
         }
         placeholders.add(Placeholders.of(vDate.name(), AtomType.DATE));
@@ -71,6 +71,7 @@ public class ItemMasterDaoTsubakuro extends TsubakuroDao<ItemMaster> implements 
 
         var sql = getSelectEntitySql() + " where " + inSql + " and " + TG_COND_DATE;
         try (var ps = createPreparedStatement(sql, placeholders)) {
+            explain(sql, ps, parameters);
             var converter = getSelectEntityConverter();
             return executeAndGetList(ps, parameters, converter);
         } catch (IOException e) {
@@ -86,6 +87,7 @@ public class ItemMasterDaoTsubakuro extends TsubakuroDao<ItemMaster> implements 
         var parameters = List.of( //
                 Parameters.of(vDate.name(), date), //
                 Parameters.of("type", type.getValue()));
+        explain(selectIdByTypeSql, ps, parameters);
         return executeAndGetList(ps, parameters, rs -> {
             if (rs.nextColumn()) {
                 return rs.fetchInt4Value();
@@ -94,15 +96,16 @@ public class ItemMasterDaoTsubakuro extends TsubakuroDao<ItemMaster> implements 
         });
     }
 
+    private String selectIdByTypeSql;
     private PreparedStatement selectIdByTypePs;
 
     private synchronized PreparedStatement getSelectIdByTypePs() {
         if (this.selectIdByTypePs == null) {
-            var sql = "select i_id from " + TABLE_NAME + " where " + TG_COND_DATE + " and i_type = :type";
+            this.selectIdByTypeSql = "select i_id from " + TABLE_NAME + " where " + TG_COND_DATE + " and i_type = :type";
             var placeholders = List.of( //
                     Placeholders.of(vDate.name(), AtomType.DATE), //
                     Placeholders.of("type", AtomType.CHARACTER));
-            this.selectIdByTypePs = createPreparedStatement(sql, placeholders);
+            this.selectIdByTypePs = createPreparedStatement(selectIdByTypeSql, placeholders);
         }
         return this.selectIdByTypePs;
     }
@@ -123,21 +126,23 @@ public class ItemMasterDaoTsubakuro extends TsubakuroDao<ItemMaster> implements 
         var parameters = List.of( //
                 Parameters.of("id", id), //
                 Parameters.of(vDate.name(), date));
+        explain(selectByIdSql, ps, parameters);
         var converter = getSelectEntityConverter();
         return executeAndGetRecord(ps, parameters, converter);
     }
 
-    private PreparedStatement selectById;
+    private String selectByIdSql;
+    private PreparedStatement selectByIdPs;
 
     private synchronized PreparedStatement getSelectByIdPs() {
-        if (this.selectById == null) {
-            var sql = getSelectEntitySql() + " where i_id = :id and " + TG_COND_DATE;
+        if (this.selectByIdPs == null) {
+            this.selectByIdSql = getSelectEntitySql() + " where i_id = :id and " + TG_COND_DATE;
             var placeholders = List.of( //
                     Placeholders.of("id", AtomType.INT4), //
                     Placeholders.of(vDate.name(), AtomType.DATE));
-            this.selectById = createPreparedStatement(sql, placeholders);
+            this.selectByIdPs = createPreparedStatement(selectByIdSql, placeholders);
         }
-        return this.selectById;
+        return this.selectByIdPs;
     }
 
     @Override

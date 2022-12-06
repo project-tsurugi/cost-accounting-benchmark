@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.entity.HasDateRange;
+import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.TsubakuroDao;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
@@ -81,6 +82,12 @@ public class InitialData {
     public LocalDate getRandomExpiredDate(int seed, LocalDate batchDate) {
         LocalDate endDate = batchDate.plusDays(random(seed, 7, 700));
         return endDate;
+    }
+
+    protected void dumpExplainCounter(Object dao) {
+        if (dao instanceof TsubakuroDao) {
+            ((TsubakuroDao<?>) dao).dumpExplainCounter();
+        }
     }
 
     // random

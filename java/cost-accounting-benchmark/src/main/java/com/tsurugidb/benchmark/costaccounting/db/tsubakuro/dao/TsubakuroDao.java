@@ -4,12 +4,18 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.CostBenchDbManagerTsubakuro;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.TsubakuroColumn.TsubakuroResultSetGetter;
@@ -17,6 +23,8 @@ import com.tsurugidb.sql.proto.SqlCommon.AtomType;
 import com.tsurugidb.sql.proto.SqlRequest.Parameter;
 import com.tsurugidb.sql.proto.SqlRequest.Placeholder;
 import com.tsurugidb.tsubakuro.exception.ServerException;
+import com.tsurugidb.tsubakuro.explain.PlanGraphException;
+import com.tsurugidb.tsubakuro.explain.json.JsonPlanGraphLoader;
 import com.tsurugidb.tsubakuro.sql.Placeholders;
 import com.tsurugidb.tsubakuro.sql.PreparedStatement;
 import com.tsurugidb.tsubakuro.sql.ResultSet;
@@ -24,6 +32,7 @@ import com.tsurugidb.tsubakuro.sql.SqlClient;
 import com.tsurugidb.tsubakuro.sql.Transaction;
 
 public abstract class TsubakuroDao<E> {
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
 
     protected final CostBenchDbManagerTsubakuro dbManager;
     private final String tableName;
@@ -219,4 +228,30 @@ public abstract class TsubakuroDao<E> {
         return null;
     }
 
+    private Map<String, AtomicInteger> explainMap = new LinkedHashMap<>();
+
+    protected void explain(String sql, PreparedStatement ps, List<Parameter> parameters) {
+        var counter = explainMap.computeIfAbsent(sql, k -> new AtomicInteger(0));
+        if (counter.getAndIncrement() != 0) {
+            return;
+        }
+        try {
+            var explain = getSqlClient().explain(ps, parameters).await();
+            var graph = JsonPlanGraphLoader.newBuilder().build().load(explain.getFormatId(), explain.getFormatVersion(), explain.getContents());
+            LOG.info("explain.sql={}", sql);
+            LOG.info("explain.graph={}", graph);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e.getMessage(), e);
+        } catch (ServerException | InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (PlanGraphException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void dumpExplainCounter() {
+        explainMap.forEach((key, counter) -> {
+            LOG.info("count={}, sql={}", counter, key);
+        });
+    }
 }

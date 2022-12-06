@@ -91,6 +91,8 @@ public class InitialData03ItemMaster extends InitialData {
             generateItemMaster();
         }
 
+        dumpExplainCounter(dbManager.getItemMasterDao());
+
         logEnd();
     }
 
