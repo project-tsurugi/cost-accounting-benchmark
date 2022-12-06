@@ -15,6 +15,12 @@
     <Bug pattern="IM_BAD_CHECK_FOR_ODD" />
   </Match>
   <Match>
+    <Class name="com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.TsubakuroDao" />
+    <Method name="executeAndGetRecord" />
+    <!-- 既に利用していた値のnullチェック -->
+    <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE" />
+  </Match>
+  <Match>
     <Package name="com.tsurugidb.benchmark.costaccounting.example" />
   </Match>
 </FindBugsFilter>
