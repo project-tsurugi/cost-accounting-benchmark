@@ -13,6 +13,8 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class BenchConst {
 
@@ -131,6 +133,26 @@ public class BenchConst {
             return List.of(IsolationLevel.SERIALIZABLE);
         } else {
             return List.of(IsolationLevel.READ_COMMITTED, IsolationLevel.SERIALIZABLE);
+        }
+    }
+
+    public static List<TgTxOption> batchCommandTxOption() {
+        String s = getProperty("batch-command.tx.option", false);
+        if (s != null) {
+            return Arrays.stream(s.split(",")).map(String::trim).map(String::toUpperCase).map(option -> {
+                switch (option) {
+                case "OCC":
+                    return TgTxOption.ofOCC();
+                default:
+                    return TgTxOption.ofLTX(ResultTableDao.TABLE_NAME);
+                }
+            }).collect(Collectors.toList());
+        }
+
+        if (dbmsType() == DbmsType.TSURUGI) {
+            return List.of(TgTxOption.ofOCC(), TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
+        } else {
+            return List.of(TgTxOption.ofOCC());
         }
     }
 

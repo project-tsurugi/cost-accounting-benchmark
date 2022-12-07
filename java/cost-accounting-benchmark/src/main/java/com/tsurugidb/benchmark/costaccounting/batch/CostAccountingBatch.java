@@ -240,17 +240,19 @@ public class CostAccountingBatch {
         TgTmSetting setting = TgTmSetting.of(option);
 
         AtomicInteger tryInThisTx = new AtomicInteger(0);
+        int[] exitCode = { -1 };
         dbManager.setSingleTransaction(true);
         dbManager.execute(setting, () -> {
             tryInThisTx.incrementAndGet();
             tryCounter.incrementAndGet();
 
-            executeParallel(threadList);
-
+            int rc = executeParallel(threadList);
             commitOrRollback(batchDate, count.get());
+
+            exitCode[0] = rc;
         });
         abortCounter.addAndGet(tryInThisTx.get() - 1);
-        return 0;
+        return exitCode[0];
     }
 
     private int executeParallelFactoryTx() {
