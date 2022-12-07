@@ -48,6 +48,9 @@ public class DumpCsv {
                     ResultTableDao.TABLE_NAME);
         }
 
+        if (!Files.exists(outputDir)) {
+            Files.createDirectories(outputDir);
+        }
         try (CostBenchDbManager manager = InitialData.createDbManager()) {
             this.dbManager = manager;
 

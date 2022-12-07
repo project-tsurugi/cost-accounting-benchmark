@@ -28,7 +28,11 @@ public class BenchBatchTxOption extends TgTxOptionAlways {
         super(option, 100);
         setStateListener((attempt, e, state) -> {
             if (attempt > 0) {
-                LOG.info("transaction error. attempt={} {}", attempt - 1, e.getMessage());
+                if (state.isExecute()) {
+                    LOG.info("transaction retry. attempt={} {}", attempt, e.getMessage());
+                } else {
+                    LOG.info("transaction error. attempt={} {}", attempt, e.getMessage());
+                }
             }
         });
     }

@@ -16,7 +16,6 @@ import com.tsurugidb.benchmark.costaccounting.ExecutableCommand;
 import com.tsurugidb.benchmark.costaccounting.batch.BatchConfig;
 import com.tsurugidb.benchmark.costaccounting.batch.CostAccountingBatch;
 import com.tsurugidb.benchmark.costaccounting.batch.StringUtil;
-import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
@@ -42,15 +41,7 @@ public class BatchCommand implements ExecutableCommand {
         LOG.info("executeList={}", executeList);
         var isolationList = BenchConst.batchCommandIsolationLevel();
         LOG.info("isolationList={}", isolationList);
-        List<TgTxOption> txList;
-        switch (BenchConst.dbmsType()) {
-        case TSURUGI:
-            txList = List.of(TgTxOption.ofOCC(), TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
-            break;
-        default:
-            txList = List.of(TgTxOption.ofOCC());
-            break;
-        }
+        List<TgTxOption> txList = BenchConst.batchCommandTxOption();
         LOG.info("txList={}", txList);
         var batchDate = InitialData.DEFAULT_BATCH_DATE;
         LOG.info("batchDate={}", batchDate);
