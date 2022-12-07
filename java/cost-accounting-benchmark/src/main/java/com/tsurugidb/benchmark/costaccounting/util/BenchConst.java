@@ -166,7 +166,7 @@ public class BenchConst {
 
     public static String initTsurugiTxOption() {
         String s = getProperty("init.tsurugi.tx.option", false);
-        return (s != null) ? s : "OCC";
+        return (s != null) ? s : "LTX";
     }
 
     public static LocalDate initBatchDate() {

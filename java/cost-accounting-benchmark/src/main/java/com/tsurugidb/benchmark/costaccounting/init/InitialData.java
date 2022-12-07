@@ -92,7 +92,13 @@ public class InitialData {
         String txText = BenchConst.initTsurugiTxOption();
         switch (txText.toUpperCase()) {
         case "OCC":
-            return TgTmSetting.of(TgTxOption.ofOCC());
+            var setting = TgTmSetting.ofAlways(TgTxOption.ofOCC());
+            setting.getTransactionOptionSupplier().setStateListener((attempt, e, state) -> {
+                if (attempt > 0 && state.isExecute()) {
+                    LOG.info("OCC retry {}", attempt);
+                }
+            });
+            return setting;
         default:
             return TgTmSetting.of(longTxSupplier.get());
         }
