@@ -1,6 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.db;
 
 import java.io.Closeable;
+import java.sql.SQLException;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -135,6 +136,24 @@ public abstract class CostBenchDbManager implements Closeable {
     public abstract void execute(TgTmSetting setting, Runnable runnable);
 
     public abstract <T> T execute(TgTmSetting setting, Supplier<T> supplier);
+
+    public boolean isRetriable(Throwable t) {
+        while (t != null) {
+            if (t instanceof SQLException) {
+                SQLException se = (SQLException) t;
+                boolean ret = isRetriableSQLException(se);
+                LOG.debug("caught [{}] retriable exception, ErrorCode = {}, SQLStatus = {}.", se.getMessage(), se.getErrorCode(), se.getSQLState(), se);
+
+                return ret;
+            }
+            t = t.getCause();
+        }
+        return false;
+    }
+
+    protected boolean isRetriableSQLException(SQLException e) {
+        throw new UnsupportedOperationException("do override");
+    }
 
     public final void commit() {
         commit(null);

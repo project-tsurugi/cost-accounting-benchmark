@@ -235,8 +235,10 @@ public class BenchBatchItemTask {
         try {
             calculateWeight1(node);
         } catch (RuntimeException e) {
-            node.debugDump();
-            LOG.error("exception", e);
+            if (!dbManager.isRetriable(e)) {
+                node.debugDump();
+                LOG.error("calculateWeight exception", e);
+            }
             throw e;
         }
         calculateWeight2(node);
@@ -272,8 +274,10 @@ public class BenchBatchItemTask {
         try {
             calculateWeightRatio1(node, rootWeightTotal);
         } catch (RuntimeException e) {
-            node.debugDump();
-            LOG.error("exception", e);
+            if (!dbManager.isRetriable(e)) {
+                node.debugDump();
+                LOG.error("calculateWeightRatio exception", e);
+            }
             throw e;
         }
         calculateWeightRatio2(node, rootWeightTotal);
@@ -301,8 +305,10 @@ public class BenchBatchItemTask {
         try {
             ratio = calculateRequiredQuantity1(node, parentRatio, manufacturingQuantity);
         } catch (RuntimeException e) {
-            node.debugDump();
-            LOG.error("exception", e);
+            if (!dbManager.isRetriable(e)) {
+                node.debugDump();
+                LOG.error("calculateRequiredQuantity exception", e);
+            }
             throw e;
         }
         calculateRequiredQuantity2(node, ratio, manufacturingQuantity);
@@ -374,8 +380,10 @@ public class BenchBatchItemTask {
         try {
             calculateCost1(node, factoryId, manufacturingQuantity);
         } catch (RuntimeException e) {
-            node.debugDump();
-            LOG.error("exception", e);
+            if (!dbManager.isRetriable(e)) {
+                node.debugDump();
+                LOG.error("calculateCost exception", e);
+            }
             throw e;
         }
         calculateCost2(node, factoryId, manufacturingQuantity);
