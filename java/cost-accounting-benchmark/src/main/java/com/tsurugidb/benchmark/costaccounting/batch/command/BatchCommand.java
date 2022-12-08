@@ -25,17 +25,12 @@ public class BatchCommand implements ExecutableCommand {
 
     @Override
     public String getDescription() {
-        return "Execute batch. arg1=<result file path>";
+        return "Execute batch.";
     }
 
     @Override
     public int executeCommand(String... args) throws Exception {
-        if (args.length <= 1) {
-            System.err.println("ERROR: too few arguments.");
-            System.err.println(getDescription());
-            return 1;
-        }
-        var outputPath = Path.of(args[1]);
+        var outputPath = Path.of(BenchConst.batchCommandResultFile());
 
         var executeList = Arrays.stream(BenchConst.batchCommandExecuteType().split(",")).map(String::trim).collect(Collectors.toList());
         LOG.info("executeList={}", executeList);

@@ -156,6 +156,10 @@ public class BenchConst {
         }
     }
 
+    public static String batchCommandResultFile() {
+        return getProperty("batch-command.result.file");
+    }
+
     public static final int DECIMAL_SCALE = getPropertyInt("decimal.scale", 20);
 
     // online

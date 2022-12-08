@@ -61,6 +61,50 @@
 
 
 
+## バッチ処理一括実行
+
+条件を変更しつつバッチ処理を実行し、記録（実行時間等）をファイルに出力する。
+
+```bash
+./run.sh プロパティーファイル executeBatch
+```
+
+一括実行用に、プロパティーファイルに以下の設定を行う。
+
+- batch-command.execute.type
+  - 実行方式（カンマ区切りで複数指定）
+    - `sequential-single-tx` … 全工場を直列実行（全体で1トランザクション）
+    - `sequential-factory-tx` … 全工場を直列実行（工場毎にトランザクション）
+    - `parallel-single-tx` … 工場毎に並列実行（全体で1トランザクション）
+    - `parallel-factory-tx` … 工場毎に並列実行（工場毎にトランザクション）
+- batch-command.factory.list
+  - 処理対象工場
+    - `1-8` … 工場IDが1～8
+    - `all` … 全工場
+- batch-command.isolation.level
+  - トランザクション分離レベル（カンマ区切りで複数指定）
+    - `READ_COMMITTED`
+    - `SERIALIZABLE` （TsurugiはSERIALIZABLEのみ）
+- batch-command.tx.option
+  - トランザクションオプション（カンマ区切りで複数指定）（JDBCでは無視）
+    - `OCC`
+    - `LTX`
+- batch-command.result.file
+  - 実行結果（処理時間やリトライ回数等）を出力するファイルのパス
+
+#### 一括実行用プロパティーの例
+
+```bash
+## batch-command
+batch-command.execute.type=parallel-single-tx, parallel-factory-tx
+batch-command.factory.list=all
+batch-command.isolation.level=SERIALIZABLE
+batch-command.tx.option=OCC, LTX
+batch-command.result.file=/tmp/cost-accounting-benchmark.batch.tsurugi.csv
+```
+
+
+
 ## オンライン処理
 
 オンライン用シェルを実行する。
