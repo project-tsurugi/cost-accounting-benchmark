@@ -83,7 +83,24 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
         }
 
         return connectionThreadLocal.get();
+    }
 
+    private void removeCurrentTransaction() {
+        if (isSingleTransaction()) {
+            if (!connectionList.isEmpty()) {
+                for (var c : connectionList) {
+                    try {
+                        c.close();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+            connectionList.clear();
+            return;
+        }
+
+        connectionThreadLocal.remove();
     }
 
     @Override
@@ -145,33 +162,59 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
 
     @Override
     public void execute(TgTmSetting setting, Runnable runnable) {
-        try {
-            runnable.run();
-            commit();
-        } catch (Throwable e) {
+        for (;;) {
             try {
-                rollback();
-            } catch (Throwable t) {
-                e.addSuppressed(t);
+                runnable.run();
+                commit();
+                return;
+            } catch (Throwable e) {
+                try {
+                    rollback();
+                } catch (Throwable t) {
+                    e.addSuppressed(t);
+                }
+                if (isRetriable(e)) {
+                    removeCurrentTransaction();
+                    LOG.info("retry");
+                    continue;
+                }
+                throw e;
             }
-            throw e;
         }
     }
 
     @Override
     public <T> T execute(TgTmSetting setting, Supplier<T> supplier) {
-        try {
-            T r = supplier.get();
-            commit();
-            return r;
-        } catch (Throwable e) {
+        for (;;) {
             try {
-                rollback();
-            } catch (Throwable t) {
-                e.addSuppressed(t);
+                T r = supplier.get();
+                commit();
+                return r;
+            } catch (Throwable e) {
+                try {
+                    rollback();
+                } catch (Throwable t) {
+                    e.addSuppressed(t);
+                }
+                if (isRetriable(e)) {
+                    removeCurrentTransaction();
+                    LOG.info("retry");
+                    continue;
+                }
+                throw e;
             }
-            throw e;
         }
+    }
+
+    @Override
+    protected boolean isRetriableSQLException(SQLException e) {
+        // PostgreSQL
+        String sqlState = e.getSQLState();
+        if (sqlState != null && sqlState.equals("40001")) {
+            // シリアライゼーション失敗
+            return true;
+        }
+        return false;
     }
 
     @Override
