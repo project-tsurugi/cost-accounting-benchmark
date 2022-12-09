@@ -217,6 +217,22 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
     }
 
     @Override
+    public boolean isRetriable(Throwable t) {
+        while (t != null) {
+            if (t instanceof ServerException) {
+                return isRetyiableTsurugiException((ServerException) t);
+            }
+            t = t.getCause();
+        }
+        return false;
+    }
+
+    protected boolean isRetyiableTsurugiException(ServerException e) {
+        var code = e.getDiagnosticCode();
+        return code == SqlServiceCode.ERR_ABORTED_RETRYABLE;
+    }
+
+    @Override
     public void commit(Runnable listener) {
         var transaction = getCurrentTransaction();
         try {
