@@ -26,6 +26,7 @@ import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.MeasurementMasterDao
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.ResultTableDaoIceaxe;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.TsurugiConnector;
+import com.tsurugidb.iceaxe.exception.TsurugiDiagnosticCodeProvider;
 import com.tsurugidb.iceaxe.session.TgSessionInfo;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
@@ -201,6 +202,22 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
         } catch (IOException e) {
             throw new UncheckedIOException(Thread.currentThread().getName(), e);
         }
+    }
+
+    @Override
+    public boolean isRetriable(Throwable t) {
+        while (t != null) {
+            if (t instanceof TsurugiDiagnosticCodeProvider) {
+                return isRetyiableTsurugiException((TsurugiDiagnosticCodeProvider) t);
+            }
+            t = t.getCause();
+        }
+        return false;
+    }
+
+    protected boolean isRetyiableTsurugiException(TsurugiDiagnosticCodeProvider e) {
+        var code = e.getDiagnosticCode();
+        return code == SqlServiceCode.ERR_ABORTED_RETRYABLE;
     }
 
     @Override
