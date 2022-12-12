@@ -234,7 +234,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     public void commit(Runnable listener) {
         if (listener != null) {
             var transaction = getCurrentTransaction();
-            transaction.addCommitListener(listener);
+            transaction.addCommitListener(tx -> listener.run());
         }
     }
 
@@ -242,7 +242,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     public void rollback(Runnable listener) {
         var transaction = getCurrentTransaction();
         if (listener != null) {
-            transaction.addRollbackListener(listener);
+            transaction.addRollbackListener(tx -> listener.run());
         }
         try {
             transaction.rollback();
