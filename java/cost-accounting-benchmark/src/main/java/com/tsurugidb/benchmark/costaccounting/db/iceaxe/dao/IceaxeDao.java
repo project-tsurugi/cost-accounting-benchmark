@@ -3,7 +3,10 @@ package com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -12,9 +15,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.IceaxeColumn.RecordGetter;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
+import com.tsurugidb.iceaxe.explain.TgStatementMetadata;
 import com.tsurugidb.iceaxe.result.TgEntityResultMapping;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
@@ -22,6 +30,7 @@ import com.tsurugidb.iceaxe.statement.TgEntityParameterMapping;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
 import com.tsurugidb.iceaxe.statement.TgVariable;
+import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatement;
 import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery0;
 import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery1;
 import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate0;
@@ -29,9 +38,12 @@ import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate1;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionRuntimeException;
+import com.tsurugidb.tsubakuro.explain.PlanGraph;
 import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
 public abstract class IceaxeDao<E> {
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
+    private static final boolean DEBUG_EXPLAIN = BenchConst.debugExplain();
 
     protected final CostBenchDbManagerIceaxe dbManager;
     private final String tableName;
@@ -216,6 +228,7 @@ public abstract class IceaxeDao<E> {
     }
 
     protected final <P> int executeAndGetCount(TsurugiPreparedStatementUpdate1<P> ps, P parameter) {
+        debugExplain(ps, () -> ps.explain(parameter));
         try {
             var transaction = getTransaction();
             return ps.executeAndGetCount(transaction, parameter);
@@ -247,6 +260,7 @@ public abstract class IceaxeDao<E> {
     }
 
     protected final <R> List<R> executeAndGetList(TsurugiPreparedStatementQuery0<R> ps) {
+//        debugExplain(ps.getSql(), () -> ps.explain());
         try {
             var transaction = getTransaction();
             return ps.executeAndGetList(transaction);
@@ -266,6 +280,7 @@ public abstract class IceaxeDao<E> {
     }
 
     protected final <R> R executeAndGetRecord(TsurugiPreparedStatementQuery0<R> ps) {
+//        debugExplain(ps.getSql(), () -> ps.explain());
         try {
             var transaction = getTransaction();
             return ps.executeAndFindRecord(transaction).orElse(null);
@@ -277,6 +292,7 @@ public abstract class IceaxeDao<E> {
     }
 
     protected final <P, R> R executeAndGetRecord(TsurugiPreparedStatementQuery1<P, R> ps, P parameter) {
+        debugExplain(ps, () -> ps.explain(parameter));
         try {
             var transaction = getTransaction();
             return ps.executeAndFindRecord(transaction, parameter).orElse(null);
@@ -288,6 +304,7 @@ public abstract class IceaxeDao<E> {
     }
 
     protected final <P, R> List<R> executeAndGetList(TsurugiPreparedStatementQuery1<P, R> ps, P parameter) {
+        debugExplain(ps, () -> ps.explain(parameter));
         try {
             var transaction = getTransaction();
             return ps.executeAndGetList(transaction, parameter);
@@ -299,6 +316,7 @@ public abstract class IceaxeDao<E> {
     }
 
     protected final <P, R> Stream<R> executeAndGetStream(TsurugiPreparedStatementQuery1<P, R> ps, P parameter) {
+        debugExplain(ps, () -> ps.explain(parameter));
         try {
             var transaction = getTransaction();
             var rs = ps.execute(transaction, parameter);
@@ -318,13 +336,47 @@ public abstract class IceaxeDao<E> {
         }
     }
 
+    private Set<String> debugExplainSet = null;
+
+    @FunctionalInterface
+    private interface ExplainSupplier {
+        TgStatementMetadata get() throws IOException;
+    }
+
+    protected void debugExplain(TsurugiPreparedStatement ps, ExplainSupplier explain) {
+        if (!DEBUG_EXPLAIN) {
+            return;
+        }
+
+        String sql = ps.getSql();
+        synchronized (this) {
+            if (this.debugExplainSet == null) {
+                this.debugExplainSet = new HashSet<>();
+            }
+            if (debugExplainSet.contains(sql)) {
+                return;
+            }
+            debugExplainSet.add(sql);
+        }
+
+        PlanGraph graph;
+        try {
+            ps.setExplainConnectTimeout(10, TimeUnit.SECONDS);
+            graph = explain.get().getLowPlanGraph();
+        } catch (Exception e) {
+            LOG.warn("explain error. sql={}", sql, e);
+            return;
+        }
+        LOG.info("explain {}\n{}", sql, graph);
+    }
+
     protected void doForEach(Consumer<E> entityConsumer) {
         String key = columnList.stream().filter(c -> c.isPrimaryKey()).map(c -> c.getName()).collect(Collectors.joining(","));
         var sql = getSelectEntitySql() + " order by " + key;
         var resultMapping = getEntityResultMapping();
-        try (var ps = createPreparedQuery(sql,TgParameterMapping.of(), resultMapping)) {
+        try (var ps = createPreparedQuery(sql, TgParameterMapping.of(), resultMapping)) {
             var transaction = getTransaction();
-            try (var rs = ps.execute(transaction,TgParameterList.of())) {
+            try (var rs = ps.execute(transaction, TgParameterList.of())) {
                 rs.forEach(entityConsumer);
             } catch (TsurugiTransactionException e) {
                 throw new TsurugiTransactionRuntimeException(e);
