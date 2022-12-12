@@ -5,7 +5,9 @@ import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.batch.BatchConfig;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
+import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 import com.tsurugidb.iceaxe.transaction.manager.option.TgTxOptionAlways;
+import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
 public class BenchBatchTxOption extends TgTxOptionAlways {
     private static final Logger LOG = LoggerFactory.getLogger(BenchBatchTxOption.class);
@@ -35,6 +37,19 @@ public class BenchBatchTxOption extends TgTxOptionAlways {
                 }
             }
         });
+    }
+
+    @Override
+    protected boolean isRetryable(TsurugiTransactionException e) {
+        if (super.isRetryable(e)) {
+            return true;
+        }
+
+        var code = e.getDiagnosticCode();
+        if (code == SqlServiceCode.ERR_INACTIVE_TRANSACTION) {
+            return true;
+        }
+        return false;
     }
 
     @Override

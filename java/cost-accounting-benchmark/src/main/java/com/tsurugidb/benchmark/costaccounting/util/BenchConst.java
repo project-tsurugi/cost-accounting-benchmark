@@ -224,6 +224,11 @@ public class BenchConst {
         return getPropertyInt("init.parallelism", defaultValue);
     }
 
+    public static boolean debugExplain() {
+        String s = getProperty("debug.explain", false);
+        return (s != null) ? Boolean.parseBoolean(s) : false;
+    }
+
     // properties
 
     private static Properties properties;

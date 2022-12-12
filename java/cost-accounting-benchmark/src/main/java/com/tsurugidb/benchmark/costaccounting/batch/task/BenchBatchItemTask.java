@@ -160,14 +160,24 @@ public class BenchBatchItemTask {
             return true;
         }
 
-        public void debugDump() {
-            LOG.error("node.itemId={}", this.itemId);
-            LOG.error("node.manufactEntity={}", this.manufactEntity);
-            LOG.error("node.constructEntity={}", this.constructEntity);
-            LOG.error("node.itemEntity={}", this.itemEntity);
-            LOG.error("node.standardQuantity={}", this.standardQuantity);
-            LOG.error("node.requiredQuantity={}", this.requiredQuantity);
-            LOG.error("{} -> {}", itemId, childList.stream().map(node -> Integer.toString(node.itemId)).collect(Collectors.joining(",")));
+        public void debugDump(String title, Exception e) {
+            LOG.error("{} error\n" //
+                    + "node.itemId={}\n" //
+                    + "node.manufactEntity={}\n" //
+                    + "node.constructEntity={}\n" //
+                    + "node.itemEntity={}\n" //
+                    + "node.standardQuantity={}\n" //
+                    + "node.requiredQuantity={}\n" //
+                    + "node.childList={}", //
+                    title, //
+                    this.itemId, //
+                    this.manufactEntity, //
+                    this.constructEntity, //
+                    this.itemEntity, //
+                    this.standardQuantity, //
+                    this.requiredQuantity, //
+                    childList.stream().map(node -> Integer.toString(node.itemId)).collect(Collectors.joining(",")), //
+                    e);
 //			for (BomNode child : childList) {
 //				child.debugDump();
 //			}
@@ -236,8 +246,7 @@ public class BenchBatchItemTask {
             calculateWeight1(node);
         } catch (RuntimeException e) {
             if (!dbManager.isRetriable(e)) {
-                node.debugDump();
-                LOG.error("calculateWeight exception", e);
+                node.debugDump("calculateWeight", e);
             }
             throw e;
         }
@@ -275,8 +284,7 @@ public class BenchBatchItemTask {
             calculateWeightRatio1(node, rootWeightTotal);
         } catch (RuntimeException e) {
             if (!dbManager.isRetriable(e)) {
-                node.debugDump();
-                LOG.error("calculateWeightRatio exception", e);
+                node.debugDump("calculateWeightRatio", e);
             }
             throw e;
         }
@@ -306,8 +314,7 @@ public class BenchBatchItemTask {
             ratio = calculateRequiredQuantity1(node, parentRatio, manufacturingQuantity);
         } catch (RuntimeException e) {
             if (!dbManager.isRetriable(e)) {
-                node.debugDump();
-                LOG.error("calculateRequiredQuantity exception", e);
+                node.debugDump("calculateRequiredQuantity", e);
             }
             throw e;
         }
@@ -381,8 +388,7 @@ public class BenchBatchItemTask {
             calculateCost1(node, factoryId, manufacturingQuantity);
         } catch (RuntimeException e) {
             if (!dbManager.isRetriable(e)) {
-                node.debugDump();
-                LOG.error("calculateCost exception", e);
+                node.debugDump("calculateCost", e);
             }
             throw e;
         }

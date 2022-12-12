@@ -57,7 +57,7 @@ public abstract class CostBenchDbManager implements Closeable {
 
     // DAO
 
-    public MeasurementMasterDao getMeasurementMasterDao() {
+    public synchronized MeasurementMasterDao getMeasurementMasterDao() {
         if (measurementMasterDao == null) {
             this.measurementMasterDao = newMeasurementMasterDao();
         }
@@ -66,7 +66,7 @@ public abstract class CostBenchDbManager implements Closeable {
 
     protected abstract MeasurementMasterDao newMeasurementMasterDao();
 
-    public FactoryMasterDao getFactoryMasterDao() {
+    public synchronized FactoryMasterDao getFactoryMasterDao() {
         if (factoryMasterDao == null) {
             this.factoryMasterDao = newFactoryMasterDao();
         }
@@ -75,7 +75,7 @@ public abstract class CostBenchDbManager implements Closeable {
 
     protected abstract FactoryMasterDao newFactoryMasterDao();
 
-    public ItemMasterDao getItemMasterDao() {
+    public synchronized ItemMasterDao getItemMasterDao() {
         if (itemMasterDao == null) {
             this.itemMasterDao = newItemMasterDao();
         }
@@ -84,7 +84,7 @@ public abstract class CostBenchDbManager implements Closeable {
 
     protected abstract ItemMasterDao newItemMasterDao();
 
-    public ItemConstructionMasterDao getItemConstructionMasterDao() {
+    public synchronized ItemConstructionMasterDao getItemConstructionMasterDao() {
         if (itemConstructionMasterDao == null) {
             this.itemConstructionMasterDao = newItemConstructionMasterDao();
         }
@@ -93,7 +93,7 @@ public abstract class CostBenchDbManager implements Closeable {
 
     protected abstract ItemConstructionMasterDao newItemConstructionMasterDao();
 
-    public ItemManufacturingMasterDao getItemManufacturingMasterDao() {
+    public synchronized ItemManufacturingMasterDao getItemManufacturingMasterDao() {
         if (itemManufacturingMasterDao == null) {
             this.itemManufacturingMasterDao = newItemManufacturingMasterDao();
         }
@@ -102,7 +102,7 @@ public abstract class CostBenchDbManager implements Closeable {
 
     protected abstract ItemManufacturingMasterDao newItemManufacturingMasterDao();
 
-    public CostMasterDao getCostMasterDao() {
+    public synchronized CostMasterDao getCostMasterDao() {
         if (costMasterDao == null) {
             this.costMasterDao = newCostMasterDao();
         }
@@ -111,7 +111,7 @@ public abstract class CostBenchDbManager implements Closeable {
 
     protected abstract CostMasterDao newCostMasterDao();
 
-    public ResultTableDao getResultTableDao() {
+    public synchronized ResultTableDao getResultTableDao() {
         if (resultTableDao == null) {
             this.resultTableDao = newResultTableDao();
         }

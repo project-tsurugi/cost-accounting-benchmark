@@ -170,10 +170,12 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
         try {
             transactionManager.execute(setting, transaction -> {
                 setCurrentTransaction(transaction);
+                LOG.debug("setCurrentTransaction {}", transaction);
                 try {
                     runnable.run();
                 } finally {
                     removeCurrentTransaction();
+                    LOG.debug("removeCurrentTransaction {}", transaction);
                 }
             });
         } catch (IOException e) {
@@ -186,10 +188,12 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
         try {
             return transactionManager.execute(setting, transaction -> {
                 setCurrentTransaction(transaction);
+                LOG.debug("setCurrentTransaction {}", transaction);
                 try {
                     return supplier.get();
                 } finally {
                     removeCurrentTransaction();
+                    LOG.debug("removeCurrentTransaction {}", transaction);
                 }
             });
         } catch (TsurugiTransactionIOException e) {
@@ -217,14 +221,20 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
 
     protected boolean isRetyiableTsurugiException(TsurugiDiagnosticCodeProvider e) {
         var code = e.getDiagnosticCode();
-        return code == SqlServiceCode.ERR_ABORTED_RETRYABLE;
+        if (code == SqlServiceCode.ERR_ABORTED_RETRYABLE) {
+            return true;
+        }
+        if (code == SqlServiceCode.ERR_INACTIVE_TRANSACTION) {
+            return true;
+        }
+        return false;
     }
 
     @Override
     public void commit(Runnable listener) {
         if (listener != null) {
             var transaction = getCurrentTransaction();
-            transaction.addCommitListener(listener);
+            transaction.addCommitListener(tx -> listener.run());
         }
     }
 
@@ -232,7 +242,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     public void rollback(Runnable listener) {
         var transaction = getCurrentTransaction();
         if (listener != null) {
-            transaction.addRollbackListener(listener);
+            transaction.addRollbackListener(tx -> listener.run());
         }
         try {
             transaction.rollback();
