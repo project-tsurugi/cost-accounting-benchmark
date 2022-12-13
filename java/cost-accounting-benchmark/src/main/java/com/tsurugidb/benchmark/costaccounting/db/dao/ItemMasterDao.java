@@ -70,6 +70,15 @@ public interface ItemMasterDao {
      * <pre>
      * select * from item_master
      * where i_id = :id
+     *   and i_effective_date = :date
+     * </pre>
+     */
+    ItemMaster selectByKey(int id, LocalDate date);
+
+    /**
+     * <pre>
+     * select * from item_master
+     * where i_id = :id
      *   and :date between i_effective_date and i_expired_date
      * </pre>
      */

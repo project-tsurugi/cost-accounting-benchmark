@@ -175,6 +175,11 @@ public class ItemMasterDaoTsubakuro extends TsubakuroDao<ItemMaster> implements 
     }
 
     @Override
+    public ItemMaster selectByKey(int id, LocalDate date) {
+        throw new UnsupportedOperationException("not yet impl");
+    }
+
+    @Override
     public ItemMaster selectById(int id, LocalDate date) {
         var ps = getSelectByIdPs();
         var parameters = List.of( //

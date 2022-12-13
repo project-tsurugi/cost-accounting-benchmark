@@ -92,6 +92,16 @@ public class ItemMasterDaoJdbc extends JdbcDao<ItemMaster> implements ItemMaster
     }
 
     @Override
+    public ItemMaster selectByKey(int id, LocalDate date) {
+        String sql = "select * from " + TABLE_NAME + " where i_id = ? and i_effective_date = ?";
+        return executeQuery1(sql, ps -> {
+            int i = 1;
+            setInt(ps, i++, id);
+            setDate(ps, i++, date);
+        }, this::newEntity);
+    }
+
+    @Override
     public ItemMaster selectById(int id, LocalDate date) {
         String sql = "select * from " + TABLE_NAME + " where i_id = ? and " + PS_COND_DATE;
         return executeQuery1(sql, ps -> {

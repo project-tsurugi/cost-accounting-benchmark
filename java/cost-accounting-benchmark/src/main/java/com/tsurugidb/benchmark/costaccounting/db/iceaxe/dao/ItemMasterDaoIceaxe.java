@@ -126,6 +126,25 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
     private static final TgVariableInteger vId = I_ID.copy("id");
 
     @Override
+    public ItemMaster selectByKey(int id, LocalDate date) {
+        var ps = getSelectByKeyPs();
+        var param = TgParameterList.of(vId.bind(id), vDate.bind(date));
+        return executeAndGetRecord(ps, param);
+    }
+
+    private TsurugiPreparedStatementQuery1<TgParameterList, ItemMaster> selectByKey;
+
+    private synchronized TsurugiPreparedStatementQuery1<TgParameterList, ItemMaster> getSelectByKeyPs() {
+        if (this.selectByKey == null) {
+            var sql = getSelectEntitySql() + " where i_id = " + vId + " and i_effective_date = " + vDate;
+            var parameterMapping = TgParameterMapping.of(vId, vDate);
+            var resultMapping = getEntityResultMapping();
+            this.selectByKey = createPreparedQuery(sql, parameterMapping, resultMapping);
+        }
+        return this.selectByKey;
+    }
+
+    @Override
     public ItemMaster selectById(int id, LocalDate date) {
         var ps = getSelectByIdPs();
         var param = TgParameterList.of(vId.bind(id), vDate.bind(date));

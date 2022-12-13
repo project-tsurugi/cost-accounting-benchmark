@@ -13,8 +13,6 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
-import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
-import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class BenchConst {
 
@@ -124,7 +122,11 @@ public class BenchConst {
     }
 
     public static List<IsolationLevel> batchCommandIsolationLevel() {
-        String s = getProperty("batch-command.isolation.level", false);
+        return getCommandIsolationLevel("batch-command.isolation.level");
+    }
+
+    private static List<IsolationLevel> getCommandIsolationLevel(String key) {
+        String s = getProperty(key, false);
         if (s != null) {
             return Arrays.stream(s.split(",")).map(String::trim).map(String::toUpperCase).map(IsolationLevel::valueOf).collect(Collectors.toList());
         }
@@ -136,23 +138,20 @@ public class BenchConst {
         }
     }
 
-    public static List<TgTxOption> batchCommandTxOption() {
-        String s = getProperty("batch-command.tx.option", false);
+    public static List<String> batchCommandTxOption() {
+        return getCommandTxOption("batch-command.tx.option");
+    }
+
+    public static List<String> getCommandTxOption(String key) {
+        String s = getProperty(key, false);
         if (s != null) {
-            return Arrays.stream(s.split(",")).map(String::trim).map(String::toUpperCase).map(option -> {
-                switch (option) {
-                case "OCC":
-                    return TgTxOption.ofOCC();
-                default:
-                    return TgTxOption.ofLTX(ResultTableDao.TABLE_NAME);
-                }
-            }).collect(Collectors.toList());
+            return Arrays.stream(s.split(",")).map(String::trim).map(String::toUpperCase).collect(Collectors.toList());
         }
 
         if (dbmsType() == DbmsType.TSURUGI) {
-            return List.of(TgTxOption.ofOCC(), TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
+            return List.of("OCC", "LTX");
         } else {
-            return List.of(TgTxOption.ofOCC());
+            return List.of("OCC");
         }
     }
 
@@ -227,6 +226,28 @@ public class BenchConst {
     public static boolean debugExplain() {
         String s = getProperty("debug.explain", false);
         return (s != null) ? Boolean.parseBoolean(s) : false;
+    }
+
+    // time
+
+    public static int timeCommandDbManagerType() {
+        return getPropertyInt("time-command.dbmanager.type");
+    }
+
+    public static List<IsolationLevel> timeCommandIsolationLevel() {
+        return getCommandIsolationLevel("time-command.isolation.level");
+    }
+
+    public static List<String> timeCommandTxOption() {
+        return getCommandTxOption("time-command.tx.option");
+    }
+
+    public static int timeCommandSize(String tableName) {
+        return getPropertyInt("time-command." + tableName + ".size");
+    }
+
+    public static String timeCommandResultFile() {
+        return getProperty("time-command.result.file");
     }
 
     // properties
