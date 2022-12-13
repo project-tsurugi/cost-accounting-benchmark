@@ -16,6 +16,7 @@ import com.tsurugidb.benchmark.costaccounting.ExecutableCommand;
 import com.tsurugidb.benchmark.costaccounting.batch.BatchConfig;
 import com.tsurugidb.benchmark.costaccounting.batch.CostAccountingBatch;
 import com.tsurugidb.benchmark.costaccounting.batch.StringUtil;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
@@ -36,7 +37,7 @@ public class BatchCommand implements ExecutableCommand {
         LOG.info("executeList={}", executeList);
         var isolationList = BenchConst.batchCommandIsolationLevel();
         LOG.info("isolationList={}", isolationList);
-        List<TgTxOption> txList = BenchConst.batchCommandTxOption();
+        List<String> txList = BenchConst.batchCommandTxOption();
         LOG.info("txList={}", txList);
         var batchDate = InitialData.DEFAULT_BATCH_DATE;
         LOG.info("batchDate={}", batchDate);
@@ -50,7 +51,7 @@ public class BatchCommand implements ExecutableCommand {
                 for (var txOption : txList) {
                     var config = new BatchConfig(executeType, batchDate, factoryList, 100);
                     config.setIsolationLevel(isolationLevel);
-                    config.setDefaultTxOption(txOption);
+                    config.setDefaultTxOption(getOption(txOption));
 
                     var record = new BatchRecord(config);
                     records.add(record);
@@ -67,6 +68,15 @@ public class BatchCommand implements ExecutableCommand {
             }
         }
         return exitCode;
+    }
+
+    private TgTxOption getOption(String s) {
+        switch (s) {
+        case "OCC":
+            return TgTxOption.ofOCC();
+        default:
+            return TgTxOption.ofLTX(ResultTableDao.TABLE_NAME);
+        }
     }
 
     private void writeResult(Path outputPath, List<BatchRecord> records) throws IOException {
