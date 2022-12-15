@@ -24,7 +24,10 @@ public class TimeCommand implements ExecutableCommand {
     @Override
     public int executeCommand(String... args) throws Exception {
         var outputPath = Path.of(BenchConst.timeCommandResultFile());
-        Files.createDirectories(outputPath.getParent());
+        var outputDir = outputPath.getParent();
+        if (outputDir != null && !Files.exists(outputDir)) {
+            Files.createDirectories(outputDir);
+        }
 
         var isolationList = BenchConst.timeCommandIsolationLevel();
         LOG.info("isolationList={}", isolationList);

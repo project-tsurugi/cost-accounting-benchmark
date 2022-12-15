@@ -3,20 +3,20 @@ package com.tsurugidb.benchmark.costaccounting.time;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
-import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 
 public class TimeRecord {
 
     public static String header() {
-        return "dbmsType, option, table, size, sql, elapsedMillis, mainMillis, commitMillis, tryCount";
+        return "dbmsType, option, table, size, sql, elapsed[ms], begin[ms], main[ms], commit[ms], tryCount";
     }
 
     private final DbmsType dbmsType;
+    private final String managerName;
     private final IsolationLevel isolationLevel;
     private final String txOption;
     private final String tableName;
-    private final int size;
+    private final String size;
     private final String sqlName;
     private long start;
     private long startMain;
@@ -24,8 +24,9 @@ public class TimeRecord {
     private long end;
     private final AtomicInteger tryCount = new AtomicInteger(0);
 
-    public TimeRecord(IsolationLevel isolationLevel, String option, String tableName, int size, String sqlName) {
-        this.dbmsType = BenchConst.dbmsType();
+    public TimeRecord(DbmsType dbmsType, String managerName, IsolationLevel isolationLevel, String option, String tableName, String size, String sqlName) {
+        this.dbmsType = dbmsType;
+        this.managerName = managerName;
         this.isolationLevel = isolationLevel;
         this.txOption = option;
         this.tableName = tableName;
@@ -50,6 +51,13 @@ public class TimeRecord {
         this.end = System.currentTimeMillis();
     }
 
+    public String dbmsType() {
+        if (dbmsType != DbmsType.TSURUGI) {
+            return dbmsType.toString();
+        }
+        return this.managerName;
+    }
+
     public String option() {
         if (dbmsType != DbmsType.TSURUGI) {
             return isolationLevel.name();
@@ -57,12 +65,16 @@ public class TimeRecord {
         return this.txOption;
     }
 
-    public int size() {
+    public String size() {
         return this.size;
     }
 
     public String numberOfDiffrence() {
         return "-";
+    }
+
+    public long beginMillis() {
+        return startMain - start;
     }
 
     public long mainMillis() {
@@ -84,7 +96,7 @@ public class TimeRecord {
     public String getParamString() {
         var sb = new StringBuilder(64);
         sb.append("dbmsType=");
-        sb.append(dbmsType);
+        sb.append(dbmsType());
         sb.append(", option=");
         sb.append(option());
         sb.append(", table=");
@@ -99,7 +111,7 @@ public class TimeRecord {
     @Override
     public String toString() {
         var sb = new StringBuilder(64);
-        sb.append(dbmsType);
+        sb.append(dbmsType());
         sb.append(",");
         sb.append(option());
         sb.append(",");
@@ -110,6 +122,8 @@ public class TimeRecord {
         sb.append(sqlName);
         sb.append(",");
         sb.append(elapsedMillis());
+        sb.append(",");
+        sb.append(beginMillis());
         sb.append(",");
         sb.append(mainMillis());
         sb.append(",");

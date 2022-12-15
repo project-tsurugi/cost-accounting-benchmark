@@ -224,8 +224,7 @@ public class BenchConst {
     }
 
     public static boolean debugExplain() {
-        String s = getProperty("debug.explain", false);
-        return (s != null) ? Boolean.parseBoolean(s) : false;
+        return getPropertyBoolean("debug.explain", false);
     }
 
     // time
@@ -244,6 +243,18 @@ public class BenchConst {
 
     public static int timeCommandSize(String tableName) {
         return getPropertyInt("time-command." + tableName + ".size");
+    }
+
+    public static int timeCommandSizeAdjust(String tableName, String adjustKey) {
+        return getPropertyInt("time-command." + tableName + ".size.adjust." + adjustKey, 0);
+    }
+
+    public static boolean timeCommandExecute(String tableName, String sqlName) {
+        String s = getProperty("time-command." + tableName + "." + sqlName, false);
+        if (s == null) {
+            s = getProperty("time-command." + tableName, false);
+        }
+        return (s != null) ? Boolean.parseBoolean(s) : true;
     }
 
     public static String timeCommandResultFile() {
@@ -314,6 +325,14 @@ public class BenchConst {
         } catch (NumberFormatException e) {
             throw new RuntimeException("not integer key'" + key + "' in property-file", e);
         }
+    }
+
+    private static boolean getPropertyBoolean(String key, boolean defaultValue) {
+        String s = getProperty(key, false);
+        if (s == null) {
+            return defaultValue;
+        }
+        return Boolean.parseBoolean(s);
     }
 
     private static LocalDate getPropertyDate(String key) {

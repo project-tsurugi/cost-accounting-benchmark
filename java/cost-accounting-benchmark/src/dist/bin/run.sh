@@ -13,7 +13,7 @@ fi
 shift
 
 function call_java() {
-  java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $@
+  java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $RUN_JAVA_OPTS $@
 }
 
 call_java com.tsurugidb.benchmark.costaccounting.Main $@

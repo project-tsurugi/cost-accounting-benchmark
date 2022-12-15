@@ -176,7 +176,27 @@ public class ItemMasterDaoTsubakuro extends TsubakuroDao<ItemMaster> implements 
 
     @Override
     public ItemMaster selectByKey(int id, LocalDate date) {
-        throw new UnsupportedOperationException("not yet impl");
+        var ps = getSelectByKeyPs();
+        var parameters = List.of( //
+                Parameters.of("id", id), //
+                Parameters.of(vDate.name(), date));
+        explain(selectByKeySql, ps, parameters);
+        var converter = getSelectEntityConverter();
+        return executeAndGetRecord(ps, parameters, converter);
+    }
+
+    private String selectByKeySql;
+    private PreparedStatement selectByKeyPs;
+
+    private synchronized PreparedStatement getSelectByKeyPs() {
+        if (this.selectByKeyPs == null) {
+            this.selectByKeySql = getSelectEntitySql() + " where i_id = :id and i_effective_date = :date";
+            var placeholders = List.of( //
+                    Placeholders.of("id", AtomType.INT4), //
+                    Placeholders.of(vDate.name(), AtomType.DATE));
+            this.selectByKeyPs = createPreparedStatement(selectByKeySql, placeholders);
+        }
+        return this.selectByKeyPs;
     }
 
     @Override

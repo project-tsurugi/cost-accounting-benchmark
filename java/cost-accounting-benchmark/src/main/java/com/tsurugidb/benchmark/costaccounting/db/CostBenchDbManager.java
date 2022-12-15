@@ -23,6 +23,7 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 public abstract class CostBenchDbManager implements Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManager.class);
 
+    private final String name;
     private MeasurementMasterDao measurementMasterDao;
     private FactoryMasterDao factoryMasterDao;
     private ItemMasterDao itemMasterDao;
@@ -53,6 +54,14 @@ public abstract class CostBenchDbManager implements Closeable {
         MeasurementUtil.initialize(manager.getMeasurementMasterDao());
 
         return manager;
+    }
+
+    public CostBenchDbManager(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return this.name;
     }
 
     // DAO
