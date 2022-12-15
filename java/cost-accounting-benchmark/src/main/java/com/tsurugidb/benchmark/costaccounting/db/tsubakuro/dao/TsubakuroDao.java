@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.CostBenchDbManagerTsubakuro;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.TsubakuroColumn.TsubakuroResultSetGetter;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.sql.proto.SqlCommon.AtomType;
 import com.tsurugidb.sql.proto.SqlRequest.Parameter;
 import com.tsurugidb.sql.proto.SqlRequest.Placeholder;
@@ -33,6 +34,7 @@ import com.tsurugidb.tsubakuro.sql.Transaction;
 
 public abstract class TsubakuroDao<E> {
     private final Logger LOG = LoggerFactory.getLogger(getClass());
+    private static final boolean DEBUG_EXPLAIN = BenchConst.debugExplain();
 
     protected final CostBenchDbManagerTsubakuro dbManager;
     private final String tableName;
@@ -228,9 +230,12 @@ public abstract class TsubakuroDao<E> {
         return null;
     }
 
-    private Map<String, AtomicInteger> explainMap = new LinkedHashMap<>();
+    private final Map<String, AtomicInteger> explainMap = new ConcurrentHashMap<>();
 
     protected void explain(String sql, PreparedStatement ps, List<Parameter> parameters) {
+        if (!DEBUG_EXPLAIN) {
+            return;
+        }
         var counter = explainMap.computeIfAbsent(sql, k -> new AtomicInteger(0));
         if (counter.getAndIncrement() != 0) {
             return;
@@ -238,8 +243,7 @@ public abstract class TsubakuroDao<E> {
         try {
             var explain = getSqlClient().explain(ps, parameters).await();
             var graph = JsonPlanGraphLoader.newBuilder().build().load(explain.getFormatId(), explain.getFormatVersion(), explain.getContents());
-            LOG.info("explain.sql={}", sql);
-            LOG.info("explain.graph={}", graph);
+            LOG.info("explain {}\n{}", sql, graph);
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
         } catch (ServerException | InterruptedException e) {

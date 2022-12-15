@@ -3,10 +3,12 @@ package com.tsurugidb.benchmark.costaccounting.time.table;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
@@ -21,14 +23,19 @@ public class ItemMasterTime extends TableTime {
     @Override
     public void execute() {
         this.dao = dbManager.getItemMasterDao();
-        clearItemMaster();
+        clear();
         insert();
         selectAll();
         selectPoint();
         selectRangeScan();
+        deleteAll();
     }
 
-    private void clearItemMaster() {
+    private void clear() {
+        if (!BenchConst.timeCommandExecute(tableName, "clear")) {
+            return;
+        }
+
         var setting = TgTmSetting.of(TgTxOption.ofLTX(tableName));
         dbManager.execute(setting, () -> {
             dao.deleteAll();
@@ -38,19 +45,24 @@ public class ItemMasterTime extends TableTime {
     private void insert() {
         execute("insert", () -> {
             for (int i = 0; i < size; i++) {
-                var entity = createItemMaster(i);
-                dao.insert(entity);
+                for (int j = sizeAdjustStart; j <= sizeAdjustEnd; j++) {
+                    var entity = createItemMaster(i, j);
+                    dao.insert(entity);
+                }
             }
         });
     }
 
-    private static final LocalDate START_DATE = LocalDate.of(2022, 12, 1);
+    private static final LocalDate BASE_DATE = LocalDate.of(2022, 12, 1);
 
-    private ItemMaster createItemMaster(int i) {
+    private ItemMaster createItemMaster(int i, int j) {
+        var startDate = BASE_DATE.plusMonths(j);
+        var endDate = startDate.with(TemporalAdjusters.lastDayOfMonth());
+
         var entity = new ItemMaster();
         entity.setIId(i);
-        entity.setIEffectiveDate(START_DATE);
-        entity.setIExpiredDate(LocalDate.of(2022, 12, 31));
+        entity.setIEffectiveDate(startDate);
+        entity.setIExpiredDate(endDate);
         entity.setIName("name" + i);
         entity.setIType(ItemType.PRODUCT);
         entity.setIUnit("g");
@@ -64,8 +76,9 @@ public class ItemMasterTime extends TableTime {
     private void selectAll() {
         execute("selectAll", 3, () -> {
             var list = dao.selectAll();
-            if (list.size() != size) {
-                throw new AssertionError(MessageFormat.format("size unmatch. list={0}, size={1}", list.size(), size));
+            int expected = size * (sizeAdjustEnd - sizeAdjustStart + 1);
+            if (list.size() != expected) {
+                throw new AssertionError(MessageFormat.format("size unmatch. list={0}, size={1}", list.size(), expected));
             }
         });
     }
@@ -73,7 +86,7 @@ public class ItemMasterTime extends TableTime {
     private void selectPoint() {
         execute("select(point)", 3, () -> {
             for (int i = 0; i < size; i++) {
-                var entity = dao.selectByKey(i, START_DATE);
+                var entity = dao.selectByKey(i, BASE_DATE);
                 if (entity == null) {
                     throw new AssertionError("id=" + i);
                 }
@@ -90,6 +103,12 @@ public class ItemMasterTime extends TableTime {
                     throw new AssertionError("id=" + i);
                 }
             }
+        });
+    }
+
+    private void deleteAll() {
+        execute("deleteAll", () -> {
+            dao.deleteAll();
         });
     }
 }

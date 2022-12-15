@@ -7,7 +7,96 @@
 
 
 
+## SQL実行時間計測処理
+
+原価計算ベンチマークで使われるSQL単独の実行時間を計測し、結果ファイルに出力する。
+
+```bash
+./run.sh プロパティーファイル createTable # 事前にテーブルを作っておく必要がある
+./run.sh プロパティーファイル time
+```
+
+実行時間計測用の値をプロパティーファイルで指定する。
+
+- time-command.dbmanager.type
+  - 1: JDBC
+  - 2: Tsurugi（Iceaxe）
+  - 3: Tsurugi（Tsubakuro）
+- time-command.isolation.level
+  - トランザクション分離レベル（カンマ区切りで複数指定）
+    - `READ_COMMITTED`
+    - `SERIALIZABLE` （TsurugiはSERIALIZABLEのみ）
+- time-command.tx.option
+  - トランザクションオプション（カンマ区切りで複数指定）（JDBCでは無視）
+    - `OCC`
+    - `LTX`
+- time-command.item_master.size
+  - item_masterにinsertする件数（品目ID（i_id）の数）
+- time-command.item_master.size.adjust.start, time-command.item_master.size.adjust.end
+  - item_masterにinsertする日付の範囲
+    - nの場合、基本となる日付のnヶ月後のレコードまで作成する
+      - 「-1, 2」の場合、i_id毎に、1ヶ月前～2ヶ月後の4レコード作成される
+    - デフォルトは0
+- time-command.item_master
+  - item_masterの計測を実行するかどうか。デフォルトはtrue
+  - 特定のSQLだけ実行したい場合はfalseにする
+- time-command.item_master.＜SQL名＞
+  - trueにすると、そのSQLを実行する。デフォルトはtime-command.item_masterの設定値
+- time-command.result.file
+  - 実行結果（処理時間等）を出力するファイルのパス
+
+#### SQL実行時間計測用プロパティーの例
+
+```properties
+## time-command
+time-command.dbmanager.type=2
+time-command.isolation.level=SERIALIZABLE
+time-command.tx.option=OCC, LTX
+time-command.item_master.size=10_000
+time-command.item_master.size.adjust.start=-1
+time-command.item_master.size.adjust.end=1
+time-command.result.file=/tmp/cost-accounting-benchmark.time.tsurugi.csv
+```
+
+### 結果ファイルの内容
+
+#### 例
+
+```
+dbmsType, option, table, size, sql, elapsed[ms], begin[ms], main[ms], commit[ms], tryCount
+ICEAXE,LTX,item_master,10000[-1:1],insert,4610,0,4515,95,1
+ICEAXE,LTX,item_master,10000[-1:1],selectAll,277,1,266,10,1
+ICEAXE,LTX,item_master,10000[-1:1],selectAll,229,0,219,10,1
+ICEAXE,LTX,item_master,10000[-1:1],selectAll,253,1,242,10,1
+ICEAXE,LTX,item_master,10000[-1:1],select(point),1919,0,1914,5,1
+ICEAXE,LTX,item_master,10000[-1:1],select(point),1828,1,1822,5,1
+ICEAXE,LTX,item_master,10000[-1:1],select(point),1964,1,1959,4,1
+ICEAXE,LTX,item_master,10000[-1:1],select(range-scan),2309,0,2247,62,1
+ICEAXE,LTX,item_master,10000[-1:1],select(range-scan),2535,1,2472,62,1
+ICEAXE,LTX,item_master,10000[-1:1],select(range-scan),2602,0,2542,60,1
+ICEAXE,LTX,item_master,10000[-1:1],deleteAll,333,0,265,68,1
+```
+
+- elapsed
+  - 全体の実行時間
+  - begin + main + commit
+- begin
+  - 実行を開始してから最初のSQL実行を行うまでの時間（主にトランザクションを開始する時間）
+    - JDBCの場合は0（コネクション作成はmainに含まれる）
+    - Tsubakuroの場合はトランザクション開始のFutureResponseをawaitするので、その時間
+    - Iceaxeの場合はトランザクション開始のFutureResponseを作る時間（FutureResponse.getはmainで行う）
+- main
+  - SQL実行本体（commit手前まで）の時間
+- commit
+  - コミット処理の時間
+- tryCount
+  - 試行回数（リトライした場合は2以上になる）
+
+## 
+
 ## 初期データ作成処理
+
+バッチ処理やオンライン処理で使用する初期データを作成する。
 
 初期データ作成用のシェルを実行する。
 
@@ -94,7 +183,7 @@
 
 #### 一括実行用プロパティーの例
 
-```bash
+```properties
 ## batch-command
 batch-command.execute.type=parallel-single-tx, parallel-factory-tx
 batch-command.factory.list=all
