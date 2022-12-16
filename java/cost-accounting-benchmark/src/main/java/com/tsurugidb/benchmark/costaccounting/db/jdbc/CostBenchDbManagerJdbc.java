@@ -2,8 +2,12 @@ package com.tsurugidb.benchmark.costaccounting.db.jdbc;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 
@@ -144,7 +148,8 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
         var dao = new JdbcDao<Object>(this, null, null) {
             public void executeDdl() {
                 for (String sql : sqls) {
-                    try (var ps = preparedStatement(sql)) {
+                    var ps = preparedStatement(sql);
+                    try {
                         ps.execute();
                         commit();
                     } catch (SQLException e) {
@@ -258,8 +263,33 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
         }
     }
 
+    private final Map<Connection, Map<String, PreparedStatement>> psMap = new ConcurrentHashMap<>();
+
+    public PreparedStatement preparedStatement(String sql) {
+        Connection c = getConnection();
+        var map = psMap.computeIfAbsent(c, k -> new ConcurrentHashMap<>());
+        return map.computeIfAbsent(sql, k -> {
+            try {
+                return c.prepareStatement(sql);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
     @Override
     public void close() {
+        var list = new ArrayList<SQLException>();
+        for (var map : psMap.values()) {
+            for (var ps : map.values()) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    list.add(e);
+                }
+            }
+        }
+
         RuntimeException exception = null;
 
         for (Connection c : connectionList) {
@@ -275,6 +305,16 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
         }
 
         if (exception != null) {
+            for (var e : list) {
+                exception.addSuppressed(e);
+            }
+            throw exception;
+        }
+        if (!list.isEmpty()) {
+            exception = new RuntimeException();
+            for (var e : list) {
+                exception.addSuppressed(e);
+            }
             throw exception;
         }
     }

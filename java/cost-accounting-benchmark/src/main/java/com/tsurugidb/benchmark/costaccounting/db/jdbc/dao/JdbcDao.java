@@ -1,6 +1,5 @@
 package com.tsurugidb.benchmark.costaccounting.db.jdbc.dao;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -47,17 +46,8 @@ public abstract class JdbcDao<E> {
         this.columnList = columnList;
     }
 
-    protected final Connection getConnection() {
-        return dbManager.getConnection();
-    }
-
     protected final PreparedStatement preparedStatement(String sql) {
-        Connection c = getConnection();
-        try {
-            return c.prepareStatement(sql);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return dbManager.preparedStatement(sql);
     }
 
     // execute statement
@@ -78,7 +68,8 @@ public abstract class JdbcDao<E> {
     }
 
     protected final int executeQuery(String sql, SqlConsumer<PreparedStatement> prepare, SqlConsumer<ResultSet> converter) {
-        try (PreparedStatement ps = preparedStatement(sql)) {
+        var ps = preparedStatement(sql);
+        try {
             if (prepare != null) {
                 prepare.accept(ps);
             }
@@ -96,7 +87,8 @@ public abstract class JdbcDao<E> {
     }
 
     protected final <R> R executeQuery1(String sql, SqlConsumer<PreparedStatement> prepare, SqlFunction<ResultSet, R> converter) {
-        try (PreparedStatement ps = preparedStatement(sql)) {
+        var ps = preparedStatement(sql);
+        try {
             if (prepare != null) {
                 prepare.accept(ps);
             }
@@ -112,7 +104,8 @@ public abstract class JdbcDao<E> {
     }
 
     protected final <R> List<R> executeQueryList(String sql, SqlConsumer<PreparedStatement> prepare, SqlFunction<ResultSet, R> converter) {
-        try (PreparedStatement ps = preparedStatement(sql)) {
+        var ps = preparedStatement(sql);
+        try {
             if (prepare != null) {
                 prepare.accept(ps);
             }
@@ -129,11 +122,10 @@ public abstract class JdbcDao<E> {
     }
 
     protected final <R> Stream<R> executeQueryStream(String sql, SqlConsumer<PreparedStatement> prepare, SqlFunction<ResultSet, R> converter) {
-        PreparedStatement ps = null;
         ResultSet rs = null;
         Stream<R> stream;
+        var ps = preparedStatement(sql);
         try {
-            ps = preparedStatement(sql);
             if (prepare != null) {
                 prepare.accept(ps);
             }
@@ -147,8 +139,6 @@ public abstract class JdbcDao<E> {
                     rs.close();
                 } catch (Throwable t) {
                     e.addSuppressed(t);
-                } finally {
-                    ps.close();
                 }
                 throw e;
             }
@@ -157,30 +147,19 @@ public abstract class JdbcDao<E> {
             stream = StreamSupport.stream(spliterator, false);
         } catch (SQLException e) {
             RuntimeException r = new RuntimeException(e);
-            try {
-                if (rs != null) {
-                    try {
-                        rs.close();
-                    } catch (Throwable t) {
-                        r.addSuppressed(t);
-                    }
-                }
-            } finally {
-                if (ps != null) {
-                    try {
-                        ps.close();
-                    } catch (Throwable t) {
-                        r.addSuppressed(t);
-                    }
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (Throwable t) {
+                    r.addSuppressed(t);
                 }
             }
             throw r;
         }
 
-        final PreparedStatement finalPs = ps;
         final ResultSet finalRs = rs;
         return stream.onClose(() -> {
-            try (PreparedStatement ps0 = finalPs; ResultSet rs0 = finalRs) {
+            try (ResultSet rs0 = finalRs) {
                 // close by try-with-resources
             } catch (SQLException e) {
                 throw new RuntimeException(e);
@@ -220,7 +199,8 @@ public abstract class JdbcDao<E> {
     }
 
     protected final int executeUpdate(String sql, SqlConsumer<PreparedStatement> prepare) {
-        try (PreparedStatement ps = preparedStatement(sql)) {
+        var ps = preparedStatement(sql);
+        try {
             if (prepare != null) {
                 prepare.accept(ps);
             }
@@ -248,7 +228,8 @@ public abstract class JdbcDao<E> {
     }
 
     protected final int[] executeBatch(String sql, Collection<E> list, SqlBiConsumer<E, PreparedStatement> prepare) {
-        try (PreparedStatement ps = preparedStatement(sql)) {
+        var ps = preparedStatement(sql);
+        try {
             for (E entity : list) {
                 if (prepare != null) {
                     prepare.accept(entity, ps);
@@ -354,12 +335,11 @@ public abstract class JdbcDao<E> {
         String sql = "select " + names + " from " + tableName + " order by " + key;
 
         E entity = entitySupplier.get();
-        try (PreparedStatement ps = preparedStatement(sql)) {
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    fillEntity(entity, rs);
-                    entityConsumer.accept(entity);
-                }
+        var ps = preparedStatement(sql);
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                fillEntity(entity, rs);
+                entityConsumer.accept(entity);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
