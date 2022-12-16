@@ -245,7 +245,8 @@ public abstract class JdbcDao<E> {
     // do sql
 
     protected final int doDeleteAll() {
-        String sql = "truncate table " + tableName;
+//      String sql = "truncate table " + tableName;
+        String sql = "delete from " + tableName;
         return executeUpdate(sql, null);
     }
 
