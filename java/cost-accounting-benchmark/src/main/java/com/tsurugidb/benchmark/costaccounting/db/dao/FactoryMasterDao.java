@@ -11,6 +11,13 @@ public interface FactoryMasterDao {
 
     /**
      * <pre>
+     * truncate table factory_master
+     * </pre>
+     */
+    void truncate();
+
+    /**
+     * <pre>
      * delete from factory_master
      * </pre>
      */

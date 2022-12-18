@@ -76,6 +76,10 @@ public abstract class IceaxeDao<E> {
 
     // do sql
 
+    protected final void doTruncate() {
+        doDeleteAll();
+    }
+
     protected final int doDeleteAll() {
         var sql = "delete from " + tableName;
         try (var ps = getSession().createPreparedStatement(sql)) {

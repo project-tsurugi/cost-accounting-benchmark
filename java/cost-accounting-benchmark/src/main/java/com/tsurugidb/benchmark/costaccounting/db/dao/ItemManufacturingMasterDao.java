@@ -22,6 +22,13 @@ public interface ItemManufacturingMasterDao {
 
     /**
      * <pre>
+     * truncate table item_manufacturing_master
+     * </pre>
+     */
+    void truncate();
+
+    /**
+     * <pre>
      * delete from item_manufacturing_master
      * </pre>
      */

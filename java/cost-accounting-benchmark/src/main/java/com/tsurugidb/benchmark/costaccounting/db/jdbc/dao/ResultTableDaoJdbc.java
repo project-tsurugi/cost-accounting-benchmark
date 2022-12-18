@@ -53,6 +53,11 @@ public class ResultTableDaoJdbc extends JdbcDao<ResultTable> implements ResultTa
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

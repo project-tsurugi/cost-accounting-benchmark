@@ -32,6 +32,11 @@ public class CostMasterDaoJdbc extends JdbcDao<CostMaster> implements CostMaster
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

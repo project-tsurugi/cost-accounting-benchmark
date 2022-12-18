@@ -31,7 +31,7 @@ public class InitialData02FactoryMaster extends InitialData {
 
         var setting = getSetting(FactoryMasterDao.TABLE_NAME);
         dbManager.execute(setting, () -> {
-            dao.deleteAll();
+            dao.truncate();
             insertFactoryMaster(size, dao);
         });
     }

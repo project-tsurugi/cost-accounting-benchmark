@@ -53,6 +53,11 @@ public class ResultTableDaoTsubakuro extends TsubakuroDao<ResultTable> implement
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

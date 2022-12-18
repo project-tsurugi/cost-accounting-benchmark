@@ -101,11 +101,11 @@ public class InitialData03ItemMaster extends InitialData {
         dbManager.execute(setting, () -> {
             {
                 ItemMasterDao dao = dbManager.getItemMasterDao();
-                dao.deleteAll();
+                dao.truncate();
             }
             {
                 ItemConstructionMasterDao dao = dbManager.getItemConstructionMasterDao();
-                dao.deleteAll();
+                dao.truncate();
             }
         });
 

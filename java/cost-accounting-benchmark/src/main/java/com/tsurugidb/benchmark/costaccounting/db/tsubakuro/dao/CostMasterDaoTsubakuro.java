@@ -30,6 +30,11 @@ public class CostMasterDaoTsubakuro extends TsubakuroDao<CostMaster> implements 
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }
