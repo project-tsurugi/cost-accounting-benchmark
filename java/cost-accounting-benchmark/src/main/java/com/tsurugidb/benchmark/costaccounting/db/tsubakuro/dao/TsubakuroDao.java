@@ -68,6 +68,10 @@ public abstract class TsubakuroDao<E> {
 
     // do sql
 
+    protected final void doTruncate() {
+        doDeleteAll();
+    }
+
     protected final int doDeleteAll() {
         var sql = "delete from " + tableName;
         try {

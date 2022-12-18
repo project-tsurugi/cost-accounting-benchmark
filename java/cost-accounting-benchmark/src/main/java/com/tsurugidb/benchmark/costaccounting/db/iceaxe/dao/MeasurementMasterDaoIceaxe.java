@@ -27,6 +27,11 @@ public class MeasurementMasterDaoIceaxe extends IceaxeDao<MeasurementMaster> imp
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

@@ -30,6 +30,11 @@ public class FactoryMasterDaoIceaxe extends IceaxeDao<FactoryMaster> implements 
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

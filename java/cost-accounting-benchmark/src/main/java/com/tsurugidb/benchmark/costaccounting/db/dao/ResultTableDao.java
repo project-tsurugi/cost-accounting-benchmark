@@ -21,6 +21,13 @@ public interface ResultTableDao {
 
     /**
      * <pre>
+     * truncate table result_table
+     * </pre>
+     */
+    void truncate();
+
+    /**
+     * <pre>
      * delete from result_table
      * </pre>
      */

@@ -46,6 +46,11 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

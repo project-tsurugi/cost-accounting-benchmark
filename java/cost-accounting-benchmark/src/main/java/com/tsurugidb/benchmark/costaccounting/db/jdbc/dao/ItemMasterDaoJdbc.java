@@ -40,6 +40,11 @@ public class ItemMasterDaoJdbc extends JdbcDao<ItemMaster> implements ItemMaster
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

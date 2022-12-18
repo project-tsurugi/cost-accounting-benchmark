@@ -11,6 +11,13 @@ public interface MeasurementMasterDao {
 
     /**
      * <pre>
+     * truncate table measurement_master
+     * </pre>
+     */
+    void truncate();
+
+    /**
+     * <pre>
      * delete from measurement_master
      * </pre>
      */

@@ -26,6 +26,11 @@ public class MeasurementMasterDaoJdbc extends JdbcDao<MeasurementMaster> impleme
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

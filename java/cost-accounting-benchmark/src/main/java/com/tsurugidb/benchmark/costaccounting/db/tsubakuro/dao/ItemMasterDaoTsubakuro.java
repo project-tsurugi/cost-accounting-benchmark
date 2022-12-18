@@ -45,6 +45,11 @@ public class ItemMasterDaoTsubakuro extends TsubakuroDao<ItemMaster> implements 
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

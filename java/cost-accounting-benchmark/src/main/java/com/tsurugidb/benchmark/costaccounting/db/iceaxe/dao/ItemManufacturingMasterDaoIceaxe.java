@@ -41,6 +41,11 @@ public class ItemManufacturingMasterDaoIceaxe extends IceaxeDao<ItemManufacturin
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

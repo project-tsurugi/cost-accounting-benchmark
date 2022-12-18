@@ -84,7 +84,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 
         var setting = getSetting(ItemManufacturingMasterDao.TABLE_NAME);
         dbManager.execute(setting, () -> {
-            dao.deleteAll();
+            dao.truncate();
             insertItemManufacturingMaster(dao);
         });
     }

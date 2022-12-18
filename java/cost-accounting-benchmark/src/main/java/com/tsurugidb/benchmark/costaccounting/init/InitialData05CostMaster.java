@@ -62,7 +62,7 @@ public class InitialData05CostMaster extends InitialData {
         var setting = getSetting(CostMasterDao.TABLE_NAME);
         dbManager.execute(setting, () -> {
             CostMasterDao dao = dbManager.getCostMasterDao();
-            dao.deleteAll();
+            dao.truncate();
         });
 
         InitialData03ItemMaster itemMasterData = InitialData03ItemMaster.getDefaultInstance();

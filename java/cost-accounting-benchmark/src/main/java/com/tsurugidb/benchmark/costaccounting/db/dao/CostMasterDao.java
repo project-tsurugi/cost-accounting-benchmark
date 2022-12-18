@@ -12,6 +12,13 @@ public interface CostMasterDao {
 
     /**
      * <pre>
+     * truncate table cost_master
+     * </pre>
+     */
+    void truncate();
+
+    /**
+     * <pre>
      * delete from cost_master
      * </pre>
      */

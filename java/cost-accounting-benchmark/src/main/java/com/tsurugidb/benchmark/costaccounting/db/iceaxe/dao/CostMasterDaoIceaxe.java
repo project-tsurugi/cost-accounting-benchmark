@@ -36,6 +36,11 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

@@ -28,7 +28,7 @@ public class InitialData06ResultTable extends InitialData {
 
         var setting = getSetting(ResultTableDao.TABLE_NAME);
         dbManager.execute(setting, () -> {
-            dao.deleteAll();
+            dao.truncate();
         });
     }
 }

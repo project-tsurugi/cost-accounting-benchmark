@@ -28,6 +28,11 @@ public class FactoryMasterDaoJdbc extends JdbcDao<FactoryMaster> implements Fact
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

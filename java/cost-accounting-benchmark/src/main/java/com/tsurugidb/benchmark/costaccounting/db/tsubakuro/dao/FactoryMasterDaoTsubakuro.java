@@ -24,6 +24,11 @@ public class FactoryMasterDaoTsubakuro extends TsubakuroDao<FactoryMaster> imple
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

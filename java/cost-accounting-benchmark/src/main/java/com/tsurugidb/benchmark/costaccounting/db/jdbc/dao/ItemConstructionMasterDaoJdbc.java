@@ -42,6 +42,11 @@ public class ItemConstructionMasterDaoJdbc extends JdbcDao<ItemConstructionMaste
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

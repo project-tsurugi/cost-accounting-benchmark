@@ -36,6 +36,11 @@ public class ItemManufacturingMasterDaoJdbc extends JdbcDao<ItemManufacturingMas
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

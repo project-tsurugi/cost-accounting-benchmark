@@ -28,6 +28,11 @@ public class MeasurementMasterDaoTsubakuro extends TsubakuroDao<MeasurementMaste
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

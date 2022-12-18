@@ -48,6 +48,11 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }

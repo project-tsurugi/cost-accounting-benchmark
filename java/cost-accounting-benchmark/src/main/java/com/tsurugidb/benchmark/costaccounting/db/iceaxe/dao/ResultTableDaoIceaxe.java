@@ -59,6 +59,11 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
     }
 
     @Override
+    public void truncate() {
+        doTruncate();
+    }
+
+    @Override
     public int deleteAll() {
         return doDeleteAll();
     }
