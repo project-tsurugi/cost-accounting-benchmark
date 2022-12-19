@@ -29,6 +29,10 @@ public class StringUtil {
     }
 
     public static String toString(List<Integer> list) {
+        return toString(list, ", ");
+    }
+
+    public static String toString(List<Integer> list, String delimiter) {
         StringBuilder sb = new StringBuilder();
         sb.append('[');
 
@@ -50,7 +54,7 @@ public class StringUtil {
                 if (count > 2) {
                     sb.append('-');
                 } else {
-                    sb.append(", ");
+                    sb.append(delimiter);
                 }
                 sb.append(end);
                 end = 0;
@@ -58,7 +62,7 @@ public class StringUtil {
 
             if (n != Integer.MAX_VALUE) {
                 sb.append(comma);
-                comma = ", ";
+                comma = delimiter;
                 sb.append(n);
                 count = 1;
             }
