@@ -38,7 +38,7 @@ public class ItemMasterTime extends TableTime {
 
         var setting = TgTmSetting.of(TgTxOption.ofLTX(tableName));
         dbManager.execute(setting, () -> {
-            dao.deleteAll();
+            dao.truncate();
         });
     }
 

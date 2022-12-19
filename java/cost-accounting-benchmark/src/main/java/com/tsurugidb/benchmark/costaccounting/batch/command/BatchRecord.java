@@ -1,13 +1,14 @@
 package com.tsurugidb.benchmark.costaccounting.batch.command;
 
 import com.tsurugidb.benchmark.costaccounting.batch.BatchConfig;
+import com.tsurugidb.benchmark.costaccounting.batch.StringUtil;
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 public class BatchRecord {
 
     public static String header() {
-        return "dbmsType, option, scope, factoryCount, elapsedMills, tryCount, abortCount, diffrence";
+        return "dbmsType, option, scope, factory, elapsedMills, tryCount, abortCount, diffrence";
     }
 
     private final BatchConfig config;
@@ -52,8 +53,8 @@ public class BatchRecord {
         return config.getExecuteType();
     }
 
-    public int factoryCount() {
-        return config.getFactoryList().size();
+    public String factory() {
+        return StringUtil.toString(config.getFactoryList(), "/");
     }
 
     public String numberOfDiffrence() {
@@ -73,7 +74,7 @@ public class BatchRecord {
         sb.append(", scope=");
         sb.append(scope());
         sb.append(", factoryCount=");
-        sb.append(factoryCount());
+        sb.append(factory());
         return sb.toString();
     }
 
@@ -86,7 +87,7 @@ public class BatchRecord {
         sb.append(",");
         sb.append(scope());
         sb.append(",");
-        sb.append(factoryCount());
+        sb.append(factory());
         sb.append(",");
         sb.append(elapsedMillis);
         sb.append(",");

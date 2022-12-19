@@ -254,6 +254,9 @@ public class BenchConst {
         if (s == null) {
             s = getProperty("time-command." + tableName, false);
         }
+        if (s == null) {
+            s = getProperty("time-command", false);
+        }
         return (s != null) ? Boolean.parseBoolean(s) : true;
     }
 
