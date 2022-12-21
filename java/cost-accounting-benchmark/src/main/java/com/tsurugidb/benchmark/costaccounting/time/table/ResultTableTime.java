@@ -13,7 +13,7 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 public class ResultTableTime extends TableTime {
 
     private ResultTableDao dao;
-    private final int factoryId = 2;
+    private int factoryId = 2;
 
     public ResultTableTime() {
         super(ResultTableDao.TABLE_NAME);
