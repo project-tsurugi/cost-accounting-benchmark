@@ -21,8 +21,6 @@ import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
 import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableInteger;
 import com.tsurugidb.iceaxe.statement.TgVariableList;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery1;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate1;
 
 public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionMaster> implements ItemConstructionMasterDao {
 
@@ -69,85 +67,73 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
 
     @Override
     public List<ItemConstructionMaster> selectAll(LocalDate date) {
-        var ps = getSelectAllPs();
+        var ps = selectAllCache.get();
         var param = TgParameterList.of(vDate.bind(date));
         return executeAndGetList(ps, param);
     }
 
-    private TsurugiPreparedStatementQuery1<TgParameterList, ItemConstructionMaster> selectAllPs;
-
-    private synchronized TsurugiPreparedStatementQuery1<TgParameterList, ItemConstructionMaster> getSelectAllPs() {
-        if (this.selectAllPs == null) {
-            var sql = getSelectEntitySql() + " where " + TG_COND_DATE + " order by ic_parent_i_id, ic_i_id";
-            var parameterMapping = TgParameterMapping.of(vDate);
-            var resultMapping = getEntityResultMapping();
-            this.selectAllPs = createPreparedQuery(sql, parameterMapping, resultMapping);
+    private final CachePreparedQuery<TgParameterList, ItemConstructionMaster> selectAllCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql() + " where " + TG_COND_DATE + " order by ic_parent_i_id, ic_i_id";
+            this.parameterMapping = TgParameterMapping.of(vDate);
+            this.resultMapping = getEntityResultMapping();
         }
-        return this.selectAllPs;
-    }
+    };
 
     @Override
     public List<ItemConstructionMasterIds> selectIds(LocalDate date) {
-        var ps = getSelectIdsPs();
+        var ps = selectIdsCache.get();
         var param = TgParameterList.of(vDate.bind(date));
         return executeAndGetList(ps, param);
     }
 
-    private TsurugiPreparedStatementQuery1<TgParameterList, ItemConstructionMasterIds> selectIdsPs;
-
-    private synchronized TsurugiPreparedStatementQuery1<TgParameterList, ItemConstructionMasterIds> getSelectIdsPs() {
-        if (this.selectIdsPs == null) {
-            var sql = "select ic_parent_i_id, ic_i_id from " + TABLE_NAME + " where " + TG_COND_DATE + " order by ic_parent_i_id, ic_i_id";
-            var parameterMapping = TgParameterMapping.of(vDate);
-            var resultMapping = TgResultMapping.of(ItemConstructionMasterIds::new) //
+    private final CachePreparedQuery<TgParameterList, ItemConstructionMasterIds> selectIdsCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = "select ic_parent_i_id, ic_i_id from " + TABLE_NAME + " where " + TG_COND_DATE + " order by ic_parent_i_id, ic_i_id";
+            this.parameterMapping = TgParameterMapping.of(vDate);
+            this.resultMapping = TgResultMapping.of(ItemConstructionMasterIds::new) //
                     .int4(ItemConstructionMasterIds::setIcParentIId) //
                     .int4(ItemConstructionMasterIds::setIcIId);
-            this.selectIdsPs = createPreparedQuery(sql, parameterMapping, resultMapping);
         }
-        return this.selectIdsPs;
-    }
+    };
 
     private static final TgVariableInteger vParentId = IC_PARENT_I_ID.copy("parentId");
 
     @Override
     public List<ItemConstructionMaster> selectByParentId(int parentId, LocalDate date) {
-        var ps = getSelectByParentId();
+        var ps = selectByParentIdCache.get();
         var param = TgParameterList.of(vParentId.bind(parentId), vDate.bind(date));
         return executeAndGetList(ps, param);
     }
 
-    private TsurugiPreparedStatementQuery1<TgParameterList, ItemConstructionMaster> selectByParentIdPs;
-
-    private synchronized TsurugiPreparedStatementQuery1<TgParameterList, ItemConstructionMaster> getSelectByParentId() {
-        if (this.selectByParentIdPs == null) {
-            var sql = getSelectEntitySql() + " where ic_parent_i_id = " + vParentId + " and " + TG_COND_DATE + " order by ic_i_id";
-            var parameterMapping = TgParameterMapping.of(vParentId, vDate);
-            var resultMapping = getEntityResultMapping();
-            this.selectByParentIdPs = createPreparedQuery(sql, parameterMapping, resultMapping);
+    private final CachePreparedQuery<TgParameterList, ItemConstructionMaster> selectByParentIdCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql() + " where ic_parent_i_id = " + vParentId + " and " + TG_COND_DATE + " order by ic_i_id";
+            this.parameterMapping = TgParameterMapping.of(vParentId, vDate);
+            this.resultMapping = getEntityResultMapping();
         }
-        return this.selectByParentIdPs;
-    }
+    };
 
     private static final TgVariableInteger vItemId = IC_I_ID.copy("itemId");
 
     @Override
     public ItemConstructionMaster selectById(int parentId, int itemId, LocalDate date) {
-        var ps = getSelectByIdPs();
+        var ps = selectByIdCache.get();
         var param = TgParameterList.of(vParentId.bind(parentId), vItemId.bind(itemId), vDate.bind(date));
         return executeAndGetRecord(ps, param);
     }
 
-    private TsurugiPreparedStatementQuery1<TgParameterList, ItemConstructionMaster> selectByIdPs;
-
-    private synchronized TsurugiPreparedStatementQuery1<TgParameterList, ItemConstructionMaster> getSelectByIdPs() {
-        if (this.selectByIdPs == null) {
-            var sql = getSelectEntitySql() + " where ic_parent_i_id = " + vParentId + " and ic_i_id = " + vItemId + " and " + TG_COND_DATE;
-            var parameterMapping = TgParameterMapping.of(vParentId, vItemId, vDate);
-            var resultMapping = getEntityResultMapping();
-            this.selectByIdPs = createPreparedQuery(sql, parameterMapping, resultMapping);
+    private final CachePreparedQuery<TgParameterList, ItemConstructionMaster> selectByIdCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql() + " where ic_parent_i_id = " + vParentId + " and ic_i_id = " + vItemId + " and " + TG_COND_DATE;
+            this.parameterMapping = TgParameterMapping.of(vParentId, vItemId, vDate);
+            this.resultMapping = getEntityResultMapping();
         }
-        return this.selectByIdPs;
-    }
+    };
 
     @Override
     public Stream<ItemConstructionMaster> selectRecursiveByParentId(int parentId, LocalDate date) {
@@ -181,7 +167,8 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
                 .int4(ItemConstructionMasterKey::setIcParentIId) //
                 .int4(ItemConstructionMasterKey::setIcIId) //
                 .date(ItemConstructionMasterKey::setIcEffectiveDate);
-        try (var ps = createPreparedQuery(sql, parameterMapping, resultMapping)) {
+        var session = getSession();
+        try (var ps = session.createPreparedQuery(sql, parameterMapping, resultMapping)) {
             return executeAndGetList(ps, param);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -196,23 +183,20 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
 
     @Override
     public int delete(ItemConstructionMasterKey key) {
-        var ps = getDeletePs();
+        var ps = deleteCache.get();
         return executeAndGetCount(ps, key);
     }
 
-    private TsurugiPreparedStatementUpdate1<ItemConstructionMasterKey> deletePs;
-
-    private synchronized TsurugiPreparedStatementUpdate1<ItemConstructionMasterKey> getDeletePs() {
-        if (this.deletePs == null) {
-            var sql = "delete from " + TABLE_NAME + " where ic_i_id = " + vItemId + " and ic_parent_i_id = " + vParentId + " and ic_effective_date = " + vDate;
-            var parameterMapping = TgParameterMapping.of(ItemConstructionMasterKey.class) //
+    private final CachePreparedStatement<ItemConstructionMasterKey> deleteCache = new CachePreparedStatement<>() {
+        @Override
+        protected void initialize() {
+            this.sql = "delete from " + TABLE_NAME + " where ic_i_id = " + vItemId + " and ic_parent_i_id = " + vParentId + " and ic_effective_date = " + vDate;
+            this.parameterMapping = TgParameterMapping.of(ItemConstructionMasterKey.class) //
                     .add(vItemId, ItemConstructionMasterKey::getIcIId) //
                     .add(vParentId, ItemConstructionMasterKey::getIcParentIId) //
                     .add(vDate, ItemConstructionMasterKey::getIcEffectiveDate);
-            this.deletePs = createPreparedStatement(sql, parameterMapping);
         }
-        return this.deletePs;
-    }
+    };
 
     @Override
     public void forEach(Consumer<ItemConstructionMaster> entityConsumer) {

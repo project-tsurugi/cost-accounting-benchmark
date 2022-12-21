@@ -50,7 +50,21 @@ public class BatchRecord {
     }
 
     public String scope() {
-        return config.getExecuteType();
+        String s = config.getExecuteType();
+        switch (s) {
+        case BenchConst.SEQUENTIAL_SINGLE_TX:
+            return "sequential single-tx";
+        case BenchConst.SEQUENTIAL_FACTORY_TX:
+            return "sequential tx-per-factory";
+        case BenchConst.PARALLEL_SINGLE_TX:
+            return "parallel single-tx";
+        case BenchConst.PARALLEL_FACTORY_TX:
+            return "parallel tx-per-factory";
+        case BenchConst.PARALLEL_FACTORY_SESSION:
+            return "parallel session-per-factory";
+        default:
+            return s;
+        }
     }
 
     public String factory() {

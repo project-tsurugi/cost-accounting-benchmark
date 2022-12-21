@@ -69,6 +69,8 @@ public class BenchConst {
     public static final String PARALLEL_SINGLE_TX = "parallel-single-tx";
     /** parallel / tx per factory */
     public static final String PARALLEL_FACTORY_TX = "parallel-factory-tx";
+    /** parallel / session per factory */
+    public static final String PARALLEL_FACTORY_SESSION = "parallel-factory-session";
 
     public static String batchExecuteType() {
         return getProperty("batch.execute.type");
@@ -155,6 +157,10 @@ public class BenchConst {
         }
     }
 
+    public static int batchCommandExecuteTimes() {
+        return getPropertyInt("batch-command.execute.times", 1);
+    }
+
     public static String batchCommandResultFile() {
         return getProperty("batch-command.result.file");
     }
@@ -172,6 +178,10 @@ public class BenchConst {
         return getPropertyInt("online.dbmanager.type", 1);
     }
 
+    public static boolean onlineDbManagerMultiSession() {
+        return getPropertyBoolean("online.dbmanager.multi.session", true);
+    }
+
     public static IsolationLevel onlineJdbcIsolationLevel() {
         return getIsolationLevel("online.jdbc.isolation.level");
     }
@@ -187,6 +197,10 @@ public class BenchConst {
     // initial data
     public static int initDbManagerType() {
         return getPropertyInt("init.dbmanager.type", 1);
+    }
+
+    public static boolean initDbManagerMultiSession() {
+        return getPropertyBoolean("init.dbmanager.multi.session", true);
     }
 
     public static String initTsurugiTxOption() {

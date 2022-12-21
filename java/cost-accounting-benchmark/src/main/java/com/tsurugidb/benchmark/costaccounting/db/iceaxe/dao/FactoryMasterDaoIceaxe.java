@@ -12,8 +12,6 @@ import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
 import com.tsurugidb.iceaxe.statement.TgVariable;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery0;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery1;
 
 public class FactoryMasterDaoIceaxe extends IceaxeDao<FactoryMaster> implements FactoryMasterDao {
 
@@ -46,41 +44,35 @@ public class FactoryMasterDaoIceaxe extends IceaxeDao<FactoryMaster> implements 
 
     @Override
     public List<Integer> selectAllId() {
-        var ps = getSelectAllIdPs();
+        var ps = selectAllIdCache.get();
         return executeAndGetList(ps);
     }
 
-    private TsurugiPreparedStatementQuery0<Integer> selectAllIdPs;
-
-    private synchronized TsurugiPreparedStatementQuery0<Integer> getSelectAllIdPs() {
-        if (this.selectAllIdPs == null) {
-            var sql = "select f_id from " + TABLE_NAME;
-            var resultMapping = TgResultMapping.of(record -> record.nextInt4OrNull());
-            this.selectAllIdPs = createPreparedQuery(sql, resultMapping);
+    private final CacheQuery<Integer> selectAllIdCache = new CacheQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = "select f_id from " + TABLE_NAME;
+            this.resultMapping = TgResultMapping.of(record -> record.nextInt4OrNull());
         }
-        return this.selectAllIdPs;
-    }
+    };
 
     private final TgVariable<Integer> vFactoryId = BenchVariable.ofInt("factoryId");
 
     @Override
     public FactoryMaster selectById(int factoryId) {
-        var ps = getSelectByIdPs();
+        var ps = selectByIdCache.get();
         var param = TgParameterList.of(vFactoryId.bind(factoryId));
         return executeAndGetRecord(ps, param);
     }
 
-    private TsurugiPreparedStatementQuery1<TgParameterList, FactoryMaster> selectByIdPs;
-
-    private synchronized TsurugiPreparedStatementQuery1<TgParameterList, FactoryMaster> getSelectByIdPs() {
-        if (this.selectByIdPs == null) {
-            var sql = getSelectEntitySql() + " where f_id = " + vFactoryId;
-            var parameterMapping = TgParameterMapping.of(vFactoryId);
-            var resultMapping = getEntityResultMapping();
-            this.selectByIdPs = createPreparedQuery(sql, parameterMapping, resultMapping);
+    private final CachePreparedQuery<TgParameterList, FactoryMaster> selectByIdCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql() + " where f_id = " + vFactoryId;
+            this.parameterMapping = TgParameterMapping.of(vFactoryId);
+            this.resultMapping = getEntityResultMapping();
         }
-        return this.selectByIdPs;
-    }
+    };
 
     @Override
     public void forEach(Consumer<FactoryMaster> entityConsumer) {

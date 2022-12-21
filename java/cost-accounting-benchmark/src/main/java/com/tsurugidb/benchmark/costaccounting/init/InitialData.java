@@ -58,7 +58,8 @@ public class InitialData {
 
     static CostBenchDbManager createDbManager() {
         int type = BenchConst.initDbManagerType();
-        return CostBenchDbManager.createInstance(type, IsolationLevel.READ_COMMITTED);
+        boolean isMultiSession = BenchConst.initDbManagerMultiSession();
+        return CostBenchDbManager.createInstance(type, IsolationLevel.READ_COMMITTED, isMultiSession);
     }
 
     protected void logStart() {

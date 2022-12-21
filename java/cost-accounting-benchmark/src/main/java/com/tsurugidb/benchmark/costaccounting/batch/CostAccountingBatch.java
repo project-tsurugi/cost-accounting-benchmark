@@ -79,7 +79,7 @@ public class CostAccountingBatch {
         logStart();
 
         int exitCode;
-        try (CostBenchDbManager manager = createDbManager()) {
+        try (CostBenchDbManager manager = createDbManager(config)) {
             this.dbManager = manager;
 
             List<Integer> factoryList = config.getFactoryList();
@@ -106,6 +106,7 @@ public class CostAccountingBatch {
                 exitCode = executeParallelSingleTx();
                 break;
             case BenchConst.PARALLEL_FACTORY_TX:
+            case BenchConst.PARALLEL_FACTORY_SESSION:
                 exitCode = executeParallelFactoryTx();
                 break;
             case "stream":
@@ -126,9 +127,10 @@ public class CostAccountingBatch {
         return exitCode;
     }
 
-    private CostBenchDbManager createDbManager() {
+    private CostBenchDbManager createDbManager(BatchConfig config) {
         int type = BenchConst.batchDbManagerType();
-        return CostBenchDbManager.createInstance(type, config.getIsolationLevel());
+        boolean isMultiSession = config.getExecuteType().equals(BenchConst.PARALLEL_FACTORY_SESSION);
+        return CostBenchDbManager.createInstance(type, config.getIsolationLevel(), isMultiSession);
     }
 
     private LocalDateTime startTime;
