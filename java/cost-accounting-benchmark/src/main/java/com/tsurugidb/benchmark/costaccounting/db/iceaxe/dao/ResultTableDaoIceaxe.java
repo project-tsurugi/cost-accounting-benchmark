@@ -18,8 +18,6 @@ import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
 import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableInteger;
 import com.tsurugidb.iceaxe.statement.TgVariableList;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery1;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate1;
 
 public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements ResultTableDao {
 
@@ -72,21 +70,18 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
 
     @Override
     public int deleteByFactory(int factoryId, LocalDate date) {
-        var ps = getDeleteByFactoryPs();
+        var ps = deleteByFactoryCache.get();
         var param = TgParameterList.of(vFactoryId.bind(factoryId), vDate.bind(date));
         return executeAndGetCount(ps, param);
     }
 
-    private TsurugiPreparedStatementUpdate1<TgParameterList> deleteByFactoryPs;
-
-    private TsurugiPreparedStatementUpdate1<TgParameterList> getDeleteByFactoryPs() {
-        if (this.deleteByFactoryPs == null) {
-            var sql = "delete from " + TABLE_NAME + " where r_f_id = " + vFactoryId + " and " + TG_COND_DATE;
-            var parameterMapping = TgParameterMapping.of(vFactoryId, vDate);
-            this.deleteByFactoryPs = createPreparedStatement(sql, parameterMapping);
+    private final CachePreparedStatement<TgParameterList> deleteByFactoryCache = new CachePreparedStatement<>() {
+        @Override
+        protected void initialize() {
+            this.sql = "delete from " + TABLE_NAME + " where r_f_id = " + vFactoryId + " and " + TG_COND_DATE;
+            this.parameterMapping = TgParameterMapping.of(vFactoryId, vDate);
         }
-        return this.deleteByFactoryPs;
-    }
+    };
 
     @Override
     public int deleteByFactories(List<Integer> factoryIdList, LocalDate date) {
@@ -105,7 +100,8 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
 
         var sql = "delete from " + TABLE_NAME + " where " + inSql + " and " + TG_COND_DATE;
         var parameterMapping = TgParameterMapping.of(vlist);
-        try (var ps = createPreparedStatement(sql, parameterMapping)) {
+        var session = getSession();
+        try (var ps = session.createPreparedStatement(sql, parameterMapping)) {
             return executeAndGetCount(ps, param);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -116,21 +112,18 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
 
     @Override
     public int deleteByProductId(int factoryId, LocalDate date, int productId) {
-        var ps = getDeleteByProductIdPs();
+        var ps = deleteByProductIdCache.get();
         var param = TgParameterList.of(vFactoryId.bind(factoryId), vDate.bind(date), vProductId.bind(productId));
         return executeAndGetCount(ps, param);
     }
 
-    private TsurugiPreparedStatementUpdate1<TgParameterList> deleteByProductIdPs;
-
-    private TsurugiPreparedStatementUpdate1<TgParameterList> getDeleteByProductIdPs() {
-        if (this.deleteByProductIdPs == null) {
-            var sql = "delete from " + TABLE_NAME + " where r_f_id = " + vFactoryId + " and " + TG_COND_DATE + " and r_product_i_id = " + vProductId;
-            var parameterMapping = TgParameterMapping.of(vFactoryId, vDate, vProductId);
-            this.deleteByProductIdPs = createPreparedStatement(sql, parameterMapping);
+    private final CachePreparedStatement<TgParameterList> deleteByProductIdCache = new CachePreparedStatement<>() {
+        @Override
+        protected void initialize() {
+            this.sql = "delete from " + TABLE_NAME + " where r_f_id = " + vFactoryId + " and " + TG_COND_DATE + " and r_product_i_id = " + vProductId;
+            this.parameterMapping = TgParameterMapping.of(vFactoryId, vDate, vProductId);
         }
-        return this.deleteByProductIdPs;
-    }
+    };
 
     @Override
     public int insert(ResultTable entity) {
@@ -144,36 +137,32 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
 
     @Override
     public List<ResultTable> selectByProductId(int factoryId, LocalDate date, int productId) {
-        var ps = getSelectByProductIdPs();
+        var ps = selectByProductIdCache.get();
         var param = TgParameterList.of(vFactoryId.bind(factoryId), vDate.bind(date), vProductId.bind(productId));
         return executeAndGetList(ps, param);
     }
 
-    private TsurugiPreparedStatementQuery1<TgParameterList, ResultTable> selectByProductIdPs;
-
-    private TsurugiPreparedStatementQuery1<TgParameterList, ResultTable> getSelectByProductIdPs() {
-        if (this.selectByProductIdPs == null) {
-            var sql = getSelectEntitySql() + " where r_f_id = " + vFactoryId + " and " + TG_COND_DATE + " and r_product_i_id = " + vProductId //
+    private final CachePreparedQuery<TgParameterList, ResultTable> selectByProductIdCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql() + " where r_f_id = " + vFactoryId + " and " + TG_COND_DATE + " and r_product_i_id = " + vProductId //
                     + " order by r_parent_i_id, r_i_id";
-            var parameterMapping = TgParameterMapping.of(vFactoryId, vDate, vProductId);
-            var resultMapping = getEntityResultMapping();
-            this.selectByProductIdPs = createPreparedQuery(sql, parameterMapping, resultMapping);
+            this.parameterMapping = TgParameterMapping.of(vFactoryId, vDate, vProductId);
+            this.resultMapping = getEntityResultMapping();
         }
-        return this.selectByProductIdPs;
-    }
+    };
 
     @Override
     public Stream<ResultTable> selectRequiredQuantity(int factoryId, LocalDate date) {
-        var ps = getSelectRequiredQuantityPs();
+        var ps = selectRequiredQuantityCache.get();
         var param = TgParameterList.of(vFactoryId.bind(factoryId), vDate.bind(date));
         return executeAndGetStream(ps, param);
     }
 
-    private TsurugiPreparedStatementQuery1<TgParameterList, ResultTable> selectRequiredQuantityPs;
-
-    private TsurugiPreparedStatementQuery1<TgParameterList, ResultTable> getSelectRequiredQuantityPs() {
-        if (this.selectRequiredQuantityPs == null) {
-            var sql = "select" //
+    private final CachePreparedQuery<TgParameterList, ResultTable> selectRequiredQuantityCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = "select" //
                     + "  r_f_id," //
                     + "  r_manufacturing_date," //
                     + "  r_i_id," //
@@ -184,37 +173,32 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
                     + " where r_f_id=" + vFactoryId + " and r_manufacturing_date=" + vDate + " and m.i_type='raw_material'" //
                     + " group by r_f_id, r_manufacturing_date, r_i_id" //
                     + " order by r_i_id";
-            var parameterMapping = TgParameterMapping.of(vFactoryId, vDate);
-            var resultMapping = TgResultMapping.of(ResultTable::new) //
+            this.parameterMapping = TgParameterMapping.of(vFactoryId, vDate);
+            this.resultMapping = TgResultMapping.of(ResultTable::new) //
                     .int4(ResultTable::setRFId) //
                     .date(ResultTable::setRManufacturingDate) //
                     .int4(ResultTable::setRIId) //
                     .decimal(ResultTable::setRRequiredQuantity) //
                     .character(ResultTable::setRRequiredQuantityUnit);
-            this.selectRequiredQuantityPs = createPreparedQuery(sql, parameterMapping, resultMapping);
         }
-        return this.selectRequiredQuantityPs;
-    }
+    };
 
     @Override
     public Stream<ResultTable> selectCost(int factoryId, LocalDate date) {
-        var ps = getSelectCostPs();
+        var ps = selectCostCache.get();
         var param = TgParameterList.of(vFactoryId.bind(factoryId), vDate.bind(date));
         return executeAndGetStream(ps, param);
     }
 
-    private TsurugiPreparedStatementQuery1<TgParameterList, ResultTable> selectCostPs;
-
-    private TsurugiPreparedStatementQuery1<TgParameterList, ResultTable> getSelectCostPs() {
-        if (this.selectCostPs == null) {
-            var sql = getSelectEntitySql() + " where r_f_id = " + vFactoryId + " and " + TG_COND_DATE + " and r_i_id = r_product_i_id" //
+    private final CachePreparedQuery<TgParameterList, ResultTable> selectCostCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql() + " where r_f_id = " + vFactoryId + " and " + TG_COND_DATE + " and r_i_id = r_product_i_id" //
                     + " order by r_product_i_id";
-            var parameterMapping = TgParameterMapping.of(vFactoryId, vDate);
-            var resultMapping = getEntityResultMapping();
-            this.selectCostPs = createPreparedQuery(sql, parameterMapping, resultMapping);
+            this.parameterMapping = TgParameterMapping.of(vFactoryId, vDate);
+            this.resultMapping = getEntityResultMapping();
         }
-        return this.selectCostPs;
-    }
+    };
 
     @Override
     public void forEach(Consumer<ResultTable> entityConsumer) {

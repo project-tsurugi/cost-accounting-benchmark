@@ -32,7 +32,8 @@ public class CostAccountingOnline {
     public static CostBenchDbManager createCostBenchDbManager() {
         int type = BenchConst.onlineDbManagerType();
         var isolationLevel = BenchConst.onlineJdbcIsolationLevel();
-        return CostBenchDbManager.createInstance(type, isolationLevel);
+        boolean isMultiSession = BenchConst.onlineDbManagerMultiSession();
+        return CostBenchDbManager.createInstance(type, isolationLevel, isMultiSession);
     }
 
     private static void main0(String[] args, CostBenchDbManager manager) {

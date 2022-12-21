@@ -2,6 +2,8 @@ package com.tsurugidb.benchmark.costaccounting.db.iceaxe;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -42,28 +44,54 @@ import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManagerIceaxe.class);
 
-    private final TsurugiSession session;
-    private final TsurugiTransactionManager transactionManager;
+    private final TsurugiConnector connector;
+    private final TgSessionInfo sessionInfo;
+    private final TsurugiTransactionManager singleTransactionManager;
+    private final List<TsurugiSession> sessionList = new CopyOnWriteArrayList<>();
+    private final ThreadLocal<TsurugiTransactionManager> transactionManagerThreadLocal = new ThreadLocal<>() {
+        @Override
+        protected TsurugiTransactionManager initialValue() {
+            try {
+                var session = connector.createSession(sessionInfo);
+                sessionList.add(session);
+                LOG.debug("create session. sessionList.size={}", sessionList.size());
+                var tm = session.createTransactionManager();
+                return tm;
+            } catch (IOException e) {
+                throw new UncheckedIOException(e.getMessage(), e);
+            }
+        }
+    };
 
     private TsurugiTransaction singleTransaction;
     private final ThreadLocal<TsurugiTransaction> transactionThreadLocal = new ThreadLocal<>();
 
-    public CostBenchDbManagerIceaxe() {
+    public CostBenchDbManagerIceaxe(boolean isMultiSession) {
         super("ICEAXE");
         var endpoint = BenchConst.tsurugiEndpoint();
-        var connector = TsurugiConnector.createConnector(endpoint);
+        LOG.info("endpoint={}", endpoint);
+        this.connector = TsurugiConnector.createConnector(endpoint);
         try {
             var credential = new UsernamePasswordCredential(BenchConst.tsurugiUser(), BenchConst.tsurugiPassword());
-            var info = TgSessionInfo.of(credential);
-            this.session = connector.createSession(info);
-            this.transactionManager = session.createTransactionManager();
+            this.sessionInfo = TgSessionInfo.of(credential);
+            if (!isMultiSession) {
+                var session = connector.createSession(sessionInfo);
+                this.singleTransactionManager = session.createTransactionManager();
+                sessionList.add(session);
+            } else {
+                this.singleTransactionManager = null;
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
     public TsurugiSession getSession() {
-        return this.session;
+        return getTransactionManager().getSession();
+    }
+
+    protected TsurugiTransactionManager getTransactionManager() {
+        return (this.singleTransactionManager != null) ? singleTransactionManager : transactionManagerThreadLocal.get();
     }
 
     private void setCurrentTransaction(TsurugiTransaction transaction) {
@@ -129,6 +157,8 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
         var dao = new IceaxeDao<Object>(this, null, null, null) {
             public void executeDdl() {
                 var setting = TgTmSetting.of(getOption());
+                var tm = getTransactionManager();
+                var session = tm.getSession();
                 for (var sql : sqls) {
                     if (sql.startsWith("drop table")) {
                         int n = sql.lastIndexOf(" ");
@@ -143,14 +173,14 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                         }
                     }
 
-                    try (var ps = createPreparedStatement(sql)) {
-                        ps.executeAndGetCount(transactionManager, setting);
+                    try (var ps = session.createPreparedStatement(sql)) {
+                        ps.executeAndGetCount(tm, setting);
                     } catch (IOException e) {
                         LOG.info("ddl={}", sql.trim());
                         if (sql.equals(sqls[sqls.length - 1])) {
                             throw new UncheckedIOException(e);
                         }
-                        LOG.warn("execption={}", e.getMessage());
+                        LOG.warn("executeDdl exception={}", e.getMessage());
                     }
                 }
             }
@@ -168,8 +198,9 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
 
     @Override
     public void execute(TgTmSetting setting, Runnable runnable) {
+        var tm = getTransactionManager();
         try {
-            transactionManager.execute(setting, transaction -> {
+            tm.execute(setting, transaction -> {
                 setCurrentTransaction(transaction);
                 LOG.debug("setCurrentTransaction {}", transaction);
                 try {
@@ -186,8 +217,9 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
 
     @Override
     public <T> T execute(TgTmSetting setting, Supplier<T> supplier) {
+        var tm = getTransactionManager();
         try {
-            return transactionManager.execute(setting, transaction -> {
+            return tm.execute(setting, transaction -> {
                 setCurrentTransaction(transaction);
                 LOG.debug("setCurrentTransaction {}", transaction);
                 try {
@@ -256,10 +288,22 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
 
     @Override
     public void close() {
-        try {
-            session.close();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        UncheckedIOException u = null;
+        for (var session : sessionList) {
+            LOG.debug("close session {}", session);
+            try {
+                session.close();
+            } catch (IOException e) {
+                if (u == null) {
+                    u = new UncheckedIOException(e.getMessage(), e);
+                } else {
+                    u.addSuppressed(e);
+                }
+            }
+        }
+
+        if (u != null) {
+            throw u;
         }
     }
 }

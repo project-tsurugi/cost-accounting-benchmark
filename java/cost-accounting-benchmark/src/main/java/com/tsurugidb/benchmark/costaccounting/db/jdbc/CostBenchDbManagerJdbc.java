@@ -148,7 +148,7 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
         var dao = new JdbcDao<Object>(this, null, null) {
             public void executeDdl() {
                 for (String sql : sqls) {
-                    var ps = preparedStatement(sql);
+                    var ps = super.preparedStatement(sql);
                     try {
                         ps.execute();
                         commit();

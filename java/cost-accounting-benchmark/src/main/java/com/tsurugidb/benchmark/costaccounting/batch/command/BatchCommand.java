@@ -43,27 +43,31 @@ public class BatchCommand implements ExecutableCommand {
         LOG.info("batchDate={}", batchDate);
         var factoryList = StringUtil.toIntegerList(BenchConst.batchCommandFactoryList());
         LOG.info("factoryList={}", StringUtil.toString(factoryList));
+        int times = BenchConst.batchCommandExecuteTimes();
+        LOG.info("times={}", times);
 
         int exitCode = 0;
         var records = new ArrayList<BatchRecord>();
         for (var executeType : executeList) {
             for (var isolationLevel : isolationList) {
                 for (var txOption : txList) {
-                    var config = new BatchConfig(executeType, batchDate, factoryList, 100);
-                    config.setIsolationLevel(isolationLevel);
-                    config.setDefaultTxOption(getOption(txOption));
+                    for (int i = 0; i < times; i++) {
+                        var config = new BatchConfig(executeType, batchDate, factoryList, 100);
+                        config.setIsolationLevel(isolationLevel);
+                        config.setDefaultTxOption(getOption(txOption));
 
-                    var record = new BatchRecord(config);
-                    records.add(record);
-                    LOG.info("Executing with {}.", record.getParamString());
+                        var record = new BatchRecord(config);
+                        records.add(record);
+                        LOG.info("Executing with {}.", record.getParamString());
 
-                    var batch = new CostAccountingBatch();
-                    record.start();
-                    exitCode |= batch.main(config);
-                    record.finish(batch.getTryCount(), batch.getAbortCount());
+                        var batch = new CostAccountingBatch();
+                        record.start();
+                        exitCode |= batch.main(config);
+                        record.finish(batch.getTryCount(), batch.getAbortCount());
 
-                    LOG.info("Finished. elapsed secs = {}.", record.elapsedMillis() / 1000.0);
-                    writeResult(outputPath, records);
+                        LOG.info("Finished. elapsed secs = {}.", record.elapsedMillis() / 1000.0);
+                        writeResult(outputPath, records);
+                    }
                 }
             }
         }

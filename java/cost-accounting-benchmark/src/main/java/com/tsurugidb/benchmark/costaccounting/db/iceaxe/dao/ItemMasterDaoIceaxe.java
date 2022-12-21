@@ -18,8 +18,6 @@ import com.tsurugidb.iceaxe.statement.TgParameterMapping;
 import com.tsurugidb.iceaxe.statement.TgVariable;
 import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableInteger;
 import com.tsurugidb.iceaxe.statement.TgVariableList;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery0;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery1;
 
 public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMasterDao {
 
@@ -78,7 +76,8 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
         var sql = getSelectEntitySql() + " where " + inSql + " and " + TG_COND_DATE;
         var parameterMapping = TgParameterMapping.of(vlist);
         var resultMapping = getEntityResultMapping();
-        try (var ps = createPreparedQuery(sql, parameterMapping, resultMapping)) {
+        var session = getSession();
+        try (var ps = session.createPreparedQuery(sql, parameterMapping, resultMapping)) {
             return executeAndGetList(ps, param);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -89,22 +88,19 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
 
     @Override
     public List<Integer> selectIdByType(LocalDate date, ItemType type) {
-        var ps = getSelectIdByTypePs();
+        var ps = selectIdByTypeCache.get();
         var param = TgParameterList.of(vDate.bind(date), vType.bind(type));
         return executeAndGetList(ps, param);
     }
 
-    private TsurugiPreparedStatementQuery1<TgParameterList, Integer> selectIdByTypePs;
-
-    private synchronized TsurugiPreparedStatementQuery1<TgParameterList, Integer> getSelectIdByTypePs() {
-        if (this.selectIdByTypePs == null) {
-            var sql = "select i_id from " + TABLE_NAME + " where " + TG_COND_DATE + " and i_type = " + vType;
-            var parameterMapping = TgParameterMapping.of(vDate, vType);
-            var resultMapping = TgResultMapping.of(record -> record.nextInt4OrNull());
-            this.selectIdByTypePs = createPreparedQuery(sql, parameterMapping, resultMapping);
+    private final CachePreparedQuery<TgParameterList, Integer> selectIdByTypeCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = "select i_id from " + TABLE_NAME + " where " + TG_COND_DATE + " and i_type = " + vType;
+            this.parameterMapping = TgParameterMapping.of(vDate, vType);
+            this.resultMapping = TgResultMapping.of(record -> record.nextInt4OrNull());
         }
-        return this.selectIdByTypePs;
-    }
+    };
 
     @Override
     public List<ItemMaster> selectAll() {
@@ -113,60 +109,51 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
 
     @Override
     public Integer selectMaxId() {
-        var ps = getSelectMaxIdPs();
+        var ps = selectMaxIdCache.get();
         return executeAndGetRecord(ps);
     }
 
-    private TsurugiPreparedStatementQuery0<Integer> selectMaxId;
-
-    private synchronized TsurugiPreparedStatementQuery0<Integer> getSelectMaxIdPs() {
-        if (this.selectMaxId == null) {
-            var sql = "select max(i_id) + 1 from " + TABLE_NAME;
-            var resultMapping = TgResultMapping.of(record -> record.nextInt4OrNull());
-            this.selectMaxId = createPreparedQuery(sql, resultMapping);
+    private final CacheQuery<Integer> selectMaxIdCache = new CacheQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = "select max(i_id) + 1 from " + TABLE_NAME;
+            this.resultMapping = TgResultMapping.of(record -> record.nextInt4OrNull());
         }
-        return this.selectMaxId;
-    }
+    };
 
     private static final TgVariableInteger vId = I_ID.copy("id");
 
     @Override
     public ItemMaster selectByKey(int id, LocalDate date) {
-        var ps = getSelectByKeyPs();
+        var ps = selectByKeyCache.get();
         var param = TgParameterList.of(vId.bind(id), vDate.bind(date));
         return executeAndGetRecord(ps, param);
     }
 
-    private TsurugiPreparedStatementQuery1<TgParameterList, ItemMaster> selectByKey;
-
-    private synchronized TsurugiPreparedStatementQuery1<TgParameterList, ItemMaster> getSelectByKeyPs() {
-        if (this.selectByKey == null) {
-            var sql = getSelectEntitySql() + " where i_id = " + vId + " and i_effective_date = " + vDate;
-            var parameterMapping = TgParameterMapping.of(vId, vDate);
-            var resultMapping = getEntityResultMapping();
-            this.selectByKey = createPreparedQuery(sql, parameterMapping, resultMapping);
+    private final CachePreparedQuery<TgParameterList, ItemMaster> selectByKeyCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql() + " where i_id = " + vId + " and i_effective_date = " + vDate;
+            this.parameterMapping = TgParameterMapping.of(vId, vDate);
+            this.resultMapping = getEntityResultMapping();
         }
-        return this.selectByKey;
-    }
+    };
 
     @Override
     public ItemMaster selectById(int id, LocalDate date) {
-        var ps = getSelectByIdPs();
+        var ps = selectByIdCache.get();
         var param = TgParameterList.of(vId.bind(id), vDate.bind(date));
         return executeAndGetRecord(ps, param);
     }
 
-    private TsurugiPreparedStatementQuery1<TgParameterList, ItemMaster> selectById;
-
-    private synchronized TsurugiPreparedStatementQuery1<TgParameterList, ItemMaster> getSelectByIdPs() {
-        if (this.selectById == null) {
-            var sql = getSelectEntitySql() + " where i_id = " + vId + " and " + TG_COND_DATE;
-            var parameterMapping = TgParameterMapping.of(vId, vDate);
-            var resultMapping = getEntityResultMapping();
-            this.selectById = createPreparedQuery(sql, parameterMapping, resultMapping);
+    private final CachePreparedQuery<TgParameterList, ItemMaster> selectByIdCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql() + " where i_id = " + vId + " and " + TG_COND_DATE;
+            this.parameterMapping = TgParameterMapping.of(vId, vDate);
+            this.resultMapping = getEntityResultMapping();
         }
-        return this.selectById;
-    }
+    };
 
     @Override
     public void forEach(Consumer<ItemMaster> entityConsumer) {
