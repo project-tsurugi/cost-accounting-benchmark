@@ -13,8 +13,6 @@ import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
 import com.tsurugidb.iceaxe.statement.TgVariable;
 import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableInteger;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery1;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate1;
 
 public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMasterDao {
 
@@ -54,43 +52,37 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
 
     @Override
     public List<CostMaster> selectByFactory(int fId) {
-        var ps = getSelectByFactoryPs();
+        var ps = selectByFactoryCache.get();
         var param = TgParameterList.of(vFactoryId.bind(fId));
         return executeAndGetList(ps, param);
     }
 
-    private TsurugiPreparedStatementQuery1<TgParameterList, CostMaster> selectByFactoryPs;
-
-    private synchronized TsurugiPreparedStatementQuery1<TgParameterList, CostMaster> getSelectByFactoryPs() {
-        if (this.selectByFactoryPs == null) {
-            var sql = getSelectEntitySql() + " where c_f_id = " + vFactoryId;
-            var parameterMapping = TgParameterMapping.of(vFactoryId);
-            var resultMapping = getEntityResultMapping();
-            this.selectByFactoryPs = createPreparedQuery(sql, parameterMapping, resultMapping);
+    private final CachePreparedQuery<TgParameterList, CostMaster> selectByFactoryCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql() + " where c_f_id = " + vFactoryId;
+            this.parameterMapping = TgParameterMapping.of(vFactoryId);
+            this.resultMapping = getEntityResultMapping();
         }
-        return this.selectByFactoryPs;
-    }
+    };
 
     private static final TgVariableInteger vItemId = C_I_ID.copy("iId");
 
     @Override
     public CostMaster selectById(int fId, int iId) {
-        var ps = getSelectByIdPs();
+        var ps = selectByIdCache.get();
         var param = TgParameterList.of(vFactoryId.bind(fId), vItemId.bind(iId));
         return executeAndGetRecord(ps, param);
     }
 
-    private TsurugiPreparedStatementQuery1<TgParameterList, CostMaster> selectByIdPs;
-
-    private synchronized TsurugiPreparedStatementQuery1<TgParameterList, CostMaster> getSelectByIdPs() {
-        if (this.selectByIdPs == null) {
-            var sql = getSelectEntitySql() + " where c_f_id = " + vFactoryId + " and c_i_id = " + vItemId;
-            var parameterMapping = TgParameterMapping.of(vFactoryId, vItemId);
-            var resultMapping = getEntityResultMapping();
-            this.selectByIdPs = createPreparedQuery(sql, parameterMapping, resultMapping);
+    private final CachePreparedQuery<TgParameterList, CostMaster> selectByIdCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql() + " where c_f_id = " + vFactoryId + " and c_i_id = " + vItemId;
+            this.parameterMapping = TgParameterMapping.of(vFactoryId, vItemId);
+            this.resultMapping = getEntityResultMapping();
         }
-        return this.selectByIdPs;
-    }
+    };
 
     @Override
     public CostMaster lock(CostMaster in) {
@@ -103,45 +95,39 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
 
     @Override
     public int updateIncrease(CostMaster entity, BigDecimal quantity, BigDecimal amount) {
-        var ps = getUpdateIncreasePs();
+        var ps = updateIncreaseCache.get();
         var param = TgParameterList.of(vFactoryId.bind(entity.getCFId()), vItemId.bind(entity.getCIId()), vQuantity.bind(quantity), vAmount.bind(amount));
         return executeAndGetCount(ps, param);
     }
 
-    private TsurugiPreparedStatementUpdate1<TgParameterList> updateIncreasePs;
-
-    private synchronized TsurugiPreparedStatementUpdate1<TgParameterList> getUpdateIncreasePs() {
-        if (this.updateIncreasePs == null) {
-            var sql = "update " + TABLE_NAME + " set" //
+    private final CachePreparedStatement<TgParameterList> updateIncreaseCache = new CachePreparedStatement<>() {
+        @Override
+        protected void initialize() {
+            this.sql = "update " + TABLE_NAME + " set" //
                     + " c_stock_quantity = c_stock_quantity + " + vQuantity //
                     + ",c_stock_amount = c_stock_amount + " + vAmount //
                     + " where c_f_id=" + vFactoryId + " and c_i_id=" + vItemId;
-            var parameterMapping = TgParameterMapping.of(vFactoryId, vItemId, vQuantity, vAmount);
-            this.updateIncreasePs = createPreparedStatement(sql, parameterMapping);
+            this.parameterMapping = TgParameterMapping.of(vFactoryId, vItemId, vQuantity, vAmount);
         }
-        return this.updateIncreasePs;
-    }
+    };
 
     @Override
     public int updateDecrease(CostMaster entity, BigDecimal quantity) {
-        var ps = getUpdateDecreasePs();
+        var ps = updateDecreaseCache.get();
         var param = TgParameterList.of(vFactoryId.bind(entity.getCFId()), vItemId.bind(entity.getCIId()), vQuantity.bind(quantity));
         return executeAndGetCount(ps, param);
     }
 
-    private TsurugiPreparedStatementUpdate1<TgParameterList> updateDecreasePs;
-
-    private synchronized TsurugiPreparedStatementUpdate1<TgParameterList> getUpdateDecreasePs() {
-        if (this.updateDecreasePs == null) {
-            var sql = "update " + TABLE_NAME + " set" //
+    private final CachePreparedStatement<TgParameterList> updateDecreaseCache = new CachePreparedStatement<>() {
+        @Override
+        protected void initialize() {
+            this.sql = "update " + TABLE_NAME + " set" //
                     + " c_stock_quantity = c_stock_quantity - " + vQuantity //
                     + ",c_stock_amount = c_stock_amount - c_stock_amount * " + vQuantity + " / c_stock_quantity" //
                     + " where c_f_id=" + vFactoryId + " and c_i_id=" + vItemId;
-            var parameterMapping = TgParameterMapping.of(vFactoryId, vItemId, vQuantity);
-            this.updateDecreasePs = createPreparedStatement(sql, parameterMapping);
+            this.parameterMapping = TgParameterMapping.of(vFactoryId, vItemId, vQuantity);
         }
-        return this.updateDecreasePs;
-    }
+    };
 
     @Override
     public void forEach(Consumer<CostMaster> entityConsumer) {

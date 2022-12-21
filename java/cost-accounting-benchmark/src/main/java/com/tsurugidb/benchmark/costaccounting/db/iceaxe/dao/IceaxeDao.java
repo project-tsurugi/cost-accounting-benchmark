@@ -5,7 +5,9 @@ import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -82,7 +84,8 @@ public abstract class IceaxeDao<E> {
 
     protected final int doDeleteAll() {
         var sql = "delete from " + tableName;
-        try (var ps = getSession().createPreparedStatement(sql)) {
+        var session = getSession();
+        try (var ps = session.createPreparedStatement(sql)) {
             var transaction = getTransaction();
             return ps.executeAndGetCount(transaction);
         } catch (IOException e) {
@@ -93,12 +96,12 @@ public abstract class IceaxeDao<E> {
     }
 
     protected final int doInsert(E entity) {
-        var ps = getInsertPs();
+        var ps = insertCache.get();
         return executeAndGetCount(ps, entity);
     }
 
     protected final int[] doInsert(Collection<E> entityList) {
-        var ps = getInsertPs();
+        var ps = insertCache.get();
         var result = new int[entityList.size()];
         int i = 0;
         for (var entity : entityList) {
@@ -107,18 +110,15 @@ public abstract class IceaxeDao<E> {
         return result;
     }
 
-    private TsurugiPreparedStatementUpdate1<E> insertPs;
-
-    private synchronized TsurugiPreparedStatementUpdate1<E> getInsertPs() {
-        if (this.insertPs == null) {
+    private final CachePreparedStatement<E> insertCache = new CachePreparedStatement<>() {
+        @Override
+        protected void initialize() {
             var names = getColumnNames();
             var values = columnList.stream().map(c -> c.getSqlName()).collect(Collectors.joining(","));
-            var sql = "insert into " + tableName + "(" + names + ") values (" + values + ")";
-            var parameterMapping = getEntityParameterMapping();
-            this.insertPs = createPreparedStatement(sql, parameterMapping);
+            this.sql = "insert into " + tableName + "(" + names + ") values (" + values + ")";
+            this.parameterMapping = getEntityParameterMapping();
         }
-        return this.insertPs;
-    }
+    };
 
     private TgEntityParameterMapping<E> getEntityParameterMapping() {
         var parameterMapping = TgEntityParameterMapping.<E>of();
@@ -129,30 +129,26 @@ public abstract class IceaxeDao<E> {
     }
 
     protected final List<E> doSelectAll() {
-        var ps = getSelectAllPs();
+        var ps = selectAllCache.get();
         return executeAndGetList(ps);
     }
 
-    private TsurugiPreparedStatementQuery0<E> selectAllPs;
-
-    private synchronized TsurugiPreparedStatementQuery0<E> getSelectAllPs() {
-        if (this.selectAllPs == null) {
-            var sql = getSelectEntitySql();
-            var resultMapping = getEntityResultMapping();
-            this.selectAllPs = createPreparedQuery(sql, resultMapping);
+    private final CacheQuery<E> selectAllCache = new CacheQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql();
+            this.resultMapping = getEntityResultMapping();
         }
-        return this.selectAllPs;
-    }
+    };
 
     protected final int doUpdate(E entity) {
-        var ps = getUpdatePs();
+        var ps = updateCache.get();
         return executeAndGetCount(ps, entity);
     }
 
-    private TsurugiPreparedStatementUpdate1<E> updatePs;
-
-    private synchronized TsurugiPreparedStatementUpdate1<E> getUpdatePs() {
-        if (this.updatePs == null) {
+    private final CachePreparedStatement<E> updateCache = new CachePreparedStatement<>() {
+        @Override
+        protected void initialize() {
             var sql = new StringBuilder(128);
             sql.append("update ");
             sql.append(tableName);
@@ -178,11 +174,10 @@ public abstract class IceaxeDao<E> {
                     sql.append(column.getSqlName());
                 }
             }
-            var parameterMapping = getEntityParameterMapping();
-            this.updatePs = createPreparedStatement(sql.toString(), parameterMapping);
+            this.sql = sql.toString();
+            this.parameterMapping = getEntityParameterMapping();
         }
-        return this.updatePs;
-    }
+    };
 
     // common
 
@@ -202,7 +197,7 @@ public abstract class IceaxeDao<E> {
 
     private TgEntityResultMapping<E> entityResultMapping;
 
-    protected synchronized final TgResultMapping<E> getEntityResultMapping() {
+    protected final TgResultMapping<E> getEntityResultMapping() {
         if (this.entityResultMapping == null) {
             var resultMapping = TgResultMapping.of(entitySupplier);
             for (var column : columnList) {
@@ -215,19 +210,46 @@ public abstract class IceaxeDao<E> {
 
     // create/execute
 
-    protected final TsurugiPreparedStatementUpdate0 createPreparedStatement(String sql) {
-        try {
-            return getSession().createPreparedStatement(sql);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e.getMessage(), e);
+    private abstract class AbstractCache<S> {
+        private final Map<TsurugiSession, S> psMap = new ConcurrentHashMap<>();
+        protected String sql;
+
+        public S get() {
+            synchronized (this) {
+                if (this.sql == null) {
+                    initialize();
+                }
+            }
+
+            var session = getSession();
+            return psMap.computeIfAbsent(session, k -> {
+                try {
+                    return generate(session);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e.getMessage(), e);
+                }
+            });
+        }
+
+        protected abstract void initialize();
+
+        protected abstract S generate(TsurugiSession session) throws IOException;
+    }
+
+    protected abstract class CacheStatement extends AbstractCache<TsurugiPreparedStatementUpdate0> {
+
+        @Override
+        protected TsurugiPreparedStatementUpdate0 generate(TsurugiSession session) throws IOException {
+            return session.createPreparedStatement(sql);
         }
     }
 
-    protected final <P> TsurugiPreparedStatementUpdate1<P> createPreparedStatement(String sql, TgParameterMapping<P> parameterMapping) {
-        try {
-            return getSession().createPreparedStatement(sql, parameterMapping);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e.getMessage(), e);
+    protected abstract class CachePreparedStatement<P> extends AbstractCache<TsurugiPreparedStatementUpdate1<P>> {
+        protected TgParameterMapping<P> parameterMapping;
+
+        @Override
+        protected TsurugiPreparedStatementUpdate1<P> generate(TsurugiSession session) throws IOException {
+            return session.createPreparedStatement(sql, parameterMapping);
         }
     }
 
@@ -255,11 +277,12 @@ public abstract class IceaxeDao<E> {
         return false;
     }
 
-    protected final <R> TsurugiPreparedStatementQuery0<R> createPreparedQuery(String sql, TgResultMapping<R> resultMapping) {
-        try {
-            return getSession().createPreparedQuery(sql, resultMapping);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e.getMessage(), e);
+    protected abstract class CacheQuery<R> extends AbstractCache<TsurugiPreparedStatementQuery0<R>> {
+        protected TgResultMapping<R> resultMapping;
+
+        @Override
+        protected TsurugiPreparedStatementQuery0<R> generate(TsurugiSession session) throws IOException {
+            return session.createPreparedQuery(sql, resultMapping);
         }
     }
 
@@ -275,11 +298,13 @@ public abstract class IceaxeDao<E> {
         }
     }
 
-    protected final <P, R> TsurugiPreparedStatementQuery1<P, R> createPreparedQuery(String sql, TgParameterMapping<P> parameterMapping, TgResultMapping<R> resultMapping) {
-        try {
-            return getSession().createPreparedQuery(sql, parameterMapping, resultMapping);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e.getMessage(), e);
+    protected abstract class CachePreparedQuery<P, R> extends AbstractCache<TsurugiPreparedStatementQuery1<P, R>> {
+        protected TgParameterMapping<P> parameterMapping;
+        protected TgResultMapping<R> resultMapping;
+
+        @Override
+        protected TsurugiPreparedStatementQuery1<P, R> generate(TsurugiSession session) throws IOException {
+            return session.createPreparedQuery(sql, parameterMapping, resultMapping);
         }
     }
 
@@ -378,7 +403,8 @@ public abstract class IceaxeDao<E> {
         String key = columnList.stream().filter(c -> c.isPrimaryKey()).map(c -> c.getName()).collect(Collectors.joining(","));
         var sql = getSelectEntitySql() + " order by " + key;
         var resultMapping = getEntityResultMapping();
-        try (var ps = createPreparedQuery(sql, TgParameterMapping.of(), resultMapping)) {
+        var session = getSession();
+        try (var ps = session.createPreparedQuery(sql, TgParameterMapping.of(), resultMapping)) {
             var transaction = getTransaction();
             try (var rs = ps.execute(transaction, TgParameterList.of())) {
                 rs.forEach(entityConsumer);

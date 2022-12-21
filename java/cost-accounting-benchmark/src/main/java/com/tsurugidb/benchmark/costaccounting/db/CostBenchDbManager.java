@@ -34,7 +34,7 @@ public abstract class CostBenchDbManager implements Closeable {
 
     private boolean isSingleTransaction = false;
 
-    public static CostBenchDbManager createInstance(int type, IsolationLevel isolationLevel) {
+    public static CostBenchDbManager createInstance(int type, IsolationLevel isolationLevel, boolean isMultiSession) {
         CostBenchDbManager manager;
         {
             switch (type) {
@@ -42,7 +42,7 @@ public abstract class CostBenchDbManager implements Closeable {
                 manager = new CostBenchDbManagerJdbc(isolationLevel);
                 break;
             case 2:
-                manager = new CostBenchDbManagerIceaxe();
+                manager = new CostBenchDbManagerIceaxe(isMultiSession);
                 break;
             case 3:
                 manager = new CostBenchDbManagerTsubakuro();
