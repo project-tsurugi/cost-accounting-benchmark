@@ -211,7 +211,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                 }
             });
         } catch (IOException e) {
-            throw new UncheckedIOException(Thread.currentThread().getName(), e);
+            throw new UncheckedIOException(Thread.currentThread().getName() + " " + e.getMessage(), e);
         }
     }
 
@@ -230,14 +230,23 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                 }
             });
         } catch (TsurugiTransactionIOException e) {
-            var code = e.getDiagnosticCode();
             // FIXME コミット時の一意制約違反の判定方法
-            if (code == SqlServiceCode.ERR_ALREADY_EXISTS || code == SqlServiceCode.ERR_ABORTED) {
-                throw new UniqueConstraintException(e);
+            var c = e.getCause();
+            if (c instanceof TsurugiTransactionException) {
+                var t = (TsurugiTransactionException) c;
+                if (t.getDiagnosticCode() == SqlServiceCode.ERR_ABORTED_RETRYABLE) {
+                    String message = t.getMessage();
+                    if (message.contains("Status=ERR_VALIDATION") && message.contains("reason=KVS_INSERT")) {
+                        throw new UniqueConstraintException(e);
+                    }
+                }
             }
-            throw new UncheckedIOException(Thread.currentThread().getName(), e);
+            if (c instanceof UniqueConstraintException) {
+                throw (UniqueConstraintException) c;
+            }
+            throw new UncheckedIOException(Thread.currentThread().getName() + " " + e.getMessage(), e);
         } catch (IOException e) {
-            throw new UncheckedIOException(Thread.currentThread().getName(), e);
+            throw new UncheckedIOException(Thread.currentThread().getName() + " " + e.getMessage(), e);
         }
     }
 
@@ -255,6 +264,9 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     protected boolean isRetyiableTsurugiException(TsurugiDiagnosticCodeProvider e) {
         var code = e.getDiagnosticCode();
         if (code == SqlServiceCode.ERR_ABORTED_RETRYABLE) {
+            return true;
+        }
+        if (code == SqlServiceCode.ERR_CONFLICT_ON_WRITE_PRESERVE) {
             return true;
         }
         if (code == SqlServiceCode.ERR_INACTIVE_TRANSACTION) {

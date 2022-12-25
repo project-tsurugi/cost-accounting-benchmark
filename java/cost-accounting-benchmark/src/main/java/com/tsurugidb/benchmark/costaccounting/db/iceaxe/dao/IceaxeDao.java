@@ -2,6 +2,7 @@ package com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -253,6 +254,13 @@ public abstract class IceaxeDao<E> {
         }
     }
 
+    @SuppressWarnings("serial")
+    private static class ExceptionInfo extends Throwable {
+        public ExceptionInfo(String message) {
+            super(message);
+        }
+    }
+
     protected final <P> int executeAndGetCount(TsurugiPreparedStatementUpdate1<P> ps, P parameter) {
         debugExplain(ps, () -> ps.explain(parameter));
         try {
@@ -264,7 +272,12 @@ public abstract class IceaxeDao<E> {
             if (isUniqueConstraint(e)) {
                 throw new UniqueConstraintException(e);
             }
-            throw new TsurugiTransactionRuntimeException(e);
+            var r = new TsurugiTransactionRuntimeException(e);
+            if (!dbManager.isRetriable(e)) {
+                String message = MessageFormat.format("sql={0}, parameter={1}", ps.getSql(), parameter);
+                r.addSuppressed(new ExceptionInfo(message));
+            }
+            throw r;
         }
     }
 
@@ -294,7 +307,15 @@ public abstract class IceaxeDao<E> {
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
+            wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
+        }
+    }
+
+    // TODO 暫定リトライ判定を廃止して正式版にする
+    private void wipRetry(TsurugiTransactionException e) {
+        if (e.getDiagnosticCode() == SqlServiceCode.ERR_ABORTED) {
+            throw new TsurugiTransactionRuntimeException(new TsurugiTransactionException("(WIP) retry", SqlServiceCode.ERR_ABORTED_RETRYABLE, e));
         }
     }
 
@@ -316,6 +337,7 @@ public abstract class IceaxeDao<E> {
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
+            wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
         }
     }
@@ -328,6 +350,7 @@ public abstract class IceaxeDao<E> {
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
+            wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
         }
     }
@@ -340,6 +363,7 @@ public abstract class IceaxeDao<E> {
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
+            wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
         }
     }
@@ -361,6 +385,7 @@ public abstract class IceaxeDao<E> {
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
+            wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
         }
     }

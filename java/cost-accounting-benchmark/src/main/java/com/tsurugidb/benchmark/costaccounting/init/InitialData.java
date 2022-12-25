@@ -96,7 +96,7 @@ public class InitialData {
             var setting = TgTmSetting.ofAlways(TgTxOption.ofOCC());
             setting.getTransactionOptionSupplier().setStateListener((attempt, e, state) -> {
                 if (attempt > 0 && state.isExecute()) {
-                    LOG.info("OCC retry {}", attempt);
+                    LOG.info("OCC retry {} (exception={})", attempt, e.getMessage());
                 }
             });
             return setting;
