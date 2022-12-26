@@ -51,7 +51,7 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
     };
 
     public CostBenchDbManagerJdbc(IsolationLevel isolationLevel) {
-        super("JDBC");
+        super("JDBC", false);
         this.isolationLevel = isolationLevel;
     }
 

@@ -24,6 +24,7 @@ public abstract class CostBenchDbManager implements Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManager.class);
 
     private final String name;
+    private final boolean isTsurugi;
     private MeasurementMasterDao measurementMasterDao;
     private FactoryMasterDao factoryMasterDao;
     private ItemMasterDao itemMasterDao;
@@ -56,12 +57,17 @@ public abstract class CostBenchDbManager implements Closeable {
         return manager;
     }
 
-    public CostBenchDbManager(String name) {
+    public CostBenchDbManager(String name, boolean isTsurugi) {
         this.name = name;
+        this.isTsurugi = isTsurugi;
     }
 
     public String getName() {
         return this.name;
+    }
+
+    public boolean isTsurugi() {
+        return this.isTsurugi;
     }
 
     // DAO

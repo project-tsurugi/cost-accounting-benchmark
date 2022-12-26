@@ -120,7 +120,7 @@ public class CostAccountingOnlineThread implements Runnable, Callable<Void> {
         int factoryId = factoryList.get(random.nextInt(factoryList.size()));
 
         BenchOnlineTask task = getTaskRandom();
-        task.initialize(threadId, writer);
+        task.initialize(threadId, writer, stopRequest);
         task.initialize(factoryId, date);
 
         task.execute();
