@@ -15,6 +15,5 @@ function call_java() {
   java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $@
 }
 
-call_java com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline 2020-09-15 60
+call_java com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline 2020-09-15
 # args[0]: batch date
-# args[1]: thread size

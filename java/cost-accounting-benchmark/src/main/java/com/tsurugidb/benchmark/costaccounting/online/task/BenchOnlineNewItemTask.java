@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
-import com.tsurugidb.benchmark.costaccounting.db.dao.ItemConstructionMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
@@ -28,9 +27,10 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 public class BenchOnlineNewItemTask extends BenchOnlineTask {
     private static final Logger LOG = LoggerFactory.getLogger(BenchOnlineNewItemTask.class);
 
-    private static final TgTmSetting TX_PRE = TgTmSetting.of( //
-            TgTxOption.ofOCC(), //
-            TgTxOption.ofLTX(ItemMasterDao.TABLE_NAME, ItemConstructionMasterDao.TABLE_NAME));
+//    private static final TgTmSetting TX_PRE = TgTmSetting.of( //
+//            TgTxOption.ofOCC(), //
+//            TgTxOption.ofLTX(ItemMasterDao.TABLE_NAME, ItemConstructionMasterDao.TABLE_NAME));
+    private static final TgTmSetting TX_PRE = TgTmSetting.ofAlways(TgTxOption.ofOCC());
     private static final TgTmSetting TX_MAIN = TgTmSetting.of( //
             TgTxOption.ofOCC(), //
             TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
@@ -50,6 +50,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 
     protected ItemMaster getNewItemMaster() {
         for (;;) {
+            checkStop();
             try {
                 ItemMaster i = dbManager.execute(TX_PRE, () -> {
                     return executeMain();
@@ -116,6 +117,9 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
             itemMasterDao.insert(entity);
         } catch (UniqueConstraintException e) {
             LOG.debug("duplicate item_master (insert)", e);
+            if (dbManager.isTsurugi()) {
+                throw e;
+            }
             return null;
         } catch (Exception e) {
             if (!dbManager.isRetriable(e)) {

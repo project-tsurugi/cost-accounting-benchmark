@@ -6,6 +6,7 @@ import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline;
@@ -20,6 +21,7 @@ public abstract class BenchOnlineTask {
 
     private int threadId;
     private BufferedWriter writer;
+    private AtomicBoolean stopRequest;
 
     protected int factoryId;
     protected LocalDate date;
@@ -38,9 +40,10 @@ public abstract class BenchOnlineTask {
         this.dbManager = dbManager;
     }
 
-    public void initialize(int threadId, BufferedWriter writer) {
+    public void initialize(int threadId, BufferedWriter writer, AtomicBoolean stopRequest) {
         this.threadId = threadId;
         this.writer = writer;
+        this.stopRequest = stopRequest;
     }
 
     public void initialize(int factoryId, LocalDate date) {
@@ -58,6 +61,12 @@ public abstract class BenchOnlineTask {
     }
 
     protected abstract boolean execute1();
+
+    protected void checkStop() {
+        if (stopRequest.get()) {
+            throw new RuntimeException("stop by request");
+        }
+    }
 
     private LocalDateTime startDateTime, nowDateTime;
 

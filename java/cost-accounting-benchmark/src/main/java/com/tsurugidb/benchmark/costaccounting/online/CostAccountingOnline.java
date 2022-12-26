@@ -43,12 +43,7 @@ public class CostAccountingOnline {
         } catch (Exception e) {
             throw new IllegalArgumentException("invalid batchDate (args[0])", e);
         }
-        int threadSize;
-        try {
-            threadSize = Integer.parseInt(args[1]);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("invalid threadSize (args[1])", e);
-        }
+        int threadSize = BenchConst.onlineThreadSize();
 
         AtomicBoolean stopRequest = new AtomicBoolean(false);
         List<CostAccountingOnlineThread> threadList = createThread(threadSize, manager, batchDate, stopRequest);

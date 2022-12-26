@@ -67,7 +67,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     private final ThreadLocal<TsurugiTransaction> transactionThreadLocal = new ThreadLocal<>();
 
     public CostBenchDbManagerIceaxe(boolean isMultiSession) {
-        super("ICEAXE");
+        super("ICEAXE", true);
         var endpoint = BenchConst.tsurugiEndpoint();
         LOG.info("endpoint={}", endpoint);
         this.connector = TsurugiConnector.createConnector(endpoint);
