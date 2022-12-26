@@ -100,7 +100,12 @@ public class CostAccountingOnlineThread implements Runnable, Callable<Void> {
                     } catch (Throwable s) {
                         t.addSuppressed(s);
                     }
-                    LOG.error("thread{} abend", threadId);
+
+                    String message = t.getMessage();
+                    if (message == null) {
+                        message = t.getClass().getName();
+                    }
+                    LOG.error("thread{} abend. error={}", threadId, message);
                     throw t;
                 }
             }

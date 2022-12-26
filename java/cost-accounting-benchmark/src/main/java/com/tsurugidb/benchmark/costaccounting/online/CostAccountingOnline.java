@@ -145,7 +145,7 @@ public class CostAccountingOnline {
 
         public void printException() {
             for (Exception e : exceptionList) {
-                LOG.error("exception", e);
+                LOG.error("thread exception report", e);
             }
         }
     }

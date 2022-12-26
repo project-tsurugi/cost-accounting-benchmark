@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemConstructionMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
@@ -29,7 +30,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 
     private static final TgTmSetting TX_PRE = TgTmSetting.of( //
             TgTxOption.ofOCC(), //
-            TgTxOption.ofLTX(ItemMasterDao.TABLE_NAME));
+            TgTxOption.ofLTX(ItemMasterDao.TABLE_NAME, ItemConstructionMasterDao.TABLE_NAME));
     private static final TgTmSetting TX_MAIN = TgTmSetting.of( //
             TgTxOption.ofOCC(), //
             TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
@@ -40,14 +41,14 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 
     @Override
     protected boolean execute1() {
-        ItemMaster item = getNewItemMasger();
+        ItemMaster item = getNewItemMaster();
         dbManager.execute(TX_MAIN, () -> {
             executeMain2(item);
         });
         return true;
     }
 
-    protected ItemMaster getNewItemMasger() {
+    protected ItemMaster getNewItemMaster() {
         for (;;) {
             try {
                 ItemMaster i = dbManager.execute(TX_PRE, () -> {
@@ -117,7 +118,9 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
             LOG.debug("duplicate item_master (insert)", e);
             return null;
         } catch (Exception e) {
-            LOG.warn("exception", e);
+            if (!dbManager.isRetriable(e)) {
+                LOG.warn("insertItemMaster error", e);
+            }
             throw e;
         }
 

@@ -187,7 +187,7 @@ public class BenchConst {
     }
 
     public static int onlineTaskRatio(String taskName) {
-        return getPropertyInt("online.task.ratio." + taskName);
+        return getPropertyInt("online.task.ratio." + taskName, 0);
     }
 
     public static int onlineTaskSleepTime(String taskName) {

@@ -121,9 +121,10 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
     private final CachePreparedStatement<TgParameterList> updateDecreaseCache = new CachePreparedStatement<>() {
         @Override
         protected void initialize() {
+            String stockAmountType = "decimal(15," + CostMaster.C_STOCK_AMOUNT_SCALE + ")";
             this.sql = "update " + TABLE_NAME + " set" //
                     + " c_stock_quantity = c_stock_quantity - " + vQuantity //
-                    + ",c_stock_amount = c_stock_amount - c_stock_amount * " + vQuantity + " / c_stock_quantity" //
+                    + ",c_stock_amount = cast(c_stock_amount - c_stock_amount * " + vQuantity + " / c_stock_quantity as " + stockAmountType + ")" //
                     + " where c_f_id=" + vFactoryId + " and c_i_id=" + vItemId;
             this.parameterMapping = TgParameterMapping.of(vFactoryId, vItemId, vQuantity);
         }

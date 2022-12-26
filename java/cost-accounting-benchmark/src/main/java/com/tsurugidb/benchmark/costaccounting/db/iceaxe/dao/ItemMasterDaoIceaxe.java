@@ -98,7 +98,7 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
         protected void initialize() {
             this.sql = "select i_id from " + TABLE_NAME + " where " + TG_COND_DATE + " and i_type = " + vType;
             this.parameterMapping = TgParameterMapping.of(vDate, vType);
-            this.resultMapping = TgResultMapping.of(record -> record.nextInt4OrNull());
+            this.resultMapping = TgResultMapping.of(record -> record.nextInt4());
         }
     };
 
@@ -117,7 +117,7 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
         @Override
         protected void initialize() {
             this.sql = "select max(i_id) + 1 from " + TABLE_NAME;
-            this.resultMapping = TgResultMapping.of(record -> record.nextInt4OrNull());
+            this.resultMapping = TgResultMapping.of(record -> record.nextInt4());
         }
     };
 
