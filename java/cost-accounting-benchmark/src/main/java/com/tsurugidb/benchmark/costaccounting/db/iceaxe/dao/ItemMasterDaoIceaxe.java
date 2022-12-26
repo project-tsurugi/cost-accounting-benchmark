@@ -60,25 +60,21 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
 
     @Override
     public List<ItemMaster> selectByIds(Iterable<Integer> ids, LocalDate date) {
-        var vlist = TgVariableList.of();
-        var inSql = new SqlIn(I_ID.name());
-        var param = TgParameterList.of();
-        int i = 0;
-        for (int id : ids) {
-            var variable = I_ID.copy("id" + (i++));
-            vlist.add(variable);
-            inSql.add(variable);
-            param.add(variable.bind(id));
-        }
-        vlist.add(vDate);
-        param.add(vDate.bind(date));
+        var vId = I_ID.copy("id");
+        var vlist = TgVariableList.of(vId, vDate);
 
-        var sql = getSelectEntitySql() + " where " + inSql + " and " + TG_COND_DATE;
+        var sql = getSelectEntitySql() + " where i_id=" + vId + " and " + TG_COND_DATE;
         var parameterMapping = TgParameterMapping.of(vlist);
         var resultMapping = getEntityResultMapping();
         var session = getSession();
         try (var ps = session.createPreparedQuery(sql, parameterMapping, resultMapping)) {
-            return executeAndGetList(ps, param);
+            var result = new ArrayList<ItemMaster>();
+            for (int id : ids) {
+                var param = TgParameterList.of(vId.bind(id), vDate.bind(date));
+                var r = executeAndGetList(ps, param);
+                result.addAll(r);
+            }
+            return result;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
