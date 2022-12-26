@@ -5,6 +5,7 @@ import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -156,7 +157,10 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
     public Stream<ResultTable> selectRequiredQuantity(int factoryId, LocalDate date) {
         var ps = selectRequiredQuantityCache.get();
         var param = TgParameterList.of(vFactoryId.bind(factoryId), vDate.bind(date));
-        return executeAndGetStream(ps, param);
+//      return executeAndGetStream(ps, param);
+        var list = executeAndGetList(ps, param);
+        list.sort(Comparator.comparing(ResultTable::getRIId));
+        return list.stream();
     }
 
     private final CachePreparedQuery<TgParameterList, ResultTable> selectRequiredQuantityCache = new CachePreparedQuery<>() {
@@ -171,8 +175,8 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
                     + " from " + TABLE_NAME + " r" //
                     + " left join item_master m on m.i_id=r.r_i_id" //
                     + " where r_f_id=" + vFactoryId + " and r_manufacturing_date=" + vDate + " and m.i_type='raw_material'" //
-                    + " group by r_f_id, r_manufacturing_date, r_i_id" //
-                    + " order by r_i_id";
+                    + " group by r_f_id, r_manufacturing_date, r_i_id"; //
+//                  + " order by r_i_id";
             this.parameterMapping = TgParameterMapping.of(vFactoryId, vDate);
             this.resultMapping = TgResultMapping.of(ResultTable::new) //
                     .int4(ResultTable::setRFId) //
