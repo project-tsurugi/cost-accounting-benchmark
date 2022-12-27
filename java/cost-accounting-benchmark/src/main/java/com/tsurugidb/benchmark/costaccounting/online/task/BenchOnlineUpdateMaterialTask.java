@@ -5,6 +5,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemConstructionMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
@@ -21,6 +24,7 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
  * 原材料の変更
  */
 public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
+    private static final Logger LOG = LoggerFactory.getLogger(BenchOnlineUpdateMaterialTask.class);
 
     private final TgTmSetting settingMain;
 
@@ -85,6 +89,7 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
         return true;
     }
 
+    private static final boolean itemConstructionMasterKeyListDebug = false;
     private static List<ItemConstructionMasterKey> itemConstructionMasterKeyListForAdd;
 
     private ItemConstructionMaster selectRandomAddItem() {
@@ -97,8 +102,22 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
             ItemConstructionMasterKey key;
             synchronized (BenchOnlineUpdateMaterialTask.class) {
                 if (itemConstructionMasterKeyListForAdd == null) {
+                    if (itemConstructionMasterKeyListDebug) {
+                        {
+                            LOG.info("(add)ItemConstructionMasterDao.selectAll() start");
+                            var list = dbManager.getItemConstructionMasterDao().selectAll();
+                            LOG.info("(add)ItemConstructionMasterDao.selectAll() end. size={}", list.size());
+                        }
+                        {
+                            LOG.info("(add)ItemMasterDao.selectAll() start");
+                            var list = dbManager.getItemMasterDao().selectAll();
+                            LOG.info("(add)ItemMasterDao.selectAll() end. size={}", list.size());
+                        }
+                    }
                     List<ItemType> typeList = Arrays.stream(ItemType.values()).filter(t -> t != ItemType.RAW_MATERIAL).collect(Collectors.toList());
+                    LOG.info("(add)itemCostructionMasterDao.selectByItemType() start {}", typeList);
                     itemConstructionMasterKeyListForAdd = itemCostructionMasterDao.selectByItemType(date, typeList);
+                    LOG.info("(add)itemCostructionMasterDao.selectByItemType() end. size={}", itemConstructionMasterKeyListForAdd.size());
                 }
                 List<ItemConstructionMasterKey> list = itemConstructionMasterKeyListForAdd;
                 int i = random.nextInt(list.size());
@@ -163,9 +182,23 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
         ItemConstructionMasterKey key;
         synchronized (BenchOnlineUpdateMaterialTask.class) {
             if (itemConstructionMasterKeyListForRemove == null) {
+                if (itemConstructionMasterKeyListDebug) {
+                    {
+                        LOG.info("(remove)ItemConstructionMasterDao.selectAll() start");
+                        var list = dbManager.getItemConstructionMasterDao().selectAll();
+                        LOG.info("(remove)ItemConstructionMasterDao.selectAll() end. size={}", list.size());
+                    }
+                    {
+                        LOG.info("(remove)ItemMasterDao.selectAll() start");
+                        var list = dbManager.getItemMasterDao().selectAll();
+                        LOG.info("(remove)ItemMasterDao.selectAll() end. size={}", list.size());
+                    }
+                }
                 List<ItemType> typeList = Arrays.asList(ItemType.RAW_MATERIAL);
+                LOG.info("(remove)itemCostructionMasterDao.selectByItemType() start {}", typeList);
                 ItemConstructionMasterDao itemCostructionMasterDao = dbManager.getItemConstructionMasterDao();
                 itemConstructionMasterKeyListForRemove = itemCostructionMasterDao.selectByItemType(date, typeList);
+                LOG.info("(remove)itemCostructionMasterDao.selectByItemType() end. size={}", itemConstructionMasterKeyListForRemove.size());
             }
             List<ItemConstructionMasterKey> list = itemConstructionMasterKeyListForRemove;
             if (list.isEmpty()) {
