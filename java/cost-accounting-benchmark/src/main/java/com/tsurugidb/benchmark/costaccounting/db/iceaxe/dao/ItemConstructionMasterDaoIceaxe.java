@@ -158,10 +158,12 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
 
         var sql = "select ic_parent_i_id, ic_i_id, ic_effective_date" //
                 + " from " + TABLE_NAME + " ic" //
-                + " left join " + ItemMasterDao.TABLE_NAME + " i on i_id=ic_i_id and " + ItemMasterDaoIceaxe.TG_COND_DATE //
+//              + " left join " + ItemMasterDao.TABLE_NAME + " i on i_id=ic_i_id and " + ItemMasterDaoIceaxe.TG_COND_DATE //
+                + " inner join " + ItemMasterDao.TABLE_NAME + " i on i_id=ic_i_id and " + ItemMasterDaoIceaxe.TG_COND_DATE //
                 + " where " + TG_COND_DATE //
                 + " and " + inSql //
         ;
+        LOG.info("selectByItemType: {}", sql);
         var parameterMapping = TgParameterMapping.of(vlist);
         var resultMapping = TgResultMapping.of(ItemConstructionMasterKey::new) //
                 .int4(ItemConstructionMasterKey::setIcParentIId) //
