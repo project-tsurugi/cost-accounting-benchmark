@@ -187,6 +187,17 @@ public class BenchConst {
         return getIsolationLevel("online.jdbc.isolation.level");
     }
 
+    public static String onlineTsurugiTxOption(String taskName) {
+        String s = getProperty("online.tsurugi.tx.option." + taskName, false);
+        if (s == null) {
+            s = getProperty("online.tsurugi.tx.option", false);
+            if (s == null) {
+                s = "OCC";
+            }
+        }
+        return s;
+    }
+
     public static int onlineThreadSize() {
         return getPropertyInt("online.thread.size");
     }

@@ -18,17 +18,18 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
  */
 public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
 
-    private static final TgTmSetting TX_MAIN = TgTmSetting.of( //
-            TgTxOption.ofOCC(), //
-            TgTxOption.ofLTX(CostMasterDao.TABLE_NAME));
+    private final TgTmSetting settingMain;
 
     public BenchOnlineUpdateCostTask() {
         super("update-cost");
+        this.settingMain = getSetting(() -> TgTxOption.ofLTX(CostMasterDao.TABLE_NAME));
     }
 
     @Override
     protected boolean execute1() {
-        return dbManager.execute(TX_MAIN, () -> {
+        return dbManager.execute(settingMain, () -> {
+            checkStop();
+
             CostMaster cost = selectRandomItem();
             if (cost == null) {
                 return false;

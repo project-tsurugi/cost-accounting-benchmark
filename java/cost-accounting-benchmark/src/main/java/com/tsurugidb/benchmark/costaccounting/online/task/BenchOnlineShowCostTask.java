@@ -18,17 +18,17 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
  */
 public class BenchOnlineShowCostTask extends BenchOnlineTask {
 
-    private static final TgTmSetting TX_MAIN = TgTmSetting.of( //
-            TgTxOption.ofOCC(), //
-            TgTxOption.ofRTX());
+    private final TgTmSetting settingMain;
 
     public BenchOnlineShowCostTask() {
         super("show-cost");
+        this.settingMain = getSetting(() -> TgTxOption.ofRTX());
     }
 
     @Override
     protected boolean execute1() {
-        dbManager.execute(TX_MAIN, () -> {
+        dbManager.execute(settingMain, () -> {
+            checkStop();
             executeMain();
         });
         return true;

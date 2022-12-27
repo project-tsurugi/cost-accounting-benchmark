@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemConstructionMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
@@ -27,33 +28,31 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 public class BenchOnlineNewItemTask extends BenchOnlineTask {
     private static final Logger LOG = LoggerFactory.getLogger(BenchOnlineNewItemTask.class);
 
-//    private static final TgTmSetting TX_PRE = TgTmSetting.of( //
-//            TgTxOption.ofOCC(), //
-//            TgTxOption.ofLTX(ItemMasterDao.TABLE_NAME, ItemConstructionMasterDao.TABLE_NAME));
-    private static final TgTmSetting TX_PRE = TgTmSetting.ofAlways(TgTxOption.ofOCC());
-    private static final TgTmSetting TX_MAIN = TgTmSetting.of( //
-            TgTxOption.ofOCC(), //
-            TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
+    private final TgTmSetting settingPre;
+    private final TgTmSetting settingMain;
 
     public BenchOnlineNewItemTask() {
         super("new-item");
+        this.settingPre = getSetting(() -> TgTxOption.ofLTX(ItemMasterDao.TABLE_NAME, ItemConstructionMasterDao.TABLE_NAME));
+        this.settingMain = getSetting(() -> TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
     }
 
     @Override
     protected boolean execute1() {
         ItemMaster item = getNewItemMaster();
-        dbManager.execute(TX_MAIN, () -> {
-            executeMain2(item);
+        dbManager.execute(settingMain, () -> {
+            checkStop();
+            executeMain(item);
         });
         return true;
     }
 
     protected ItemMaster getNewItemMaster() {
         for (;;) {
-            checkStop();
             try {
-                ItemMaster i = dbManager.execute(TX_PRE, () -> {
-                    return executeMain();
+                ItemMaster i = dbManager.execute(settingPre, () -> {
+                    checkStop();
+                    return getNewItemMasterMain();
                 });
                 if (i != null) {
                     return i;
@@ -65,7 +64,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
         }
     }
 
-    protected ItemMaster executeMain() {
+    protected ItemMaster getNewItemMasterMain() {
         InitialData03ItemMaster initialData = new InitialData03ItemMaster(date);
 
         ItemMaster item;
@@ -131,7 +130,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
         return entity;
     }
 
-    protected void executeMain2(ItemMaster item) {
+    protected void executeMain(ItemMaster item) {
         InitialData04ItemManufacturingMaster initialData = new InitialData04ItemManufacturingMaster(1, date);
 
         ItemManufacturingMaster entity = initialData.newItemManufacturingMaster(factoryId, item.getIId());
