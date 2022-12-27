@@ -22,17 +22,18 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
  */
 public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 
-    private static final TgTmSetting TX_MAIN = TgTmSetting.of( //
-            TgTxOption.ofOCC(), //
-            TgTxOption.ofLTX(ItemConstructionMasterDao.TABLE_NAME));
+    private final TgTmSetting settingMain;
 
     public BenchOnlineUpdateMaterialTask() {
         super("update-material");
+        this.settingMain = getSetting(() -> TgTxOption.ofLTX(ItemConstructionMasterDao.TABLE_NAME));
     }
 
     @Override
     protected boolean execute1() {
-        return dbManager.execute(TX_MAIN, () -> {
+        return dbManager.execute(settingMain, () -> {
+            checkStop();
+
             int select = random.random(0, 1);
             if (select == 0) {
                 return executeAdd();
@@ -91,6 +92,8 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 
         ItemConstructionMaster entity;
         for (;;) {
+            checkStop();
+
             ItemConstructionMasterKey key;
             synchronized (BenchOnlineUpdateMaterialTask.class) {
                 if (itemConstructionMasterKeyListForAdd == null) {

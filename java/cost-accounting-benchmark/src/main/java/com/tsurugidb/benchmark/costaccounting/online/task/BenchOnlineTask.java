@@ -7,11 +7,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
+import com.tsurugidb.iceaxe.transaction.TgTxOption;
+import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 public abstract class BenchOnlineTask {
 
@@ -36,6 +39,19 @@ public abstract class BenchOnlineTask {
         return title;
     }
 
+    protected final TgTmSetting getSetting(Supplier<TgTxOption> ltxSupplier) {
+        String option = BenchConst.onlineTsurugiTxOption(title).toUpperCase();
+        switch (option) {
+        case "OCC":
+        default:
+            return TgTmSetting.ofAlways(TgTxOption.ofOCC());
+        case "LTX":
+            return TgTmSetting.ofAlways(ltxSupplier.get());
+        case "MIX":
+            return TgTmSetting.of(TgTxOption.ofOCC(), ltxSupplier.get());
+        }
+    }
+
     public void setDao(CostBenchDbManager dbManager) {
         this.dbManager = dbManager;
     }
@@ -58,13 +74,18 @@ public abstract class BenchOnlineTask {
         String target = result ? "exists" : "nothing";
 
         logEnd("factory=%d, date=%s target=%s", factoryId, date, target);
+        try {
+            writer.flush();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e.getMessage(), e);
+        }
     }
 
     protected abstract boolean execute1();
 
-    protected void checkStop() {
+    protected final void checkStop() {
         if (stopRequest.get()) {
-            throw new RuntimeException("stop by request");
+            throw new RuntimeException("stop by request. task=" + title);
         }
     }
 
@@ -96,7 +117,7 @@ public abstract class BenchOnlineTask {
         try {
             writer.write(s);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e.getMessage(), e);
         }
     }
 

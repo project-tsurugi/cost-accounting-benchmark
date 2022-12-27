@@ -24,20 +24,18 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
     private static final Logger LOG = LoggerFactory.getLogger(BenchOnlineUpdateManufacturingTask.class);
 
-    private static final TgTmSetting TX_PRE = TgTmSetting.of( //
-            TgTxOption.ofOCC(), //
-            TgTxOption.ofRTX());
-    private static final TgTmSetting TX_MAIN = TgTmSetting.of( //
-            TgTxOption.ofOCC(), //
-            TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
+    private final TgTmSetting settingPre;
+    private final TgTmSetting settingMain;
 
     public BenchOnlineUpdateManufacturingTask() {
         super("update-manufacturing");
+        this.settingPre = getSetting(() -> TgTxOption.ofRTX());
+        this.settingMain = getSetting(() -> TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
     }
 
     @Override
     protected boolean execute1() {
-        int productId = dbManager.execute(TX_PRE, this::selectRandomItemId);
+        int productId = dbManager.execute(settingPre, this::selectRandomItemId);
         if (productId < 0) {
             return false;
         }
@@ -47,7 +45,8 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
 
         for (;;) {
             try {
-                boolean ok = dbManager.execute(TX_MAIN, () -> {
+                boolean ok = dbManager.execute(settingMain, () -> {
+                    checkStop();
                     return executeMain(productId, newQuantity);
                 });
                 if (ok) {

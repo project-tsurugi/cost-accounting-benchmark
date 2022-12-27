@@ -19,17 +19,18 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
  */
 public class BenchOnlineShowWeightTask extends BenchOnlineTask {
 
-    private static final TgTmSetting TX_MAIN = TgTmSetting.of( //
-            TgTxOption.ofOCC(), //
-            TgTxOption.ofRTX());
+    private final TgTmSetting settingMain;
 
     public BenchOnlineShowWeightTask() {
         super("show-weight");
+        this.settingMain = getSetting(() -> TgTxOption.ofRTX());
     }
 
     @Override
     protected boolean execute1() {
-        return dbManager.execute(TX_MAIN, () -> {
+        return dbManager.execute(settingMain, () -> {
+            checkStop();
+
             int productId = selectRandomItemId();
             if (productId < 0) {
                 return false;
