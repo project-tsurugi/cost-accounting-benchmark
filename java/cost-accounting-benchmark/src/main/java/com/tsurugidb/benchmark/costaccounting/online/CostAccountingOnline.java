@@ -17,8 +17,12 @@ import org.slf4j.LoggerFactory;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
+import com.tsurugidb.iceaxe.exception.TsurugiDiagnosticCodeProvider;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
+import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.manager.option.TsurugiDefaultRetryPredicate;
+import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
 public class CostAccountingOnline {
     private static final Logger LOG = LoggerFactory.getLogger(CostAccountingOnline.class);
@@ -30,6 +34,21 @@ public class CostAccountingOnline {
     }
 
     public static CostBenchDbManager createCostBenchDbManager() {
+        TsurugiDefaultRetryPredicate.setInstance(new TsurugiDefaultRetryPredicate() {
+            @Override
+            protected boolean testOcc(TsurugiTransaction transaction, TsurugiDiagnosticCodeProvider e) {
+                if (super.testOcc(transaction, e)) {
+                    return true;
+                }
+
+                var lowCode = e.getDiagnosticCode();
+                if (lowCode == SqlServiceCode.ERR_ABORTED) {
+                    return true;
+                }
+                return false;
+            }
+        });
+
         int type = BenchConst.onlineDbManagerType();
         var isolationLevel = BenchConst.onlineJdbcIsolationLevel();
         boolean isMultiSession = BenchConst.onlineDbManagerMultiSession();
