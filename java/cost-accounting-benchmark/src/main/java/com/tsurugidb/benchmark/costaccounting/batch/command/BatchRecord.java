@@ -1,5 +1,8 @@
 package com.tsurugidb.benchmark.costaccounting.batch.command;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 import com.tsurugidb.benchmark.costaccounting.batch.BatchConfig;
 import com.tsurugidb.benchmark.costaccounting.batch.StringUtil;
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
@@ -8,7 +11,7 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 public class BatchRecord {
 
     public static String header() {
-        return "dbmsType, option, scope, factory, elapsedMills, tryCount, abortCount, diffrence";
+        return "dbmsType, option, scope, factory, elapsed[s], tryCount, abortCount, diffrence";
     }
 
     private final BatchConfig config;
@@ -79,6 +82,10 @@ public class BatchRecord {
         return this.elapsedMillis;
     }
 
+    public String elapsedSec() {
+        return BigDecimal.valueOf(elapsedMillis).divide(BigDecimal.valueOf(1000), 3, RoundingMode.UNNECESSARY).toPlainString();
+    }
+
     public String getParamString() {
         var sb = new StringBuilder(64);
         sb.append("dbmsType=");
@@ -103,7 +110,7 @@ public class BatchRecord {
         sb.append(",");
         sb.append(factory());
         sb.append(",");
-        sb.append(elapsedMillis);
+        sb.append(elapsedSec());
         sb.append(",");
         sb.append(tryCount);
         sb.append(",");
