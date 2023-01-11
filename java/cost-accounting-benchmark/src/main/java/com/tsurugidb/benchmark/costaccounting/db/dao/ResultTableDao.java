@@ -91,7 +91,7 @@ public interface ResultTableDao {
      *   sum(r_required_quantity) r_required_quantity,
      *   max(r_required_quantity_unit) r_required_quantity_unit
      * from result_table r
-     * left join item_master m on m.i_id=r.r_i_id
+     * left join item_master m on m.i_id=r.r_i_id and r.r_manufacturing_date between m.i_effective_date and m.i_expired_date
      * where r_f_id = :factoryId
      *   and r_manufacturing_date = :date
      *   and m.i_type = 'raw_material'
