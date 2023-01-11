@@ -105,7 +105,13 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
             return;
         }
 
-        connectionThreadLocal.remove();
+        try {
+            connectionThreadLocal.get().close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionThreadLocal.remove();
+        }
     }
 
     @Override
