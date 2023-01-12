@@ -63,7 +63,7 @@ public class BatchCommand implements ExecutableCommand {
                         var batch = new CostAccountingBatch();
                         record.start();
                         exitCode |= batch.main(config);
-                        record.finish(batch.getTryCount(), batch.getAbortCount());
+                        record.finish(batch.getItemCount(), batch.getTryCount(), batch.getAbortCount());
 
                         LOG.info("Finished. elapsed secs = {}.", record.elapsedMillis() / 1000.0);
                         writeResult(outputPath, records);

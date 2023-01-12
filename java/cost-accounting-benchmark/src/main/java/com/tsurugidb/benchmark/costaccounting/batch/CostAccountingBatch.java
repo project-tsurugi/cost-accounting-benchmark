@@ -3,6 +3,7 @@ package com.tsurugidb.benchmark.costaccounting.batch;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -68,6 +69,7 @@ public class CostAccountingBatch {
     private CostBenchDbManager dbManager;
     private final AtomicInteger tryCounter = new AtomicInteger(0);
     private final AtomicInteger abortCounter = new AtomicInteger(0);
+    private int itemCount;
     private final AtomicInteger commitCount = new AtomicInteger(0);
     private final AtomicInteger rollbackCount = new AtomicInteger(0);
 
@@ -178,6 +180,7 @@ public class CostAccountingBatch {
             }
 
             commitOrRollback(batchDate, count);
+            this.itemCount = count;
         });
         abortCounter.addAndGet(tryInThisTx.get() - 1);
         return 0;
@@ -212,6 +215,7 @@ public class CostAccountingBatch {
 
             tryCounter.addAndGet(thread.getTryCount());
             abortCounter.addAndGet(thread.getAbortCount());
+            this.itemCount += thread.getItemCount();
             addCount(thread);
         }
         return 0;
@@ -245,6 +249,7 @@ public class CostAccountingBatch {
         int[] exitCode = { -1 };
         dbManager.setSingleTransaction(true);
         dbManager.execute(setting, () -> {
+            count.set(0);
             tryInThisTx.incrementAndGet();
             tryCounter.incrementAndGet();
 
@@ -253,6 +258,7 @@ public class CostAccountingBatch {
 
             exitCode[0] = rc;
         });
+        this.itemCount = count.get();
         abortCounter.addAndGet(tryInThisTx.get() - 1);
         return exitCode[0];
     }
@@ -268,6 +274,7 @@ public class CostAccountingBatch {
         for (BenchBatchFactoryTask thread : threadList) {
             tryCounter.addAndGet(thread.getTryCount());
             abortCounter.addAndGet(thread.getAbortCount());
+            this.itemCount += thread.getItemCount();
             addCount(thread);
         }
 
@@ -318,7 +325,9 @@ public class CostAccountingBatch {
         var batchDate = config.getBatchDate();
         var factoryList = config.getFactoryList();
 
+        var threadList = new ArrayList<BenchBatchFactoryTask>();
         dbManager.execute(TX_BATCH, () -> {
+            threadList.clear();
             ResultTableDao resultTableDao = dbManager.getResultTableDao();
             resultTableDao.deleteByFactories(factoryList, batchDate);
 
@@ -339,7 +348,11 @@ public class CostAccountingBatch {
 
             thread.commitOrRollback(count[0]);
             addCount(thread);
+            threadList.add(thread);
         });
+        for (var thread : threadList) {
+            this.itemCount += thread.getItemCount();
+        }
         return 0;
     }
 
@@ -349,6 +362,7 @@ public class CostAccountingBatch {
 
         ResultTableDao resultTableDao = dbManager.getResultTableDao();
 
+        var threadList = new ArrayList<BenchBatchFactoryTask>();
         ConcurrentLinkedDeque<ItemManufacturingMaster> queue = dbManager.execute(TX_BATCH, () -> {
             ConcurrentLinkedDeque<ItemManufacturingMaster> q;
             resultTableDao.deleteByFactories(factoryList, batchDate);
@@ -362,6 +376,7 @@ public class CostAccountingBatch {
 
         int size = 8;
         ExecutorService pool = Executors.newFixedThreadPool(size);
+        threadList.clear();
         List<Callable<Void>> list = Stream.generate(() -> new Callable<Void>() {
 
             @Override
@@ -383,6 +398,7 @@ public class CostAccountingBatch {
                     thread.commitOrRollback(count[0]);
                     addCount(thread);
                 });
+                threadList.add(thread);
                 return null;
             }
         }).limit(size).collect(Collectors.toList());
@@ -395,6 +411,9 @@ public class CostAccountingBatch {
             exitCode = 1;
         } finally {
             pool.shutdown();
+        }
+        for (var thread : threadList) {
+            this.itemCount += thread.getItemCount();
         }
         return exitCode;
     }
@@ -427,6 +446,10 @@ public class CostAccountingBatch {
     protected void addCount(BenchBatchFactoryTask thread) {
         commitCount.addAndGet(thread.getCommitCount());
         rollbackCount.addAndGet(thread.getRollbackCount());
+    }
+
+    public int getItemCount() {
+        return this.itemCount;
     }
 
     public int getTryCount() {

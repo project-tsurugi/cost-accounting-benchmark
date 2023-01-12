@@ -26,6 +26,7 @@ public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
 
     private final BenchRandom random = new BenchRandom();
 
+    private int itemCount = 0;
     private int commitCount = 0;
     private int rollbackCount = 0;
 
@@ -101,6 +102,7 @@ public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
                 LOG.info("rollback ({}, {}), count={}", batchDate, factoryId, count);
             });
         }
+        this.itemCount = count;
     }
 
     public final int getTryCount() {
@@ -109,6 +111,10 @@ public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
 
     public final int getAbortCount() {
         return tryCounter.get() - 1;
+    }
+
+    public final int getItemCount() {
+        return itemCount;
     }
 
     public final int getCommitCount() {
