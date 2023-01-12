@@ -112,7 +112,7 @@ public class BenchConst {
     }
 
     public static String batchCommandExecuteType() {
-        String s = getProperty("batch-command.execute.type", false);
+        String s = getProperty("batch-command.execute.type", null);
         if (s == null) {
             return String.join(",", SEQUENTIAL_SINGLE_TX, SEQUENTIAL_FACTORY_TX, PARALLEL_SINGLE_TX, PARALLEL_FACTORY_TX, PARALLEL_FACTORY_SESSION);
         }
@@ -128,7 +128,7 @@ public class BenchConst {
     }
 
     private static List<IsolationLevel> getCommandIsolationLevel(String key) {
-        String s = getProperty(key, false);
+        String s = getProperty(key, null);
         if (s != null) {
             return Arrays.stream(s.split(",")).map(String::trim).map(String::toUpperCase).map(IsolationLevel::valueOf).collect(Collectors.toList());
         }
@@ -145,7 +145,7 @@ public class BenchConst {
     }
 
     public static List<String> getCommandTxOption(String key) {
-        String s = getProperty(key, false);
+        String s = getProperty(key, null);
         if (s != null) {
             return Arrays.stream(s.split(",")).map(String::trim).map(String::toUpperCase).collect(Collectors.toList());
         }
@@ -159,6 +159,10 @@ public class BenchConst {
 
     public static int batchCommandExecuteTimes() {
         return getPropertyInt("batch-command.execute.times", 1);
+    }
+
+    public static String batchCommandDiffDir() {
+        return getProperty("batch-command.diff.dir", null);
     }
 
     public static String batchCommandResultFile() {
@@ -188,12 +192,9 @@ public class BenchConst {
     }
 
     public static String onlineTsurugiTxOption(String taskName) {
-        String s = getProperty("online.tsurugi.tx.option." + taskName, false);
+        String s = getProperty("online.tsurugi.tx.option." + taskName, null);
         if (s == null) {
-            s = getProperty("online.tsurugi.tx.option", false);
-            if (s == null) {
-                s = "OCC";
-            }
+            s = getProperty("online.tsurugi.tx.option", "OCC");
         }
         return s;
     }
@@ -220,8 +221,7 @@ public class BenchConst {
     }
 
     public static String initTsurugiTxOption() {
-        String s = getProperty("init.tsurugi.tx.option", false);
-        return (s != null) ? s : "LTX";
+        return getProperty("init.tsurugi.tx.option", "LTX");
     }
 
     public static LocalDate initBatchDate() {
@@ -280,12 +280,12 @@ public class BenchConst {
     }
 
     public static boolean timeCommandExecute(String tableName, String sqlName) {
-        String s = getProperty("time-command." + tableName + "." + sqlName, false);
+        String s = getProperty("time-command." + tableName + "." + sqlName, null);
         if (s == null) {
-            s = getProperty("time-command." + tableName, false);
+            s = getProperty("time-command." + tableName, null);
         }
         if (s == null) {
-            s = getProperty("time-command", false);
+            s = getProperty("time-command", null);
         }
         return (s != null) ? Boolean.parseBoolean(s) : true;
     }
@@ -318,6 +318,11 @@ public class BenchConst {
             }
         }
         return properties;
+    }
+
+    private static String getProperty(String key, String defaultValue) {
+        String s = getProperty(key, false);
+        return (s != null) ? s : defaultValue;
     }
 
     private static String getProperty(String key, boolean requiredFile) {

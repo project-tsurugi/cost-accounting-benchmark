@@ -15,15 +15,18 @@ public class BatchRecord {
     }
 
     private final BatchConfig config;
+    private final int attempt;
     private final DbmsType dbmsType;
     private long start;
     private long elapsedMillis;
     private int itemCount;
     private int tryCount;
     private int abortCount;
+    private String diffCount;
 
-    public BatchRecord(BatchConfig config) {
+    public BatchRecord(BatchConfig config, int attempt) {
         this.config = config;
+        this.attempt = attempt;
         this.dbmsType = BenchConst.dbmsType();
     }
 
@@ -36,6 +39,22 @@ public class BatchRecord {
         this.itemCount = itemCount;
         this.tryCount = tryCount;
         this.abortCount = abortCount;
+    }
+
+    public void setDiff(String diffCount) {
+        this.diffCount = diffCount;
+    }
+
+    public void setDiff(int diffCount) {
+        setDiff(Integer.toString(diffCount));
+    }
+
+    public int attempt() {
+        return this.attempt;
+    }
+
+    public DbmsType dbmsType() {
+        return this.dbmsType;
     }
 
     public String option() {
@@ -54,8 +73,12 @@ public class BatchRecord {
         }
     }
 
+    public String executeType() {
+        return config.getExecuteType();
+    }
+
     public String scope() {
-        String s = config.getExecuteType();
+        String s = executeType();
         switch (s) {
         case BenchConst.SEQUENTIAL_SINGLE_TX:
             return "sequential single-tx";
@@ -77,7 +100,7 @@ public class BatchRecord {
     }
 
     public String numberOfDiffrence() {
-        return "-";
+        return this.diffCount;
     }
 
     public long elapsedMillis() {

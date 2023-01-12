@@ -2,10 +2,13 @@ package com.tsurugidb.benchmark.costaccounting.batch.command;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,12 +20,15 @@ import com.tsurugidb.benchmark.costaccounting.batch.BatchConfig;
 import com.tsurugidb.benchmark.costaccounting.batch.CostAccountingBatch;
 import com.tsurugidb.benchmark.costaccounting.batch.StringUtil;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
+import com.tsurugidb.benchmark.costaccounting.init.DumpCsv;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.transaction.TgTxOption;
 
 public class BatchCommand implements ExecutableCommand {
     private static final Logger LOG = LoggerFactory.getLogger(BatchCommand.class);
+
+    private Path baseResultFile;
 
     @Override
     public String getDescription() {
@@ -31,6 +37,7 @@ public class BatchCommand implements ExecutableCommand {
 
     @Override
     public int executeCommand(String... args) throws Exception {
+        this.baseResultFile = null;
         var outputPath = Path.of(BenchConst.batchCommandResultFile());
 
         var executeList = Arrays.stream(BenchConst.batchCommandExecuteType().split(",")).map(String::trim).collect(Collectors.toList());
@@ -56,7 +63,7 @@ public class BatchCommand implements ExecutableCommand {
                         config.setIsolationLevel(isolationLevel);
                         config.setDefaultTxOption(getOption(txOption));
 
-                        var record = new BatchRecord(config);
+                        var record = new BatchRecord(config, i);
                         records.add(record);
                         LOG.info("Executing with {}.", record.getParamString());
 
@@ -66,6 +73,7 @@ public class BatchCommand implements ExecutableCommand {
                         record.finish(batch.getItemCount(), batch.getTryCount(), batch.getAbortCount());
 
                         LOG.info("Finished. elapsed secs = {}.", record.elapsedMillis() / 1000.0);
+                        diff(record);
                         writeResult(outputPath, records);
                     }
                 }
@@ -80,6 +88,49 @@ public class BatchCommand implements ExecutableCommand {
             return TgTxOption.ofOCC();
         default:
             return TgTxOption.ofLTX(ResultTableDao.TABLE_NAME);
+        }
+    }
+
+    private void diff(BatchRecord record) {
+        Path outputDir;
+        try {
+            String s = BenchConst.batchCommandDiffDir();
+            if (s == null) {
+                record.setDiff("-");
+                return;
+            }
+            outputDir = Path.of(s);
+            Files.createDirectories(outputDir);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e.getMessage(), e);
+        }
+
+        Path outputFile = outputDir.resolve(ResultTableDao.TABLE_NAME + "." + record.dbmsType() + "." + record.executeType() + "." + record.option() + "." + record.attempt() + ".csv");
+        try {
+            new DumpCsv().dump(outputFile, ResultTableDao.TABLE_NAME);
+        } catch (IOException e) {
+            LOG.warn("dump csv error. file={}", outputFile, e);
+            record.setDiff("dump error");
+            return;
+        }
+
+        if (this.baseResultFile == null) {
+            this.baseResultFile = outputFile;
+            record.setDiff(0);
+        } else {
+            try (var baseStream = Files.lines(baseResultFile, StandardCharsets.UTF_8); //
+                    var testStream = Files.lines(outputFile, StandardCharsets.UTF_8)) {
+                var baseSet = baseStream.collect(Collectors.toSet());
+                var testSet = new HashSet<String>();
+                testStream.forEach(s -> {
+                    if (!baseSet.remove(s)) {
+                        testSet.add(s);
+                    }
+                });
+                record.setDiff(baseSet.size() + testSet.size());
+            } catch (IOException e) {
+                throw new UncheckedIOException(e.getMessage(), e);
+            }
         }
     }
 

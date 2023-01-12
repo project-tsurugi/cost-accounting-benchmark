@@ -55,16 +55,23 @@ public class DumpCsv {
             this.dbManager = manager;
 
             for (var tableName : tableList) {
-                dump(outputDir, tableName);
+                var outputFile = outputDir.resolve(tableName + ".csv");
+                LOG.info("write {}", outputFile);
+                dumpTable(outputFile, tableName);
             }
         }
     }
 
-    private void dump(Path outputDir, String tableName) throws IOException {
-        var csvFile = outputDir.resolve(tableName + ".csv");
-        LOG.info("write {}", csvFile);
+    public void dump(Path outputFile, String tableName) throws IOException {
+        try (CostBenchDbManager manager = InitialData.createDbManager()) {
+            this.dbManager = manager;
 
-        try (var writer = Files.newBufferedWriter(csvFile, StandardCharsets.UTF_8)) {
+            dumpTable(outputFile, tableName);
+        }
+    }
+
+    private void dumpTable(Path outputFile, String tableName) throws IOException {
+        try (var writer = Files.newBufferedWriter(outputFile, StandardCharsets.UTF_8)) {
             switch (tableName) {
             case MeasurementMasterDao.TABLE_NAME:
                 dumpMeasurementMaster(writer);
