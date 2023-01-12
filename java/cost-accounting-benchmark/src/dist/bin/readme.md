@@ -181,6 +181,9 @@ ICEAXE,LTX,item_master,10000[-1:1],deleteAll,333,0,265,68,1
     - `LTX`
 - batch-command.execute.times
   - 上記の組み合わせのそれぞれを実行する回数。デフォルトは1
+- batch-command.diff.dir
+  - result_tableのダンプを出力するディレクトリー。バッチ処理を複数回実行する場合、最初にダンプしたファイルとの差異が無いかどうかをチェックする
+  - このプロパティーを指定しない場合、ダンプファイルを出力せず、比較も行わない
 - batch-command.result.file
   - 実行結果（処理時間やリトライ回数等）を出力するファイルのパス
 
@@ -193,6 +196,7 @@ batch-command.factory.list=all
 batch-command.isolation.level=SERIALIZABLE
 batch-command.tx.option=OCC, LTX
 batch-command.execute.times=1
+batch-command.diff.dir=/tmp/cost-accounting-benchmark/diff
 batch-command.result.file=/tmp/cost-accounting-benchmark.batch.tsurugi.csv
 ```
 
