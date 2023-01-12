@@ -114,7 +114,7 @@ public class BenchConst {
     public static String batchCommandExecuteType() {
         String s = getProperty("batch-command.execute.type", false);
         if (s == null) {
-            return String.join(",", SEQUENTIAL_SINGLE_TX, SEQUENTIAL_FACTORY_TX, PARALLEL_SINGLE_TX, PARALLEL_FACTORY_TX);
+            return String.join(",", SEQUENTIAL_SINGLE_TX, SEQUENTIAL_FACTORY_TX, PARALLEL_SINGLE_TX, PARALLEL_FACTORY_TX, PARALLEL_FACTORY_SESSION);
         }
         return s;
     }

@@ -11,13 +11,14 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 public class BatchRecord {
 
     public static String header() {
-        return "dbmsType, option, scope, factory, elapsed[s], tryCount, abortCount, diffrence";
+        return "dbmsType, option, scope, factory item, elapsed[s], tryCount, abortCount, diffrence";
     }
 
     private final BatchConfig config;
     private final DbmsType dbmsType;
     private long start;
     private long elapsedMillis;
+    private int itemCount;
     private int tryCount;
     private int abortCount;
 
@@ -30,8 +31,9 @@ public class BatchRecord {
         this.start = System.currentTimeMillis();
     }
 
-    public void finish(int tryCount, int abortCount) {
+    public void finish(int itemCount, int tryCount, int abortCount) {
         this.elapsedMillis = System.currentTimeMillis() - start;
+        this.itemCount = itemCount;
         this.tryCount = tryCount;
         this.abortCount = abortCount;
     }
@@ -109,6 +111,8 @@ public class BatchRecord {
         sb.append(scope());
         sb.append(",");
         sb.append(factory());
+        sb.append(" ");
+        sb.append(itemCount);
         sb.append(",");
         sb.append(elapsedSec());
         sb.append(",");
