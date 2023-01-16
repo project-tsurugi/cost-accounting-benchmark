@@ -10,8 +10,8 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
-import com.tsurugidb.iceaxe.transaction.TgTxOption;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 /**
  * 原価の変更

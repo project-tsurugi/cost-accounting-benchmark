@@ -9,8 +9,8 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
-import com.tsurugidb.iceaxe.transaction.TgTxOption;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 public class ItemMasterTime extends TableTime {
 

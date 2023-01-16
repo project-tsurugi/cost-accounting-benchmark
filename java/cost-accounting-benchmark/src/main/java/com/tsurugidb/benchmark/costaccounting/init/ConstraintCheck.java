@@ -18,8 +18,8 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.HasDateRange;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemConstructionMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
-import com.tsurugidb.iceaxe.transaction.TgTxOption;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 public class ConstraintCheck {
 
