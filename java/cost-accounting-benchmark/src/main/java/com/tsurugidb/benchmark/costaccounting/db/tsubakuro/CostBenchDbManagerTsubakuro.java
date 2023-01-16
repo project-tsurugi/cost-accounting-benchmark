@@ -25,8 +25,8 @@ import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.MeasurementMaster
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.ResultTableDaoTsubakuro;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.TsubakuroDao;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
-import com.tsurugidb.iceaxe.transaction.TgTxOption;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.tsubakuro.channel.common.connection.UsernamePasswordCredential;
 import com.tsurugidb.tsubakuro.common.Session;
 import com.tsurugidb.tsubakuro.common.SessionBuilder;

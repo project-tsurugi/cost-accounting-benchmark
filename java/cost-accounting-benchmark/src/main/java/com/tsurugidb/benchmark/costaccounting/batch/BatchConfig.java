@@ -7,7 +7,7 @@ import java.util.TreeMap;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
-import com.tsurugidb.iceaxe.transaction.TgTxOption;
+import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 public class BatchConfig {
 

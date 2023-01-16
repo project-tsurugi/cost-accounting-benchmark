@@ -19,8 +19,8 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData03ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData04ItemManufacturingMaster;
-import com.tsurugidb.iceaxe.transaction.TgTxOption;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 /**
  * 新規開発商品の追加
