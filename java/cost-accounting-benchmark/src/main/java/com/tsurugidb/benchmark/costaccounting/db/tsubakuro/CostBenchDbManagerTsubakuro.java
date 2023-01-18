@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.tsurugidb.benchmark.costaccounting.db.BenchDbCounter.CounterName;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
@@ -168,21 +169,31 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
             var transaction = sqlClient.createTransaction(option).await();
             setCurrentTransaction(transaction);
             try {
+                counter.increment(setting, CounterName.BEGIN_TX);
                 runnable.run();
+                counter.increment(setting, CounterName.TRY_COMMIT);
                 commit();
+                counter.increment(setting, CounterName.SUCCESS);
             } finally {
                 removeCurrentTransaction();
             }
         } catch (IOException e) {
+            counter.increment(setting, CounterName.ABORTED);
             rollback();
             throw new UncheckedIOException(Thread.currentThread().getName(), e);
         } catch (ServerException e) {
+            counter.increment(setting, CounterName.ABORTED);
             rollback();
             // TODO abort retry
             throw new RuntimeException(e);
         } catch (InterruptedException e) {
+            counter.increment(setting, CounterName.ABORTED);
             rollback();
             throw new RuntimeException(e);
+        } catch (Throwable e) {
+            counter.increment(setting, CounterName.ABORTED);
+            rollback();
+            throw e;
         }
     }
 
@@ -193,16 +204,21 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
             var transaction = sqlClient.createTransaction(option).await();
             setCurrentTransaction(transaction);
             try {
+                counter.increment(setting, CounterName.BEGIN_TX);
                 T result = supplier.get();
+                counter.increment(setting, CounterName.TRY_COMMIT);
                 commit();
+                counter.increment(setting, CounterName.SUCCESS);
                 return result;
             } finally {
                 removeCurrentTransaction();
             }
         } catch (IOException e) {
+            counter.increment(setting, CounterName.ABORTED);
             rollback();
             throw new UncheckedIOException(Thread.currentThread().getName(), e);
         } catch (ServerException e) {
+            counter.increment(setting, CounterName.ABORTED);
             rollback();
             // TODO abort retry
             var code = e.getDiagnosticCode();
@@ -212,8 +228,13 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
             }
             throw new RuntimeException(e);
         } catch (InterruptedException e) {
+            counter.increment(setting, CounterName.ABORTED);
             rollback();
             throw new RuntimeException(e);
+        } catch (Throwable e) {
+            counter.increment(setting, CounterName.ABORTED);
+            rollback();
+            throw e;
         }
     }
 

@@ -59,7 +59,12 @@ public class CostAccountingBatch {
         config.setIsolationLevel(BenchConst.batchJdbcIsolationLevel());
         config.setTxOptions(BenchConst.batchTsurugiTxOption());
 
-        int exitCode = new CostAccountingBatch().main(config);
+        int exitCode;
+        try {
+            exitCode = new CostAccountingBatch().main(config);
+        } finally {
+            LOG.info("Counter infos: \n---\n{}---", CostBenchDbManager.createCounterReport());
+        }
         if (exitCode != 0) {
             System.exit(exitCode);
         }
@@ -151,8 +156,12 @@ public class CostAccountingBatch {
     private List<Integer> getAllFactory() {
         FactoryMasterDao dao = dbManager.getFactoryMasterDao();
 
-        var setting = TgTmSetting.of(TgTxOption.ofOCC(), TgTxOption.ofRTX());
-        return dbManager.execute(setting, dao::selectAllId);
+        var setting = TgTmSetting.ofAlways(TgTxOption.ofOCC().label("select factory"));
+        try {
+            return dbManager.execute(setting, dao::selectAllId);
+        } finally {
+            CostBenchDbManager.resetCounter();
+        }
     }
 
     private int executeSequentialSingleTx() {

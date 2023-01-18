@@ -13,6 +13,8 @@ import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 public class BenchBatchTxOption extends TgTxOptionAlways {
     private static final Logger LOG = LoggerFactory.getLogger(BenchBatchTxOption.class);
 
+    public static final String LABEL_PREFIX = "batch";
+
     public static BenchBatchTxOption of(BatchConfig config) {
         return new BenchBatchTxOption(getTxOption(config, 0));
     }
@@ -23,7 +25,7 @@ public class BenchBatchTxOption extends TgTxOptionAlways {
 
     private static TgTxOption getTxOption(BatchConfig config, int factoryId) {
         var option = config.getTxOption(factoryId).clone();
-        option.label("batch" + factoryId);
+        option.label(String.format("%s%03d", LABEL_PREFIX, factoryId));
         return option;
     }
 

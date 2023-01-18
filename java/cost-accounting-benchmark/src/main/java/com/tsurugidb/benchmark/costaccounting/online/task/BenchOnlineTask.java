@@ -40,6 +40,12 @@ public abstract class BenchOnlineTask {
     }
 
     protected final TgTmSetting getSetting(Supplier<TgTxOption> ltxSupplier) {
+        TgTmSetting setting = createSetting(ltxSupplier);
+        setting.transactionLabel(title);
+        return setting;
+    }
+
+    private TgTmSetting createSetting(Supplier<TgTxOption> ltxSupplier) {
         String option = BenchConst.onlineTsurugiTxOption(title).toUpperCase();
         switch (option) {
         case "OCC":

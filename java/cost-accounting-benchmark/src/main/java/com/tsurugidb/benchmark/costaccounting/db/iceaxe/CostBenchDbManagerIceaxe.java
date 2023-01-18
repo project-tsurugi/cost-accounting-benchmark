@@ -56,6 +56,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                 sessionList.add(session);
                 LOG.debug("create session. sessionList.size={}", sessionList.size());
                 var tm = session.createTransactionManager();
+                tm.addEventListener(counter);
                 return tm;
             } catch (IOException e) {
                 throw new UncheckedIOException(e.getMessage(), e);
@@ -76,7 +77,9 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
             this.sessionInfo = TgSessionInfo.of(credential);
             if (!isMultiSession) {
                 var session = connector.createSession(sessionInfo);
-                this.singleTransactionManager = session.createTransactionManager();
+                var tm = session.createTransactionManager();
+                tm.addEventListener(counter);
+                this.singleTransactionManager = tm;
                 sessionList.add(session);
             } else {
                 this.singleTransactionManager = null;

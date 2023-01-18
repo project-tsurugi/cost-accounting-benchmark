@@ -96,6 +96,8 @@ public class CostAccountingOnline {
 
                 // 例外出力
                 pool.printException();
+
+                LOG.info("Counter infos: \n---\n{}---", CostBenchDbManager.createCounterReport());
             } finally {
                 done.set(true);
             }
@@ -116,10 +118,12 @@ public class CostAccountingOnline {
     private static List<Integer> getAllFactory(CostBenchDbManager manager) {
         FactoryMasterDao dao = manager.getFactoryMasterDao();
 
-        var setting = TgTmSetting.ofAlways(TgTxOption.ofOCC());
-        return manager.execute(setting, () -> {
-            return dao.selectAllId();
-        });
+        var setting = TgTmSetting.ofAlways(TgTxOption.ofOCC().label("select factory"));
+        try {
+            return manager.execute(setting, dao::selectAllId);
+        } finally {
+            CostBenchDbManager.resetCounter();
+        }
     }
 
     private static int threadId = 0;

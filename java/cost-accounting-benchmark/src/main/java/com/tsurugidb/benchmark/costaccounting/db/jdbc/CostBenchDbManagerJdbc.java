@@ -14,6 +14,7 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.tsurugidb.benchmark.costaccounting.db.BenchDbCounter.CounterName;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
@@ -176,10 +177,14 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
     public void execute(TgTmSetting setting, Runnable runnable) {
         for (;;) {
             try {
+                counter.increment(setting, CounterName.BEGIN_TX);
                 runnable.run();
+                counter.increment(setting, CounterName.TRY_COMMIT);
                 commit();
+                counter.increment(setting, CounterName.SUCCESS);
                 return;
             } catch (Throwable e) {
+                counter.increment(setting, CounterName.ABORTED);
                 try {
                     rollback();
                 } catch (Throwable t) {
@@ -199,10 +204,14 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
     public <T> T execute(TgTmSetting setting, Supplier<T> supplier) {
         for (;;) {
             try {
+                counter.increment(setting, CounterName.BEGIN_TX);
                 T r = supplier.get();
+                counter.increment(setting, CounterName.TRY_COMMIT);
                 commit();
+                counter.increment(setting, CounterName.SUCCESS);
                 return r;
             } catch (Throwable e) {
+                counter.increment(setting, CounterName.ABORTED);
                 try {
                     rollback();
                 } catch (Throwable t) {
