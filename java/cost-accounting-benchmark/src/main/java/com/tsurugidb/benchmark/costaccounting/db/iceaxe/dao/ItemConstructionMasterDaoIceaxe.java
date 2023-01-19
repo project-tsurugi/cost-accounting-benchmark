@@ -16,6 +16,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.ItemConstructionMasterId
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemConstructionMasterKey;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
@@ -158,7 +159,7 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
 
         var sql = "select ic_parent_i_id, ic_i_id, ic_effective_date" //
                 + " from " + TABLE_NAME + " ic" //
-                + " left join " + ItemMasterDao.TABLE_NAME + " i on i_id=ic_i_id and " + ItemMasterDaoIceaxe.TG_COND_DATE //
+                + (BenchConst.WORKAROUND ? " inner join " : " left join ") + ItemMasterDao.TABLE_NAME + " i on i_id=ic_i_id and " + ItemMasterDaoIceaxe.TG_COND_DATE //
                 + " where " + TG_COND_DATE //
                 + " and " + inSql //
         ;

@@ -1,5 +1,6 @@
 package com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao;
 
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.statement.TgVariable;
 
 public class SqlBetween {
@@ -16,6 +17,9 @@ public class SqlBetween {
 
     @Override
     public String toString() {
+        if (BenchConst.WORKAROUND) {
+            return "(" + exp2 + " <= " + exp1 + " and " + exp1 + " <= " + exp3 + ")";
+        }
         return exp1 + " between " + exp2 + " and " + exp3;
     }
 }

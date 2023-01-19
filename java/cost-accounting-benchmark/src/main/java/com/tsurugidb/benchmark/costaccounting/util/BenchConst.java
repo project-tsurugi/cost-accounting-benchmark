@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
 
 public class BenchConst {
+    /** 暫定回避 */ // TODO 暫定回避策廃止
+    public static final boolean WORKAROUND = true;
 
     public static DbmsType dbmsType() {
         String type = getProperty("dbms.type");

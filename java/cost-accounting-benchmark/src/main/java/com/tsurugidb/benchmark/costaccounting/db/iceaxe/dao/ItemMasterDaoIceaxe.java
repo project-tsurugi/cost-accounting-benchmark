@@ -12,6 +12,7 @@ import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
@@ -60,6 +61,10 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
 
     @Override
     public List<ItemMaster> selectByIds(Iterable<Integer> ids, LocalDate date) {
+        if (BenchConst.WORKAROUND) {
+            return selectByIdsWorkaround(ids, date);
+        }
+
         var vlist = TgVariableList.of();
         var inSql = new SqlIn(I_ID.name());
         var param = TgParameterList.of();
@@ -79,6 +84,26 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
         var session = getSession();
         try (var ps = session.createPreparedQuery(sql, parameterMapping, resultMapping)) {
             return executeAndGetList(ps, param);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private List<ItemMaster> selectByIdsWorkaround(Iterable<Integer> ids, LocalDate date) {
+        var vId = I_ID.copy("id");
+        var vlist = TgVariableList.of(vId, vDate);
+        var sql = getSelectEntitySql() + " where i_id=" + vId + " and " + TG_COND_DATE;
+        var parameterMapping = TgParameterMapping.of(vlist);
+        var resultMapping = getEntityResultMapping();
+        var session = getSession();
+        try (var ps = session.createPreparedQuery(sql, parameterMapping, resultMapping)) {
+            var result = new ArrayList<ItemMaster>();
+            for (int id : ids) {
+                var param = TgParameterList.of(vId.bind(id), vDate.bind(date));
+                var r = executeAndGetList(ps, param);
+                result.addAll(r);
+            }
+            return result;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
