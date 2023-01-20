@@ -80,11 +80,7 @@ public abstract class BenchOnlineTask {
         String target = result ? "exists" : "nothing";
 
         logEnd("factory=%d, date=%s target=%s", factoryId, date, target);
-        try {
-            writer.flush();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e.getMessage(), e);
-        }
+        logFlush();
     }
 
     protected abstract boolean execute1();
@@ -117,11 +113,27 @@ public abstract class BenchOnlineTask {
     }
 
     protected void logTime(String sub, String message) {
+        if (this.writer == null) {
+            return;
+        }
+
         String start = startDateTime.toString();
         String now = (nowDateTime != null) ? nowDateTime.toString() : "                       ";
         String s = "thread" + threadId + " " + title + " " + sub + " " + start + "/" + now + " " + message + "\n";
         try {
             writer.write(s);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e.getMessage(), e);
+        }
+    }
+
+    private void logFlush() {
+        if (this.writer == null) {
+            return;
+        }
+
+        try {
+            writer.flush();
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
         }

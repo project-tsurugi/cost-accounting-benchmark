@@ -1,4 +1,4 @@
-package com.tsurugidb.benchmark.costaccounting.online;
+package com.tsurugidb.benchmark.costaccounting.online.random;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

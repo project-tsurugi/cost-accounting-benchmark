@@ -78,8 +78,25 @@ public class BenchConst {
         return getProperty("batch.execute.type");
     }
 
-    public static int batchDbManagerType() {
-        return getPropertyInt("batch.dbmanager.type", 1);
+    public enum DbManagerType {
+        JDBC, ICEAXE, TSUBAKURO
+    }
+
+    public static DbManagerType batchDbManagerType() {
+        return getDbManagerType("batch.dbmanager.type");
+    }
+
+    private static DbManagerType getDbManagerType(String key) {
+        String s = getProperty(key, null);
+        if (s != null) {
+            return DbManagerType.valueOf(s.toUpperCase());
+        }
+        switch (dbmsType()) {
+        case TSURUGI:
+            return DbManagerType.ICEAXE;
+        default:
+            return DbManagerType.JDBC;
+        }
     }
 
     public static int batchParallelism() {
@@ -98,7 +115,7 @@ public class BenchConst {
     }
 
     private static IsolationLevel getIsolationLevel(String key) {
-        String s = getProperty(key, false);
+        String s = getProperty(key, null);
         if (s == null) {
             return IsolationLevel.READ_COMMITTED;
         }
@@ -181,8 +198,8 @@ public class BenchConst {
         return Paths.get(s);
     }
 
-    public static int onlineDbManagerType() {
-        return getPropertyInt("online.dbmanager.type", 1);
+    public static DbManagerType onlineDbManagerType() {
+        return getDbManagerType("online.dbmanager.type");
     }
 
     public static boolean onlineDbManagerMultiSession() {
@@ -201,21 +218,42 @@ public class BenchConst {
         return s;
     }
 
+    /** スレッド毎にランダムにタスクを実行する */
+    public static final String ONLINE_RANDOM = "random";
+    /** スレッド毎にタスクを固定し、一定時間内の実行回数を指定する */
+    public static final String ONLINE_SCHEDULE = "schedule";
+
+    public static String onlineType() {
+        return getProperty("online.type", ONLINE_RANDOM);
+    }
+
     public static int onlineThreadSize() {
-        return getPropertyInt("online.thread.size");
+        return getPropertyInt("online.random.thread.size");
     }
 
     public static int onlineTaskRatio(String taskName) {
-        return getPropertyInt("online.task.ratio." + taskName, 0);
+        return getPropertyInt("online.random.task.ratio." + taskName, 0);
     }
 
     public static int onlineTaskSleepTime(String taskName) {
-        return getPropertyInt("online.task.sleep." + taskName, 0);
+        return getPropertyInt("online.random.task.sleep." + taskName, 0);
+    }
+
+    public static int onlineThreadSize(String taskName) {
+        return getPropertyInt("online.schedule.thread.size." + taskName, 0);
+    }
+
+    public static int onlineExecutePerMinute(String taskName) {
+        // 負数: waitせずに連続してタスクを実行する
+        // 0: タスクを実行しない
+        // 正数: 1分間に実行するタスクの個数
+        return getPropertyInt("online.schedule.execute.per.minute." + taskName, -1);
     }
 
     // initial data
-    public static int initDbManagerType() {
-        return getPropertyInt("init.dbmanager.type", 1);
+
+    public static DbManagerType initDbManagerType() {
+        return getDbManagerType("init.dbmanager.type");
     }
 
     public static boolean initDbManagerMultiSession() {
@@ -261,8 +299,8 @@ public class BenchConst {
 
     // time
 
-    public static int timeCommandDbManagerType() {
-        return getPropertyInt("time-command.dbmanager.type");
+    public static DbManagerType timeCommandDbManagerType() {
+        return getDbManagerType("time-command.dbmanager.type");
     }
 
     public static List<IsolationLevel> timeCommandIsolationLevel() {

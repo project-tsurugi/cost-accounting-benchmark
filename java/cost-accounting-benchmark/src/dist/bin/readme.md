@@ -19,9 +19,9 @@
 実行時間計測用の値をプロパティーファイルで指定する。
 
 - time-command.dbmanager.type
-  - 1: JDBC
-  - 2: Tsurugi（Iceaxe）
-  - 3: Tsurugi（Tsubakuro）
+  - `JDBC`
+  - `iceaxe`
+  - `tsubakuro`
 - time-command.isolation.level
   - トランザクション分離レベル（カンマ区切りで複数指定）
     - `READ_COMMITTED`
@@ -92,7 +92,7 @@ ICEAXE,LTX,item_master,10000[-1:1],deleteAll,333,0,265,68,1
 - tryCount
   - 試行回数（リトライした場合は2以上になる）
 
-## 
+
 
 ## 初期データ作成処理
 
@@ -247,9 +247,10 @@ batch-command.result.file=/tmp/cost-accounting-benchmark.batch.tsurugi.csv
 - tsurugi.user, tsurugi.password
   - Tsurugiに接続する場合のユーザー・パスワード
 - *.dbmanager.type
-  - JDBC実行に使用するライブラリー
-    - 1: JDBC
-    - 2: Tsurugi（Iceaxe）
+  - SQL実行に使用するライブラリー
+    - `JDBC`
+    - `iceaxe`
+    - `tsubakuro`
 - decimal.scale
   - BigDecimalの除算時の小数点以下の桁数
 
@@ -296,7 +297,12 @@ batch-command.result.file=/tmp/cost-accounting-benchmark.batch.tsurugi.csv
     - sequential-single-tx: 全工場を直列に実行する（全工場を1トランザクションで処理）
     - sequential-factory-tx: 全工場を直列に実行する（工場毎にコミット）
     - parallel-single-tx: 工場毎に並列で実行する（全工場を1トランザクションで処理）
-    - parallel-factory-tx: 工場毎に並列で実行する（工場毎にコミット）
+    - parallel-factory-tx: 工場毎に並列で実行する（工場毎にコミット）（工場全体で1セッション）
+    - parallel-factory-session: 工場毎に並列で実行する（工場毎にコミット）（工場毎にセッション）
+- batch.jdbc.isolation.level
+  - JDBCのトランザクション分離レベル
+    - `READ_COMMITTED`
+    - `SERIALIZABLE`
 - batch.tsurugi.tx.option
   - Tsurugiのトランザクションオプション
     - OCC
@@ -313,10 +319,33 @@ batch-command.result.file=/tmp/cost-accounting-benchmark.batch.tsurugi.csv
   - オンライン処理が出力するログファイルのパス
     - オンライン処理では、処理したトランザクション数をカウントするのに使う目的で、ログファイルを出力する。
     - オンライン処理はマルチスレッドで処理するので、ログファイルは各スレッドが出力する。このため、ファイル名には `%d` を含める必要がある。（`%d` の部分がスレッド番号に置換される）
-- online.task.ratio.タスク名
-  - タスク（業務）を実行する割合
+- online.jdbc.isolation.level
+  - JDBCのトランザクション分離レベル
+    - `READ_COMMITTED`
+    - `SERIALIZABLE`
+- online.tsugugi.tx.option
+  - Tsurugiのトランザクションオプション
+    - `OCC`
+    - `LTX`
+      - 照会タスクの場合はRTXとして扱う
+    - `MIX`
+      - OCCで開始し、リトライ時はLTX
+- online.type
+  - オンライン処理の実行形式
+    - `random`
+      - スレッド毎にランダムにタスクを実行する
+    - `schedule`
+      - スレッド毎にタスクを固定する（一定時間内の実行回数を指定する）
+- online.random.thread.size
+  - random時のスレッド数
+- online.random.task.ratio.タスク名
+  - random時のタスク（業務）を実行する割合
     - 百分率ではなく、online.task.ratio.*の全合計に対する値（比率）を指定する。
     - 0にすると、そのタスクは実行されない。
-- online.task.sleep.タスク名
-  - タスク実行後に一時停止（スリープ）する時間[秒]
+- online.random.task.sleep.タスク名
+  - random時のタスク実行後に一時停止（スリープ）する時間[秒]
+- online.schedule.thread.size.タスク名
+  - schedule時のタスクのスレッド数
+- online.schedule.execute.per.minute.タスク名
+  - schedule時の一定時間内の実行回数[タスク数/分]
 

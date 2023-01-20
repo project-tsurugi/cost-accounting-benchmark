@@ -23,6 +23,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.CostBenchDbManagerJdbc;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.CostBenchDbManagerTsubakuro;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst.DbManagerType;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
@@ -44,19 +45,21 @@ public abstract class CostBenchDbManager implements Closeable {
 
     private boolean isSingleTransaction = false;
 
-    public static CostBenchDbManager createInstance(int type, IsolationLevel isolationLevel, boolean isMultiSession) {
+    public static CostBenchDbManager createInstance(DbManagerType type, IsolationLevel isolationLevel, boolean isMultiSession) {
         CostBenchDbManager manager;
         {
             switch (type) {
-            default:
+            case JDBC:
                 manager = new CostBenchDbManagerJdbc(isolationLevel);
                 break;
-            case 2:
+            case ICEAXE:
                 manager = new CostBenchDbManagerIceaxe(isMultiSession);
                 break;
-            case 3:
+            case TSUBAKURO:
                 manager = new CostBenchDbManagerTsubakuro();
                 break;
+            default:
+                throw new AssertionError(type);
             }
         }
         LOG.info("using {}", manager.getClass().getSimpleName());
@@ -177,7 +180,7 @@ public abstract class CostBenchDbManager implements Closeable {
     @Override
     public abstract void close();
 
-    public static void resetCounter() {
+    public static void initCounter() {
         counter.reset();
     }
 

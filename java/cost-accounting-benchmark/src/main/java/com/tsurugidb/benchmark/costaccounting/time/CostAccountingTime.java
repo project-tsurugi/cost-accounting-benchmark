@@ -37,7 +37,7 @@ public class CostAccountingTime {
     }
 
     private CostBenchDbManager createDbManager() {
-        int type = BenchConst.timeCommandDbManagerType();
+        var type = BenchConst.timeCommandDbManagerType();
         return CostBenchDbManager.createInstance(type, isolation, false);
     }
 }

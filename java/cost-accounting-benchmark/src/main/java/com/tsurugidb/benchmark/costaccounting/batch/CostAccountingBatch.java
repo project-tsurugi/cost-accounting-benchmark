@@ -135,7 +135,7 @@ public class CostAccountingBatch {
     }
 
     private CostBenchDbManager createDbManager(BatchConfig config) {
-        int type = BenchConst.batchDbManagerType();
+        var type = BenchConst.batchDbManagerType();
         boolean isMultiSession = config.getExecuteType().equals(BenchConst.PARALLEL_FACTORY_SESSION);
         return CostBenchDbManager.createInstance(type, config.getIsolationLevel(), isMultiSession);
     }
@@ -160,7 +160,7 @@ public class CostAccountingBatch {
         try {
             return dbManager.execute(setting, dao::selectAllId);
         } finally {
-            CostBenchDbManager.resetCounter();
+            CostBenchDbManager.initCounter();
         }
     }
 

@@ -258,7 +258,7 @@ public class DebugCommand implements ExecutableCommand {
     }
 
     private CostBenchDbManager createDbManager() {
-        int type = BenchConst.batchDbManagerType();
+        var type = BenchConst.batchDbManagerType();
         var isolationLevel = BenchConst.batchJdbcIsolationLevel();
         boolean isMultiSession = BenchConst.batchExecuteType().equals(BenchConst.PARALLEL_FACTORY_SESSION);
         LOG.info("isMultiSession={}", isMultiSession);
