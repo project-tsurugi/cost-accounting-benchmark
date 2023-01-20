@@ -6,11 +6,11 @@ import org.slf4j.LoggerFactory;
 import com.tsurugidb.benchmark.costaccounting.batch.BatchConfig;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
-import com.tsurugidb.iceaxe.transaction.manager.option.TgTxOptionAlways;
+import com.tsurugidb.iceaxe.transaction.manager.option.TgTmTxOptionAlways;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
-public class BenchBatchTxOption extends TgTxOptionAlways {
+public class BenchBatchTxOption extends TgTmTxOptionAlways {
     private static final Logger LOG = LoggerFactory.getLogger(BenchBatchTxOption.class);
 
     public static final String LABEL_PREFIX = "batch";
@@ -31,9 +31,9 @@ public class BenchBatchTxOption extends TgTxOptionAlways {
 
     public BenchBatchTxOption(TgTxOption option) {
         super(option, 100);
-        setStateListener((attempt, e, state) -> {
+        setTmOptionListener((attempt, e, tmOption) -> {
             if (attempt > 0) {
-                if (state.isExecute()) {
+                if (tmOption.isExecute()) {
                     LOG.info("transaction retry. attempt={} {}", attempt, e.getMessage());
                 } else {
                     LOG.info("transaction error. attempt={} {}", attempt, e.getMessage());

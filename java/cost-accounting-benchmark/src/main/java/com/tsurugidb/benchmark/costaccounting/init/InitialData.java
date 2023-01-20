@@ -94,8 +94,8 @@ public class InitialData {
         switch (txText.toUpperCase()) {
         case "OCC":
             var setting = TgTmSetting.ofAlways(TgTxOption.ofOCC());
-            setting.getTransactionOptionSupplier().setStateListener((attempt, e, state) -> {
-                if (attempt > 0 && state.isExecute()) {
+            setting.getTransactionOptionSupplier().setTmOptionListener((attempt, e, tmOption) -> {
+                if (attempt > 0 && tmOption.isExecute()) {
                     LOG.info("OCC retry {} (exception={})", attempt, e.getMessage());
                 }
             });
