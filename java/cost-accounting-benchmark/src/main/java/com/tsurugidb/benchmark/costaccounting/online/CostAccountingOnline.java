@@ -243,11 +243,11 @@ public class CostAccountingOnline {
         }
     }
 
-    public void terminateOnlineApp() {
+    private void terminateOnlineApp() {
         terminationRequested.set(true);
     }
 
-    public void terminateService() {
+    private void terminateService() {
         if (service != null) {
             try {
                 service.shutdown();
@@ -260,6 +260,22 @@ public class CostAccountingOnline {
                 // 例外出力
                 service.printException();
             }
+        }
+    }
+
+    public void start() throws Exception {
+        this.dbManager = createDbManager();
+
+        var appList = createOnlineApp();
+        this.service = newExecutorService(appList.size());
+        // オンラインアプリを実行する
+        appList.parallelStream().forEach(app -> service.submit(app));
+    }
+
+    public void terminate() {
+        try (var c = dbManager) {
+            terminateOnlineApp();
+            terminateService();
         }
     }
 }

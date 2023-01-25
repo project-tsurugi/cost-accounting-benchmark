@@ -19,9 +19,11 @@ import com.tsurugidb.benchmark.costaccounting.ExecutableCommand;
 import com.tsurugidb.benchmark.costaccounting.batch.BatchConfig;
 import com.tsurugidb.benchmark.costaccounting.batch.CostAccountingBatch;
 import com.tsurugidb.benchmark.costaccounting.batch.StringUtil;
+import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.init.DumpCsv;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
+import com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -63,23 +65,53 @@ public class BatchCommand implements ExecutableCommand {
                         config.setIsolationLevel(isolationLevel);
                         config.setDefaultTxOption(getOption(txOption));
 
-                        var record = new BatchRecord(config, i);
-                        records.add(record);
-                        LOG.info("Executing with {}.", record.getParamString());
+                        exitCode |= execute1(config, i, records);
 
-                        var batch = new CostAccountingBatch();
-                        record.start();
-                        exitCode |= batch.main(config);
-                        record.finish(batch.getItemCount(), batch.getTryCount(), batch.getAbortCount());
-
-                        LOG.info("Finished. elapsed secs = {}.", record.elapsedMillis() / 1000.0);
-                        diff(record);
                         writeResult(outputPath, records);
                     }
                 }
             }
         }
         return exitCode;
+    }
+
+    private int execute1(BatchConfig config, int attempt, List<BatchRecord> records) throws Exception {
+        if (BenchConst.batchCommandInitData()) {
+            InitialData.main();
+        }
+        CostBenchDbManager.initCounter();
+
+        CostAccountingOnline online = null;
+        if (BenchConst.batchCommandOnline()) {
+            online = new CostAccountingOnline(config.getBatchDate());
+        }
+        try {
+            var record = new BatchRecord(config, attempt);
+            records.add(record);
+            LOG.info("Executing with {}.", record.getParamString());
+
+            var batch = new CostAccountingBatch();
+            if (online != null) {
+                online.start();
+            }
+            record.start();
+            int exitCode = batch.main(config);
+            if (online != null) {
+                online.terminate();
+                online = null;
+            }
+            record.finish(batch.getItemCount(), batch.getTryCount(), batch.getAbortCount());
+
+            LOG.info("Finished. elapsed secs = {}.", record.elapsedMillis() / 1000.0);
+            LOG.info("Counter infos: \n---\n{}---", CostBenchDbManager.createCounterReport());
+            diff(record);
+
+            return exitCode;
+        } finally {
+            if (online != null) {
+                online.terminate();
+            }
+        }
     }
 
     private TgTxOption getOption(String s) {

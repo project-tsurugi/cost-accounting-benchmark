@@ -136,7 +136,7 @@ public class DumpCsv {
     }
 
     private <E> void dump(BufferedWriter writer, Consumer<Consumer<E>> forEach, Function<E, String> converter) {
-        var setting = TgTmSetting.of(TgTxOption.ofRTX());
+        var setting = TgTmSetting.of(TgTxOption.ofRTX().label("table dump"));
         dbManager.execute(setting, () -> {
             forEach.accept(entity -> {
                 String line = converter.apply(entity);

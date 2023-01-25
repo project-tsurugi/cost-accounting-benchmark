@@ -186,18 +186,27 @@ ICEAXE,LTX,item_master,10000[-1:1],deleteAll,333,0,265,68,1
   - このプロパティーを指定しない場合、ダンプファイルを出力せず、比較も行わない
 - batch-command.result.file
   - 実行結果（処理時間やリトライ回数等）を出力するファイルのパス
+- batch-command.with.initdata
+  - バッチ処理の実行前に初期データ作成処理（データの初期化・再作成）を行うかどうか
+  - デフォルトはfalse（初期化しない）
+- batch-command.with.online
+  - バッチ処理の実行と同時にオンライン処理を実行するかどうか
+  - デフォルトはfalse（オンライン処理を実行しない）
+  - 同時に実行するオンライン処理のパラメーターは、通常のオンライン処理のものと同じ
 
 #### 一括実行用プロパティーの例
 
 ```properties
 ## batch-command
-batch-command.execute.type=parallel-single-tx, parallel-factory-tx
+batch-command.execute.type=parallel-factory-tx, parallel-factory-session
 batch-command.factory.list=all
 batch-command.isolation.level=SERIALIZABLE
 batch-command.tx.option=OCC, LTX
 batch-command.execute.times=1
 batch-command.diff.dir=/tmp/cost-accounting-benchmark/diff
 batch-command.result.file=/tmp/cost-accounting-benchmark.batch.tsurugi.csv
+batch-command.with.initdata=false
+batch-command.with.online=false
 ```
 
 
@@ -216,10 +225,8 @@ batch-command.result.file=/tmp/cost-accounting-benchmark.batch.tsurugi.csv
 
 このシェルは以下のプログラムを実行する。
 
-- BenchOnline
+- CostAccountingOnline
   - 第1引数は実行基準日（バッチの基準日と同じものを指定する）
-  - 第2引数はスレッド数。（概ね、工場数と同じ数を指定する想定だが、それ以上でも可）
-    - 各スレッドがランダムにタスク（業務）を選択して実行する。これを繰り返す。
 
 
 

@@ -25,7 +25,7 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 public class InitialData {
     private final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         InitialData00CreateTable.main(args);
         InitialData01MeasurementMaster.main(args);
         InitialData02FactoryMaster.main(args);

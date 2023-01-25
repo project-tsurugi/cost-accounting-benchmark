@@ -188,6 +188,14 @@ public class BenchConst {
         return getProperty("batch-command.result.file");
     }
 
+    public static boolean batchCommandInitData() {
+        return getPropertyBoolean("batch-command.with.initdata", false);
+    }
+
+    public static boolean batchCommandOnline() {
+        return getPropertyBoolean("batch-command.with.online", false);
+    }
+
     public static final int DECIMAL_SCALE = getPropertyInt("decimal.scale", 20);
 
     // online
