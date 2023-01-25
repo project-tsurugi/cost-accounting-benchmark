@@ -17,8 +17,8 @@ import org.slf4j.LoggerFactory;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineTask;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
-public class BenchOnlineSchedule implements Runnable {
-    private static final Logger LOG = LoggerFactory.getLogger(BenchOnlineSchedule.class);
+public class CostAccountingOnlineAppSchedule implements Runnable {
+    private static final Logger LOG = LoggerFactory.getLogger(CostAccountingOnlineAppSchedule.class);
 
     /**
      * スケジュールを生成するインターバル(ミリ秒)
@@ -28,7 +28,7 @@ public class BenchOnlineSchedule implements Runnable {
     /**
      * 終了リクエストの有無を表すフラグ
      */
-    private final AtomicBoolean terminationRequested = new AtomicBoolean(false);
+    private final AtomicBoolean terminationRequested;
 
     /**
      * 1分間に実行する回数。負数の場合は連続で実行する
@@ -59,15 +59,16 @@ public class BenchOnlineSchedule implements Runnable {
     private final List<Integer> factoryList;
     private final LocalDate date;
 
-    public BenchOnlineSchedule(BenchOnlineTask task, int threadId, List<Integer> factoryList, LocalDate date) {
+    public CostAccountingOnlineAppSchedule(BenchOnlineTask task, int threadId, List<Integer> factoryList, LocalDate date, AtomicBoolean terminationRequested) {
         this.onlineTask = task;
         this.factoryList = factoryList;
         this.date = date;
+        this.terminationRequested = terminationRequested;
 
         this.name = "online." + task.getTitle() + "." + threadId;
         this.execPerMin = BenchConst.onlineExecutePerMinute(task.getTitle());
 
-        onlineTask.initialize(0, null, new AtomicBoolean(false));
+        onlineTask.initialize(0, null, terminationRequested);
     }
 
     @Override

@@ -24,7 +24,7 @@ public abstract class BenchOnlineTask {
 
     private int threadId;
     private BufferedWriter writer;
-    private AtomicBoolean stopRequest;
+    private AtomicBoolean terminationRequested;
 
     protected int factoryId;
     protected LocalDate date;
@@ -62,10 +62,10 @@ public abstract class BenchOnlineTask {
         this.dbManager = dbManager;
     }
 
-    public void initialize(int threadId, BufferedWriter writer, AtomicBoolean stopRequest) {
+    public void initialize(int threadId, BufferedWriter writer, AtomicBoolean terminationRequested) {
         this.threadId = threadId;
         this.writer = writer;
-        this.stopRequest = stopRequest;
+        this.terminationRequested = terminationRequested;
     }
 
     public void initialize(int factoryId, LocalDate date) {
@@ -86,7 +86,7 @@ public abstract class BenchOnlineTask {
     protected abstract boolean execute1();
 
     protected final void checkStop() {
-        if (stopRequest.get()) {
+        if (terminationRequested.get()) {
             throw new RuntimeException("stop by request. task=" + title);
         }
     }
@@ -154,6 +154,6 @@ public abstract class BenchOnlineTask {
     }
 
     protected static final CostBenchDbManager createCostBenchDbManagerForTest() {
-        return CostAccountingOnline.createCostBenchDbManager();
+        return CostAccountingOnline.createDbManager();
     }
 }

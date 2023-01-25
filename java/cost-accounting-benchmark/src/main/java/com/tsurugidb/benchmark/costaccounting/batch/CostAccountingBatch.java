@@ -156,12 +156,8 @@ public class CostAccountingBatch {
     private List<Integer> getAllFactory() {
         FactoryMasterDao dao = dbManager.getFactoryMasterDao();
 
-        var setting = TgTmSetting.ofAlways(TgTxOption.ofOCC().label("select factory"));
-        try {
-            return dbManager.execute(setting, dao::selectAllId);
-        } finally {
-            CostBenchDbManager.initCounter();
-        }
+        var setting = TgTmSetting.ofAlways(TgTxOption.ofOCC().label("select all factory"));
+        return dbManager.execute(setting, dao::selectAllId);
     }
 
     private int executeSequentialSingleTx() {

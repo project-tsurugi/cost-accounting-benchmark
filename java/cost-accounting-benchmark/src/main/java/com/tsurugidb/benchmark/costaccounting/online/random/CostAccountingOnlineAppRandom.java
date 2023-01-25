@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
@@ -29,14 +28,14 @@ import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateMater
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 
-public class CostAccountingOnlineThread implements Runnable, Callable<Void> {
-    private static final Logger LOG = LoggerFactory.getLogger(CostAccountingOnlineThread.class);
+public class CostAccountingOnlineAppRandom implements Runnable {
+    private static final Logger LOG = LoggerFactory.getLogger(CostAccountingOnlineAppRandom.class);
 
     private final int threadId;
     private final CostBenchDbManager dbManager;
     private final List<Integer> factoryList;
     private final LocalDate date;
-    private final AtomicBoolean stopRequest;
+    private final AtomicBoolean terminationRequested;
 
     private final List<BenchOnlineTask> taskList = new ArrayList<>();
     private final NavigableMap<Integer, BenchOnlineTask> taskRatioMap = new TreeMap<>();
@@ -44,12 +43,12 @@ public class CostAccountingOnlineThread implements Runnable, Callable<Void> {
 
     private final BenchRandom random = new BenchRandom();
 
-    public CostAccountingOnlineThread(int id, CostBenchDbManager dbManager, List<Integer> factoryList, LocalDate date, AtomicBoolean stopRequest) {
+    public CostAccountingOnlineAppRandom(int id, CostBenchDbManager dbManager, List<Integer> factoryList, LocalDate date, AtomicBoolean terminationRequested) {
         this.threadId = id;
         this.dbManager = dbManager;
         this.factoryList = factoryList;
         this.date = date;
-        this.stopRequest = stopRequest;
+        this.terminationRequested = terminationRequested;
 
         taskList.add(new BenchOnlineNewItemTask());
         taskList.add(new BenchOnlineUpdateManufacturingTask());
@@ -85,7 +84,7 @@ public class CostAccountingOnlineThread implements Runnable, Callable<Void> {
         Path path = BenchConst.onlineLogFilePath(threadId);
         try (BufferedWriter writer = Files.newBufferedWriter(path)) {
             for (;;) {
-                if (stopRequest.get()) {
+                if (terminationRequested.get()) {
                     break;
                 }
                 try {
@@ -93,7 +92,7 @@ public class CostAccountingOnlineThread implements Runnable, Callable<Void> {
                         break;
                     }
                 } catch (Throwable t) {
-                    stopRequest.set(true);
+                    terminationRequested.set(true);
                     try {
                         PrintWriter pw = new PrintWriter(writer);
                         t.printStackTrace(pw);
@@ -120,12 +119,12 @@ public class CostAccountingOnlineThread implements Runnable, Callable<Void> {
         int factoryId = factoryList.get(random.nextInt(factoryList.size()));
 
         BenchOnlineTask task = getTaskRandom();
-        task.initialize(threadId, writer, stopRequest);
+        task.initialize(threadId, writer, terminationRequested);
         task.initialize(factoryId, date);
 
         task.execute();
 
-        if (Thread.interrupted() || stopRequest.get()) {
+        if (Thread.interrupted() || terminationRequested.get()) {
             return false;
         }
 
@@ -145,11 +144,5 @@ public class CostAccountingOnlineThread implements Runnable, Callable<Void> {
         int i = random.nextInt(taskRatioMax);
         BenchOnlineTask task = taskRatioMap.higherEntry(i).getValue();
         return task;
-    }
-
-    @Override
-    public Void call() throws Exception {
-        run();
-        return null;
     }
 }
