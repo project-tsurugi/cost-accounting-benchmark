@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -79,6 +81,7 @@ public class ItemMasterDaoTsubakuro extends TsubakuroDao<ItemMaster> implements 
                 explain(sql, ps, parameters);
                 list.addAll(executeAndGetList(ps, parameters, converter));
             }
+            Collections.sort(list, Comparator.comparing(ItemMaster::getIId));
             return list;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -98,6 +101,7 @@ public class ItemMasterDaoTsubakuro extends TsubakuroDao<ItemMaster> implements 
             explain(selectByIdsSplitSql, ps, parameters);
             list.addAll(executeAndGetList(ps, parameters, converter));
         }
+        Collections.sort(list, Comparator.comparing(ItemMaster::getIId));
         return list;
     }
 
@@ -128,7 +132,7 @@ public class ItemMasterDaoTsubakuro extends TsubakuroDao<ItemMaster> implements 
         placeholders.add(Placeholders.of(vDate.name(), AtomType.DATE));
         parameters.add(Parameters.of(vDate.name(), date));
 
-        var sql = getSelectEntitySql() + " where " + inSql + " and " + TG_COND_DATE;
+        var sql = getSelectEntitySql() + " where " + inSql + " and " + TG_COND_DATE + " order by i_id";
         try (var ps = createPreparedStatement(sql, placeholders)) {
             explain(sql, ps, parameters);
             var converter = getSelectEntityConverter();

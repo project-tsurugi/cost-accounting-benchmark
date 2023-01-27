@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -78,7 +80,7 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
         vlist.add(vDate);
         param.add(vDate.bind(date));
 
-        var sql = getSelectEntitySql() + " where " + inSql + " and " + TG_COND_DATE;
+        var sql = getSelectEntitySql() + " where " + inSql + " and " + TG_COND_DATE + " order by i_id";
         var parameterMapping = TgParameterMapping.of(vlist);
         var resultMapping = getEntityResultMapping();
         var session = getSession();
@@ -103,6 +105,7 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
                 var r = executeAndGetList(ps, param);
                 result.addAll(r);
             }
+            Collections.sort(result, Comparator.comparing(ItemMaster::getIId));
             return result;
         } catch (IOException e) {
             throw new UncheckedIOException(e);

@@ -64,7 +64,7 @@ public class ItemMasterDaoJdbc extends JdbcDao<ItemMaster> implements ItemMaster
             }
             sb.append('?');
         }
-        String sql = "select * from " + TABLE_NAME + " where i_id in (" + sb + ") and " + PS_COND_DATE;
+        String sql = "select * from " + TABLE_NAME + " where i_id in (" + sb + ") and " + PS_COND_DATE + " order by i_id";
         return executeQueryList(sql, ps -> {
             int i = 1;
             for (int id : ids) {

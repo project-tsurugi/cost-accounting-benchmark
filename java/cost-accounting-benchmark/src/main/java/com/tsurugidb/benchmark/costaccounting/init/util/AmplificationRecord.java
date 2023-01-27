@@ -5,15 +5,15 @@ import java.util.Collection;
 import java.util.TreeMap;
 
 import com.tsurugidb.benchmark.costaccounting.db.entity.HasDateRange;
-import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
+import com.tsurugidb.benchmark.costaccounting.util.BenchReproducibleRandom;
 
 // thread safe
 public abstract class AmplificationRecord<T extends HasDateRange> {
 
     private final AmplificationSize amplificationSize;
-    protected final BenchRandom random;
+    protected final BenchReproducibleRandom random;
 
-    public AmplificationRecord(double magnification, BenchRandom random) {
+    public AmplificationRecord(double magnification, BenchReproducibleRandom random) {
         this.amplificationSize = new AmplificationSize(magnification);
         this.random = random;
     }

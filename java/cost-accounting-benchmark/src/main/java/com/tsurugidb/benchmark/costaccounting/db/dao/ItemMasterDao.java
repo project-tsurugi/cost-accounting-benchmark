@@ -46,6 +46,7 @@ public interface ItemMasterDao {
      * select * from item_master
      * where i_id in (:ids)
      *   and :date between i_effective_date and i_expired_date
+     * order by i_id
      * </pre>
      */
     List<ItemMaster> selectByIds(Iterable<Integer> ids, LocalDate date);

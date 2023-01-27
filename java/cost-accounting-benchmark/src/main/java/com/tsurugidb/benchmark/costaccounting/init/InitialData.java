@@ -18,7 +18,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.HasDateRange;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.TsubakuroDao;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
-import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
+import com.tsurugidb.benchmark.costaccounting.util.BenchReproducibleRandom;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -43,7 +43,7 @@ public class InitialData {
 
     private LocalDateTime startTime;
 
-    protected final BenchRandom random = new BenchRandom();
+    protected final BenchReproducibleRandom random = new BenchReproducibleRandom();
 
     protected InitialData(LocalDate batchDate) {
         this.batchDate = batchDate;

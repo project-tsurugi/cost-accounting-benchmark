@@ -5,7 +5,6 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -22,7 +21,7 @@ import com.tsurugidb.benchmark.costaccounting.init.util.AmplificationRecord;
 import com.tsurugidb.benchmark.costaccounting.init.util.DaoListTask;
 import com.tsurugidb.benchmark.costaccounting.init.util.DaoSplitTask;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
-import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
+import com.tsurugidb.benchmark.costaccounting.util.BenchReproducibleRandom;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
 
 @SuppressWarnings("serial")
@@ -507,9 +506,9 @@ public class InitialData03ItemMaster extends InitialData {
             final int workEnd = getWorkEndId() - 1;
 
             int seed = iId;
-            int s = random(seed, 1, PRODUCT_TREE_SIZE);
-            Set<Integer> set = new HashSet<>(s);
-            while (set.size() < s) {
+            int size = random(seed, 1, PRODUCT_TREE_SIZE);
+            Set<Integer> set = new TreeSet<>();
+            while (set.size() < size) {
                 set.add(random(++seed, workStart, workEnd));
             }
 
@@ -565,11 +564,10 @@ public class InitialData03ItemMaster extends InitialData {
 
     // 1.25倍に増幅する
     private final AmplificationRecord<ItemConstructionMaster> AMPLIFICATION_ITEM_CONSTRUCTION = new AmplificationRecord<ItemConstructionMaster>(1.25, random) {
-        private final AtomicInteger amplificationId = new AtomicInteger(1);
 
         @Override
         protected int getAmplificationId(ItemConstructionMaster entity) {
-            return amplificationId.getAndIncrement();
+            return entity.getIcParentIId() + entity.getIcIId();
         }
 
         @Override
@@ -595,7 +593,7 @@ public class InitialData03ItemMaster extends InitialData {
         });
     }
 
-    public static void initializeItemConstructionMasterRandom(BenchRandom random, ItemConstructionMaster entity) {
+    public static void initializeItemConstructionMasterRandom(BenchReproducibleRandom random, ItemConstructionMaster entity) {
         int seed = entity.getIcIId();
         entity.setIcLossRatio(random.random0(seed, LOSS_END));
     }

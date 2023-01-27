@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
@@ -21,7 +20,7 @@ import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.init.util.AmplificationRecord;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
-import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
+import com.tsurugidb.benchmark.costaccounting.util.BenchReproducibleRandom;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 public class InitialData04ItemManufacturingMaster extends InitialData {
@@ -183,11 +182,10 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 
     // 1.6倍に増幅する
     private final AmplificationRecord<ItemManufacturingMaster> AMPLIFICATION_ITEM_MANUFACTURING = new AmplificationRecord<ItemManufacturingMaster>(1.6, random) {
-        private final AtomicInteger amplificationId = new AtomicInteger(1);
 
         @Override
         protected int getAmplificationId(ItemManufacturingMaster entity) {
-            return amplificationId.getAndIncrement();
+            return entity.getImFId() + entity.getImIId();
         }
 
         @Override
@@ -213,7 +211,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
         });
     }
 
-    public static void initializeItemManufacturingMasterRandom(BenchRandom random, ItemManufacturingMaster entity) {
+    public static void initializeItemManufacturingMasterRandom(BenchReproducibleRandom random, ItemManufacturingMaster entity) {
         int seed = entity.getImFId() + entity.getImIId();
         int quantity = random.prandom(seed, 1, 500) * 100;
         entity.setImManufacturingQuantity(BigInteger.valueOf(quantity));
