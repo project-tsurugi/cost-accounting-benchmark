@@ -23,7 +23,7 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 public class InitialData {
-    private final Logger LOG = LoggerFactory.getLogger(getClass());
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     public static void main(String... args) throws Exception {
         InitialData00CreateTable.main(args);

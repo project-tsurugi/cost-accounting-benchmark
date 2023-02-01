@@ -284,9 +284,12 @@ batch-command.with.online=false
   - 品目マスターの「原料」の数（item_masterに生成するraw_materialのレコード数）
 - init.item.manufacturing.size
   - 製造品目数（item_manufacturing_masterに生成するレコード数）
+- init.dbmanager.multi.session
+  - スレッド毎にTsurugiのセッションを作るかどうか。デフォルトはtrue（セッションを作る）
 - init.parallelism
   - 初期データ生成処理の並列実行数（最大スレッド数）
     - 省略時はCPU数
+    - Tsurugiが対象で、init.dbmanager.multi.sessionがtrueの場合、DBサーバーのセッション数の上限を超えない値にする必要がある。
 
 
 

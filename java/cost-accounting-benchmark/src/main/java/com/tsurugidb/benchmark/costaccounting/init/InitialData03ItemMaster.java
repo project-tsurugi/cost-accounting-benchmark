@@ -111,6 +111,7 @@ public class InitialData03ItemMaster extends InitialData {
         executeTask(new ItemMasterProductTask(getProductStartId(), getProductEndId()));
         executeTask(new ItemMasterMaterialTask(getMaterialStartId(), getMaterialEndId()));
         joinAllTask();
+        LOG.info("ItemMasterProductTask/ItemMasterMaterialTask end");
         forkItemMasterWorkInProcess(getWorkStartId(), getWorkEndId());
         executeTask(new ItemConstructionMasterProductTask(getProductStartId(), getProductEndId()));
         joinAllTask();
