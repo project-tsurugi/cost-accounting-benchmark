@@ -176,8 +176,8 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                         }
                     }
 
-                    try (var ps = session.createPreparedStatement(sql)) {
-                        ps.executeAndGetCount(tm, setting);
+                    try {
+                        tm.executeDdl(setting, sql);
                     } catch (IOException e) {
                         LOG.info("ddl={}", sql.trim());
                         if (sql.equals(sqls[sqls.length - 1])) {

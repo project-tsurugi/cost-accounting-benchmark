@@ -88,7 +88,7 @@ public abstract class IceaxeDao<E> {
         var session = getSession();
         try (var ps = session.createPreparedStatement(sql)) {
             var transaction = getTransaction();
-            return ps.executeAndGetCount(transaction);
+            return transaction.executeAndGetCount(ps);
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
@@ -265,7 +265,7 @@ public abstract class IceaxeDao<E> {
         debugExplain(ps, () -> ps.explain(parameter));
         try {
             var transaction = getTransaction();
-            return ps.executeAndGetCount(transaction, parameter);
+            return transaction.executeAndGetCount(ps, parameter);
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
@@ -303,7 +303,7 @@ public abstract class IceaxeDao<E> {
 //        debugExplain(ps.getSql(), () -> ps.explain());
         try {
             var transaction = getTransaction();
-            return ps.executeAndGetList(transaction);
+            return transaction.executeAndGetList(ps);
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
@@ -333,7 +333,7 @@ public abstract class IceaxeDao<E> {
 //        debugExplain(ps.getSql(), () -> ps.explain());
         try {
             var transaction = getTransaction();
-            return ps.executeAndFindRecord(transaction).orElse(null);
+            return transaction.executeAndFindRecord(ps).orElse(null);
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
@@ -346,7 +346,7 @@ public abstract class IceaxeDao<E> {
         debugExplain(ps, () -> ps.explain(parameter));
         try {
             var transaction = getTransaction();
-            return ps.executeAndFindRecord(transaction, parameter).orElse(null);
+            return transaction.executeAndFindRecord(ps, parameter).orElse(null);
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
@@ -359,7 +359,7 @@ public abstract class IceaxeDao<E> {
         debugExplain(ps, () -> ps.explain(parameter));
         try {
             var transaction = getTransaction();
-            return ps.executeAndGetList(transaction, parameter);
+            return transaction.executeAndGetList(ps, parameter);
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
