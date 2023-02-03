@@ -61,6 +61,8 @@ public class DebugCommand implements ExecutableCommand {
         case "manager2":
             debugManager2();
             break;
+        case "session":
+            sessionLimit();
         default:
             throw new UnsupportedOperationException("unsupported operation. type=" + type);
         }
@@ -255,6 +257,28 @@ public class DebugCommand implements ExecutableCommand {
             dao.insert(entity);
         }
         LOG.info("factory{} end", factoryId);
+    }
+
+    private void sessionLimit() throws IOException {
+        var endpoint = BenchConst.tsurugiEndpoint();
+        LOG.info("endpoint={}", endpoint);
+        var connector = TsurugiConnector.createConnector(endpoint);
+
+        var sessionList = new ArrayList<TsurugiSession>();
+        try {
+            for (int i = 1;; i++) {
+                LOG.info("create session {}", i);
+                var info = TgSessionInfo.of();
+                var session = connector.createSession(info);
+                sessionList.add(session);
+
+                session.getLowSqlClient();
+            }
+        } finally {
+            for (var session : sessionList) {
+                session.close();
+            }
+        }
     }
 
     private CostBenchDbManager createDbManager() {
