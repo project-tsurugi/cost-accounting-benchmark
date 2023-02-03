@@ -42,7 +42,11 @@ public class BenchBatchFactoryTask implements Runnable, Callable<Void> {
         BenchBatchItemTask itemTask = new BenchBatchItemTask(dbManager, batchDate);
 
         var option = BenchBatchTxOption.of(config, factoryId);
-        LOG.info("tx={}", option);
+        if (dbManager.isTsurugi()) {
+            LOG.info("tx={}", option);
+        } else {
+            LOG.info("isolationLevel={}", config.getIsolationLevel());
+        }
         TgTmSetting setting = TgTmSetting.of(option);
 
         dbManager.execute(setting, () -> {
