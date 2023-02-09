@@ -31,7 +31,9 @@ import com.tsurugidb.iceaxe.TsurugiConnector;
 import com.tsurugidb.iceaxe.exception.TsurugiDiagnosticCodeProvider;
 import com.tsurugidb.iceaxe.session.TgSessionInfo;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
+import com.tsurugidb.iceaxe.transaction.TgCommitType;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
+import com.tsurugidb.iceaxe.transaction.event.TsurugiTransactionEventListener;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionIOException;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionRuntimeException;
@@ -282,7 +284,14 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     public void commit(Runnable listener) {
         if (listener != null) {
             var transaction = getCurrentTransaction();
-            transaction.addCommitListener(tx -> listener.run());
+            transaction.addEventListener(new TsurugiTransactionEventListener() {
+                @Override
+                public void commitEnd(TsurugiTransaction transaction, TgCommitType commitType, Throwable occurred) {
+                    if (occurred == null) {
+                        listener.run();
+                    }
+                }
+            });
         }
     }
 
@@ -290,7 +299,14 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     public void rollback(Runnable listener) {
         var transaction = getCurrentTransaction();
         if (listener != null) {
-            transaction.addRollbackListener(tx -> listener.run());
+            transaction.addEventListener(new TsurugiTransactionEventListener() {
+                @Override
+                public void rollbackEnd(TsurugiTransaction transaction, Throwable occurred) {
+                    if (occurred == null) {
+                        listener.run();
+                    }
+                }
+            });
         }
         try {
             transaction.rollback();
