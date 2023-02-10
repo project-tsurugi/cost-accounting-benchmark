@@ -372,7 +372,7 @@ public abstract class IceaxeDao<E> {
         debugExplain(ps, () -> ps.explain(parameter));
         try {
             var transaction = getTransaction();
-            var rs = ps.execute(transaction, parameter);
+            var rs = transaction.executeQuery(ps, parameter);
             return StreamSupport.stream(rs.spliterator(), false).onClose(() -> {
                 try {
                     rs.close();
@@ -431,8 +431,8 @@ public abstract class IceaxeDao<E> {
         var session = getSession();
         try (var ps = session.createPreparedQuery(sql, TgParameterMapping.of(), resultMapping)) {
             var transaction = getTransaction();
-            try (var rs = ps.execute(transaction, TgParameterList.of())) {
-                rs.forEach(entityConsumer);
+            try {
+                transaction.executeForEach(ps, TgParameterList.of(), entity -> entityConsumer.accept(entity));
             } catch (TsurugiTransactionException e) {
                 throw new TsurugiTransactionRuntimeException(e);
             }

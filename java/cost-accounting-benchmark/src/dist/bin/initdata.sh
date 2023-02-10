@@ -13,6 +13,7 @@ fi
 function call_java() {
   echo $1
   java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $1
+# java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" -Diceaxe.tx.log.dir=/tmp/iceaxe-tx-log -Diceaxe.tx.log.explain=2 $1
 }
 
 call_java com.tsurugidb.benchmark.costaccounting.init.InitialData00CreateTable
