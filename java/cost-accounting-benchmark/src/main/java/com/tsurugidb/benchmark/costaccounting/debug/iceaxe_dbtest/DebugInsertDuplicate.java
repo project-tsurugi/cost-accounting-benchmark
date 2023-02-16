@@ -1,4 +1,4 @@
-package com.tsurugidb.benchmark.costaccounting.debug.insert_dup;
+package com.tsurugidb.benchmark.costaccounting.debug.iceaxe_dbtest;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,7 +34,7 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
 /**
- * iceaxe-dbtest DbInsertDuplicateTest
+ * iceaxe-dbtest DbInsertDuplicate2Test
  */
 public class DebugInsertDuplicate {
     private static final Logger LOG = LoggerFactory.getLogger(DebugInsertDuplicate.class);
