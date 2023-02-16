@@ -15,7 +15,8 @@ import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ResultTable;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
-import com.tsurugidb.benchmark.costaccounting.debug.insert_dup.DebugInsertDuplicate;
+import com.tsurugidb.benchmark.costaccounting.debug.iceaxe_dbtest.DebugInsertDuplicate;
+import com.tsurugidb.benchmark.costaccounting.debug.iceaxe_dbtest.DebugSelectFetch;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.TsurugiConnector;
 import com.tsurugidb.iceaxe.session.TgSessionInfo;
@@ -67,6 +68,9 @@ public class DebugCommand implements ExecutableCommand {
             break;
         case "insert_dup":
             new DebugInsertDuplicate(args).execute();
+            break;
+        case "fetch":
+            new DebugSelectFetch(args).execute();
             break;
         default:
             throw new UnsupportedOperationException("unsupported operation. type=" + type);

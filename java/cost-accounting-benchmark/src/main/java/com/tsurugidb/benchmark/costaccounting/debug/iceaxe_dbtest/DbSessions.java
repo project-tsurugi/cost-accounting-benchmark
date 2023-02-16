@@ -1,4 +1,4 @@
-package com.tsurugidb.benchmark.costaccounting.debug.insert_dup;
+package com.tsurugidb.benchmark.costaccounting.debug.iceaxe_dbtest;
 
 import java.io.Closeable;
 import java.io.IOException;
