@@ -216,14 +216,13 @@ public abstract class IceaxeDao<E> {
         protected String sql;
 
         public S get() {
-            synchronized (this) {
-                if (this.sql == null) {
-                    initialize();
-                }
-            }
-
             var session = getSession();
             return psMap.computeIfAbsent(session, k -> {
+                synchronized (this) {
+                    if (this.sql == null) {
+                        initialize();
+                    }
+                }
                 try {
                     return generate(session);
                 } catch (IOException e) {
