@@ -92,25 +92,26 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
     }
 
     private List<ItemMaster> selectByIdsWorkaround(Iterable<Integer> ids, LocalDate date) {
-        var vId = I_ID.copy("id");
-        var vlist = TgVariableList.of(vId, vDate);
-        var sql = getSelectEntitySql() + " where i_id=" + vId + " and " + TG_COND_DATE;
-        var parameterMapping = TgParameterMapping.of(vlist);
-        var resultMapping = getEntityResultMapping();
-        var session = getSession();
-        try (var ps = session.createPreparedQuery(sql, parameterMapping, resultMapping)) {
-            var result = new ArrayList<ItemMaster>();
-            for (int id : ids) {
-                var param = TgParameterList.of(vId.bind(id), vDate.bind(date));
-                var r = executeAndGetList(ps, param);
-                result.addAll(r);
-            }
-            Collections.sort(result, Comparator.comparing(ItemMaster::getIId));
-            return result;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        var ps = selectByIdsWorkaroundCache.get();
+
+        var result = new ArrayList<ItemMaster>();
+        for (int id : ids) {
+            var param = TgParameterList.of(vId.bind(id), vDate.bind(date));
+            var r = executeAndGetList(ps, param);
+            result.addAll(r);
         }
+        Collections.sort(result, Comparator.comparing(ItemMaster::getIId));
+        return result;
     }
+
+    private final CachePreparedQuery<TgParameterList, ItemMaster> selectByIdsWorkaroundCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql() + " where i_id=" + vId + " and " + TG_COND_DATE;
+            this.parameterMapping = TgParameterMapping.of(vId, vDate);
+            this.resultMapping = getEntityResultMapping();
+        }
+    };
 
     private static final TgVariable<ItemType> vType = I_TYPE.copy("type");
 
