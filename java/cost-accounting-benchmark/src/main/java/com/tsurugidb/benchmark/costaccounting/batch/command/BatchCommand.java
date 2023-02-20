@@ -167,6 +167,10 @@ public class BatchCommand implements ExecutableCommand {
     }
 
     private void writeResult(Path outputPath, List<BatchRecord> records) throws IOException {
+        var dir = outputPath.getParent();
+        if (dir != null) {
+            Files.createDirectories(dir);
+        }
         try (var pw = new PrintWriter(Files.newBufferedWriter(outputPath))) {
             pw.println(BatchRecord.header());
             for (var record : records) {
