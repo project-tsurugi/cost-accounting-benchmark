@@ -2,6 +2,8 @@ package com.tsurugidb.benchmark.costaccounting.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +13,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
 
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
 
@@ -51,12 +55,32 @@ public class BenchConst {
         return getProperty("doc.dir");
     }
 
-    public static String tableXlsxPath() {
-        return docDir() + "/table.xlsx";
+    public static InputStream tableXlsxStream(Logger log) {
+        return xlsxStream(log, "table.xlsx");
     }
 
-    public static String measurementXlsxPath() {
-        return docDir() + "/measurement.xlsx";
+    public static InputStream measurementXlsxStream(Logger log) {
+        return xlsxStream(log, "measurement.xlsx");
+    }
+
+    private static InputStream xlsxStream(Logger log, String fileName) {
+        String docDir = getProperty("doc.dir", null);
+        if (docDir != null) {
+            var path = Path.of(docDir, fileName);
+            InputStream is;
+            try {
+                is = Files.newInputStream(path);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e.getMessage(), e);
+            }
+            log.info("src={}", path);
+            return is;
+        }
+
+        var classLoader = Thread.currentThread().getContextClassLoader();
+        var is = classLoader.getResourceAsStream(fileName);
+        log.info("src=classpath:{}", fileName);
+        return is;
     }
 
     public static final String PACKAGE_DOMAIN = "com.tsurugidb.benchmark.costaccounting.db.domain";

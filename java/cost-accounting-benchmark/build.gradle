@@ -120,14 +120,3 @@ task showIceaxeManifest {
         print(version.asString())
     }
 }
-
-distributions {
-    main {
-        contents {
-            from ("${projectDir}/../../docs") {
-                include "*.xlsx"
-                into "docs"
-            }
-        }
-    }
-}

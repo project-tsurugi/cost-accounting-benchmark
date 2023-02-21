@@ -1,7 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.init;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -23,21 +23,18 @@ public class InitialData01MeasurementMaster extends InitialData {
 
     public static void main(String... args) throws Exception {
 //		new InitialDataMeasureMaster().main(args[0]);
-        new InitialData01MeasurementMaster().main(BenchConst.measurementXlsxPath());
+        new InitialData01MeasurementMaster().main(BenchConst.measurementXlsxStream(LOG));
     }
 
     public InitialData01MeasurementMaster() {
         super(null);
     }
 
-    private void main(String src) throws IOException {
+    private void main(InputStream src) throws IOException {
         logStart();
 
         try (CostBenchDbManager manager = initializeDbManager()) {
-            File srcFile = new File(src);
-            LOG.info("src={}", srcFile);
-
-            try (Workbook workbook = WorkbookFactory.create(srcFile, null, true)) {
+            try (Workbook workbook = WorkbookFactory.create(src)) {
                 Sheet sheet = workbook.getSheet("measurement");
                 TableSheet table = new TableSheet(sheet);
 

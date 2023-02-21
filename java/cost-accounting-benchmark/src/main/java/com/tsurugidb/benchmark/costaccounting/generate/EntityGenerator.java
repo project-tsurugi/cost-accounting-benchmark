@@ -1,7 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.generate;
 
 import java.io.BufferedWriter;
-import java.io.File;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,16 +20,13 @@ public class EntityGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(EntityGenerator.class);
 
     public static void main(String[] args) throws Exception {
-        Path src = Path.of(BenchConst.tableXlsxPath());
+        InputStream src = BenchConst.tableXlsxStream(LOG);
         Path dst = Path.of(/* src/main/java/ full path */args[0], BenchConst.PACKAGE_ENTITY.replace('.', '/'));
         new EntityGenerator().main(src, dst);
     }
 
-    private void main(Path src, Path dstDir) throws Exception {
-        File srcFile = src.toFile();
-        LOG.info("src={}", srcFile);
-
-        try (Workbook workbook = WorkbookFactory.create(srcFile, null, true)) {
+    private void main(InputStream src, Path dstDir) throws Exception {
+        try (Workbook workbook = WorkbookFactory.create(src)) {
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
                 Sheet sheet = workbook.getSheetAt(i);
                 TableSheet table = new TableSheet(sheet);
