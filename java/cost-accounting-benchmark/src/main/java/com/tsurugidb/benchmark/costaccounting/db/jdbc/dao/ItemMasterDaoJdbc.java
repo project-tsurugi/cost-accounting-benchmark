@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
@@ -71,6 +72,16 @@ public class ItemMasterDaoJdbc extends JdbcDao<ItemMaster> implements ItemMaster
                 setInt(ps, i++, id);
             }
             setDate(ps, i++, date);
+        }, this::newEntity);
+    }
+
+    @Override
+    public Stream<ItemMaster> selectByType(LocalDate date, ItemType type) {
+        String sql = "select * from " + TABLE_NAME + " where " + PS_COND_DATE + " and i_type = ?";
+        return executeQueryStream(sql, ps -> {
+            int i = 1;
+            setDate(ps, i++, date);
+            setItemType(ps, i++, type);
         }, this::newEntity);
     }
 

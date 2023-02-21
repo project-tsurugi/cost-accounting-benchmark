@@ -3,6 +3,7 @@ package com.tsurugidb.benchmark.costaccounting.db.dao;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
@@ -50,6 +51,15 @@ public interface ItemMasterDao {
      * </pre>
      */
     List<ItemMaster> selectByIds(Iterable<Integer> ids, LocalDate date);
+
+    /**
+     * <pre>
+     * select * from item_master
+     * where :date between i_effective_date and i_expired_date
+     *   and i_type = :type
+     * </pre>
+     */
+    Stream<ItemMaster> selectByType(LocalDate date, ItemType type);
 
     /**
      * <pre>

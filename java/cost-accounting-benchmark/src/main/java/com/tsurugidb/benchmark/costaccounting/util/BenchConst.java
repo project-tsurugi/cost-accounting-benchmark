@@ -325,6 +325,10 @@ public class BenchConst {
         return getPropertyInt("init.parallelism", defaultValue);
     }
 
+    public static boolean init03MaterialCache() {
+        return getPropertyBoolean("init.03.material.cache", true);
+    }
+
     public static boolean debugExplain() {
         return getPropertyBoolean("debug.explain", false);
     }

@@ -5,7 +5,9 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,6 +25,8 @@ import com.tsurugidb.benchmark.costaccounting.init.util.DaoSplitTask;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchReproducibleRandom;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
+import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 @SuppressWarnings("serial")
 public class InitialData03ItemMaster extends InitialData {
@@ -88,6 +92,10 @@ public class InitialData03ItemMaster extends InitialData {
 
         try (CostBenchDbManager manager = initializeDbManager()) {
             generateItemMaster();
+        } finally {
+            if (materialMap != null) {
+                materialMap.clear();
+            }
         }
 
         dumpExplainCounter(dbManager.getItemMasterDao());
@@ -112,6 +120,7 @@ public class InitialData03ItemMaster extends InitialData {
         executeTask(new ItemMasterMaterialTask(getMaterialStartId(), getMaterialEndId()));
         joinAllTask();
         LOG.info("ItemMasterProductTask/ItemMasterMaterialTask end");
+        initMaterialMap();
         forkItemMasterWorkInProcess(getWorkStartId(), getWorkEndId());
         executeTask(new ItemConstructionMasterProductTask(getProductStartId(), getProductEndId()));
         joinAllTask();
@@ -470,6 +479,8 @@ public class InitialData03ItemMaster extends InitialData {
         }
     }
 
+    private static final Map<Integer, ItemMaster> materialMap = BenchConst.init03MaterialCache() ? new HashMap<>() : null;
+
     private List<ItemMaster> findRandomMaterial(int seed, int size, ItemMasterDao dao) {
         int materialStartId = getMaterialStartId();
         int materialEndId = materialStartId + materialSize - 1;
@@ -479,7 +490,40 @@ public class InitialData03ItemMaster extends InitialData {
             idSet.add(random(seed++, materialStartId, materialEndId));
         }
 
-        return dao.selectByIds(idSet, batchDate);
+        if (materialMap == null) {
+            return dao.selectByIds(idSet, batchDate);
+        }
+
+        var list = new ArrayList<ItemMaster>(idSet.size());
+        for (var id : idSet) {
+            var entity = materialMap.get(id);
+            if (entity == null) {
+                LOG.warn("item_master not found in map. id={}", id);
+            } else {
+                list.add(entity);
+            }
+        }
+        return list;
+    }
+
+    private void initMaterialMap() {
+        if (materialMap == null) {
+            return;
+        }
+
+        var setting = TgTmSetting.of(TgTxOption.ofRTX());
+        dbManager.execute(setting, () -> {
+            var dao = dbManager.getItemMasterDao();
+            try (var stream = dao.selectByType(batchDate, ItemType.RAW_MATERIAL)) {
+                stream.forEach(entity -> {
+                    materialMap.put(entity.getIId(), entity);
+                });
+            }
+        });
+
+        if (materialMap.isEmpty()) {
+            throw new RuntimeException("metarial not found in " + ItemMasterDao.TABLE_NAME);
+        }
     }
 
     private static final BigDecimal LOSS_END = new BigDecimal("10.00");

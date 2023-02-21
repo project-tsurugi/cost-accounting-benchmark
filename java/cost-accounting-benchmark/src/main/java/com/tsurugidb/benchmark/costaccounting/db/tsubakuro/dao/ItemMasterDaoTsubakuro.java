@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
@@ -142,6 +143,31 @@ public class ItemMasterDaoTsubakuro extends TsubakuroDao<ItemMaster> implements 
         } catch (ServerException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public Stream<ItemMaster> selectByType(LocalDate date, ItemType type) {
+        var ps = getSelectByTypePs();
+        var parameters = List.of( //
+                Parameters.of(vDate.name(), date), //
+                Parameters.of("type", type.getValue()));
+        explain(selectByTypeSql, ps, parameters);
+        var converter = getSelectEntityConverter();
+        return executeAndGetList(ps, parameters, converter).stream();
+    }
+
+    private String selectByTypeSql;
+    private PreparedStatement selectByTypePs;
+
+    private synchronized PreparedStatement getSelectByTypePs() {
+        if (this.selectByTypePs == null) {
+            this.selectByTypeSql = getSelectEntitySql() + " where " + TG_COND_DATE + " and i_type = :type";
+            var placeholders = List.of( //
+                    Placeholders.of(vDate.name(), AtomType.DATE), //
+                    Placeholders.of("type", AtomType.CHARACTER));
+            this.selectByTypePs = createPreparedStatement(selectByTypeSql, placeholders);
+        }
+        return this.selectByTypePs;
     }
 
     @Override

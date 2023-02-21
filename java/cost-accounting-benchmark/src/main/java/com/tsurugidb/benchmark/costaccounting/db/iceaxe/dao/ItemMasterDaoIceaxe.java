@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
@@ -114,6 +115,22 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
     };
 
     private static final TgVariable<ItemType> vType = I_TYPE.copy("type");
+
+    @Override
+    public Stream<ItemMaster> selectByType(LocalDate date, ItemType type) {
+        var ps = selectByTypeCache.get();
+        var param = TgParameterList.of(vDate.bind(date), vType.bind(type));
+        return executeAndGetStream(ps, param);
+    }
+
+    private final CachePreparedQuery<TgParameterList, ItemMaster> selectByTypeCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql() + " where " + TG_COND_DATE + " and i_type = " + vType;
+            this.parameterMapping = TgParameterMapping.of(vDate, vType);
+            this.resultMapping = getEntityResultMapping();
+        }
+    };
 
     @Override
     public List<Integer> selectIdByType(LocalDate date, ItemType type) {
