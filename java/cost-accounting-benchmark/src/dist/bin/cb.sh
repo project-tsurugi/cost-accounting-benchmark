@@ -17,5 +17,8 @@ function call_java() {
 # init data
 call_java com.tsurugidb.benchmark.costaccounting.init.InitialData
 
+# pre execute
+call_java com.tsurugidb.benchmark.costaccounting.batch.CostAccountingBatch
+
 # batch-command
 call_java com.tsurugidb.benchmark.costaccounting.Main executeBatch
