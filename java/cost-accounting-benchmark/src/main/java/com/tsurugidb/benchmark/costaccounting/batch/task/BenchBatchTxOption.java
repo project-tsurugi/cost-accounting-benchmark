@@ -57,6 +57,6 @@ public class BenchBatchTxOption extends TgTmTxOptionAlways {
 
     @Override
     public String toString() {
-        return transactionOption.toString();
+        return txOption.toString();
     }
 }
