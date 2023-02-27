@@ -137,6 +137,8 @@ public class BatchCommand implements ExecutableCommand {
             throw new UncheckedIOException(e.getMessage(), e);
         }
 
+        LOG.info("diff start");
+
         Path outputFile = outputDir.resolve(ResultTableDao.TABLE_NAME + "." + record.dbmsType() + "." + record.executeType() + "." + record.option() + "." + record.attempt() + ".csv");
         try {
             new DumpCsv().dump(outputFile, ResultTableDao.TABLE_NAME);
@@ -164,6 +166,8 @@ public class BatchCommand implements ExecutableCommand {
                 throw new UncheckedIOException(e.getMessage(), e);
             }
         }
+
+        LOG.info("diff end");
     }
 
     private void writeResult(Path outputPath, List<BatchRecord> records) throws IOException {
