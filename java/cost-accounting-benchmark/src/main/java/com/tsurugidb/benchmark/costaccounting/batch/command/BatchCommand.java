@@ -85,6 +85,8 @@ public class BatchCommand implements ExecutableCommand {
         if (BenchConst.batchCommandOnline()) {
             online = new CostAccountingOnline(config.getBatchDate());
         }
+
+        int exitCode = 0;
         try {
             var record = new BatchRecord(config, attempt);
             records.add(record);
@@ -95,9 +97,13 @@ public class BatchCommand implements ExecutableCommand {
                 online.start();
             }
             record.start();
-            int exitCode = batch.main(config);
+            exitCode = batch.main(config);
             if (online != null) {
-                online.terminate();
+                if (online.terminate() != 0) {
+                    if (exitCode == 0) {
+                        exitCode = 2;
+                    }
+                }
                 online = null;
             }
             record.finish(batch.getItemCount(), batch.getTryCount(), batch.getAbortCount());
@@ -109,7 +115,11 @@ public class BatchCommand implements ExecutableCommand {
             return exitCode;
         } finally {
             if (online != null) {
-                online.terminate();
+                if (online.terminate() != 0) {
+                    if (exitCode == 0) {
+                        return 2;
+                    }
+                }
             }
         }
     }

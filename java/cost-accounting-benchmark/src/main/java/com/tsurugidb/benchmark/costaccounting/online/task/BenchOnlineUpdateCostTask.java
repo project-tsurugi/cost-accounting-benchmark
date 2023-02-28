@@ -28,8 +28,6 @@ public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
     @Override
     protected boolean execute1() {
         return dbManager.execute(settingMain, () -> {
-            checkStop();
-
             CostMaster cost = selectRandomItem();
             if (cost == null) {
                 return false;

@@ -119,7 +119,7 @@ public class CostAccountingOnlineAppRandom implements Runnable {
         int factoryId = factoryList.get(random.nextInt(factoryList.size()));
 
         BenchOnlineTask task = getTaskRandom();
-        task.initialize(threadId, writer, terminationRequested);
+        task.initializeForRandom(threadId, writer);
         task.initialize(factoryId, date);
 
         task.execute();

@@ -29,8 +29,6 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
     @Override
     protected boolean execute1() {
         return dbManager.execute(settingMain, () -> {
-            checkStop();
-
             int productId = selectRandomItemId();
             if (productId < 0) {
                 return false;

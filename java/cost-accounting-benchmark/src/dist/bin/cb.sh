@@ -14,11 +14,13 @@ function call_java() {
   java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $RUN_JAVA_OPTS $@
 }
 
-# init data
-call_java com.tsurugidb.benchmark.costaccounting.init.InitialData
+if [[ "$PROPERTY" != *"online_"* ]]; then
+  # init data
+  call_java com.tsurugidb.benchmark.costaccounting.init.InitialData
 
-# pre execute
-call_java com.tsurugidb.benchmark.costaccounting.batch.CostAccountingBatch
+  # pre execute
+  call_java com.tsurugidb.benchmark.costaccounting.batch.CostAccountingBatch
+fi
 
 # batch-command
 call_java com.tsurugidb.benchmark.costaccounting.Main executeBatch

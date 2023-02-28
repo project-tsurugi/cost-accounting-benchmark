@@ -28,7 +28,6 @@ public class BenchOnlineShowQuantityTask extends BenchOnlineTask {
     @Override
     protected boolean execute1() {
         dbManager.execute(settingMain, () -> {
-            checkStop();
             executeMain();
         });
         return true;

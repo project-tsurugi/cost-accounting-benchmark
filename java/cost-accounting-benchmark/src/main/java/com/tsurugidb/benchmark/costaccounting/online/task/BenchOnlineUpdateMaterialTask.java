@@ -36,8 +36,6 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
     @Override
     protected boolean execute1() {
         return dbManager.execute(settingMain, () -> {
-            checkStop();
-
             int select = random.random(0, 1);
             if (select == 0) {
                 return executeAdd();
@@ -97,8 +95,6 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 
         ItemConstructionMaster entity;
         for (;;) {
-            checkStop();
-
             ItemConstructionMasterKey key;
             synchronized (BenchOnlineUpdateMaterialTask.class) {
                 if (itemConstructionMasterKeyListForAdd == null) {

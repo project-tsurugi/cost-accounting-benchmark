@@ -5,11 +5,16 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
+import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
 import com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
@@ -17,6 +22,7 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 public abstract class BenchOnlineTask {
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
 
     private final String title;
 
@@ -24,7 +30,6 @@ public abstract class BenchOnlineTask {
 
     private int threadId;
     private BufferedWriter writer;
-    private AtomicBoolean terminationRequested;
 
     protected int factoryId;
     protected LocalDate date;
@@ -46,26 +51,65 @@ public abstract class BenchOnlineTask {
     }
 
     private TgTmSetting createSetting(Supplier<TgTxOption> ltxSupplier) {
-        String option = BenchConst.onlineTsurugiTxOption(title).toUpperCase();
-        switch (option) {
+        String option = BenchConst.onlineTsurugiTxOption(title);
+        String head = option.substring(0, 3).toUpperCase();
+        switch (head) {
         case "OCC":
         default:
+            onceLog(() -> LOG.info("txOption: OCC"), "OCC");
             return TgTmSetting.ofAlways(TgTxOption.ofOCC());
         case "LTX":
-            return TgTmSetting.ofAlways(ltxSupplier.get());
+        case "RTX":
+            var txOption = ltxSupplier.get();
+            onceLog(() -> LOG.info("txOption: {}", txOption.typeName()), txOption.typeName());
+            return TgTmSetting.ofAlways(txOption);
         case "MIX":
-            return TgTmSetting.of(TgTxOption.ofOCC(), ltxSupplier.get());
+            int size1 = 3, size2 = 2;
+            String rest = option.substring(3);
+            String[] ss = rest.split("-");
+            try {
+                size1 = Integer.parseInt(ss[0].trim());
+            } catch (NumberFormatException e) {
+                LOG.warn("online.tsurugi.tx.option(MIX) error", e);
+            }
+            if (ss.length > 1) {
+                try {
+                    size2 = Integer.parseInt(ss[1].trim());
+                } catch (NumberFormatException e) {
+                    LOG.warn("online.tsurugi.tx.option(MIX) error", e);
+                }
+            }
+            var txOption2 = ltxSupplier.get();
+            int finalSize1 = size1, finalSize2 = size2;
+            onceLog(() -> LOG.info("txOptionSupplier: OCC*{}, {}*{}", finalSize1, txOption2.typeName(), finalSize2), txOption2.typeName());
+            return TgTmSetting.of(TgTxOption.ofOCC(), size1, txOption2, size2);
         }
+    }
+
+    private static final Map<String, Boolean> ONCE_LOG_MAP = new ConcurrentHashMap<>();
+
+    private void onceLog(Runnable action, String typeName) {
+        if (BenchConst.dbmsType() != DbmsType.TSURUGI) {
+            return;
+        }
+
+        String key = getClass().getName() + "." + typeName;
+        if (ONCE_LOG_MAP.putIfAbsent(key, Boolean.TRUE) == null) {
+            action.run();
+        }
+    }
+
+    public static void clearOnceLog() {
+        ONCE_LOG_MAP.clear();
     }
 
     public void setDao(CostBenchDbManager dbManager) {
         this.dbManager = dbManager;
     }
 
-    public void initialize(int threadId, BufferedWriter writer, AtomicBoolean terminationRequested) {
+    public void initializeForRandom(int threadId, BufferedWriter writer) {
         this.threadId = threadId;
         this.writer = writer;
-        this.terminationRequested = terminationRequested;
     }
 
     public void initialize(int factoryId, LocalDate date) {
@@ -84,12 +128,6 @@ public abstract class BenchOnlineTask {
     }
 
     protected abstract boolean execute1();
-
-    protected final void checkStop() {
-        if (terminationRequested.get()) {
-            throw new RuntimeException("stop by request. task=" + title);
-        }
-    }
 
     private LocalDateTime startDateTime, nowDateTime;
 

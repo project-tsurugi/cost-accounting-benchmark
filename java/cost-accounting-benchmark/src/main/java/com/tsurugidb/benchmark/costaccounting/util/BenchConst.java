@@ -208,6 +208,10 @@ public class BenchConst {
         return getProperty("batch-command.diff.dir", null);
     }
 
+    public static String batchCommandLabel() {
+        return getProperty("batch-command.label", null);
+    }
+
     public static String batchCommandResultFile() {
         return getProperty("batch-command.result.file");
     }

@@ -41,7 +41,6 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
     protected boolean execute1() {
         ItemMaster item = getNewItemMaster();
         dbManager.execute(settingMain, () -> {
-            checkStop();
             executeMain(item);
         });
         return true;
@@ -51,7 +50,6 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
         for (;;) {
             try {
                 ItemMaster i = dbManager.execute(settingPre, () -> {
-                    checkStop();
                     return getNewItemMasterMain();
                 });
                 if (i != null) {

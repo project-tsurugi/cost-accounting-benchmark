@@ -69,7 +69,7 @@ public class TimeRecord {
         return this.size;
     }
 
-    public String numberOfDiffrence() {
+    public String numberOfDifference() {
         return "-";
     }
 

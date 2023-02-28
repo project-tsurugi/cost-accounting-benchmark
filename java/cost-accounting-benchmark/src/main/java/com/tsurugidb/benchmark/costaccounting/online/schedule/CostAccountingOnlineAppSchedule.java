@@ -67,8 +67,6 @@ public class CostAccountingOnlineAppSchedule implements Runnable {
 
         this.name = "online." + task.getTitle() + "." + threadId;
         this.execPerMin = BenchConst.onlineExecutePerMinute(task.getTitle());
-
-        onlineTask.initialize(0, null, terminationRequested);
     }
 
     @Override

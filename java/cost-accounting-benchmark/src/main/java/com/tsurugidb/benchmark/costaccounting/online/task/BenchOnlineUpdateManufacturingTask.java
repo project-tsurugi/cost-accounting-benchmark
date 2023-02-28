@@ -46,7 +46,6 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
         for (;;) {
             try {
                 boolean ok = dbManager.execute(settingMain, () -> {
-                    checkStop();
                     return executeMain(productId, newQuantity);
                 });
                 if (ok) {
