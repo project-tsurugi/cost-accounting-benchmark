@@ -137,6 +137,7 @@ public class BatchCommand implements ExecutableCommand {
         Path outputDir;
         try {
             String s = BenchConst.batchCommandDiffDir();
+            LOG.trace("batch-command.diff.dir={}", s);
             if (s == null) {
                 record.setDiff("-");
                 return;
@@ -149,6 +150,7 @@ public class BatchCommand implements ExecutableCommand {
 
         LOG.info("diff start");
 
+        LOG.debug("dump csv start");
         Path outputFile = outputDir.resolve(ResultTableDao.TABLE_NAME + "." + record.dbmsType() + "." + record.executeType() + "." + record.option() + "." + record.attempt() + ".csv");
         try {
             new DumpCsv().dump(outputFile, ResultTableDao.TABLE_NAME);
@@ -157,11 +159,13 @@ public class BatchCommand implements ExecutableCommand {
             record.setDiff("dump error");
             return;
         }
+        LOG.debug("dump csv end");
 
         if (this.baseResultFile == null) {
             this.baseResultFile = outputFile;
             record.setDiff(0);
         } else {
+            LOG.debug("diff check start");
             try (var baseStream = Files.lines(baseResultFile, StandardCharsets.UTF_8); //
                     var testStream = Files.lines(outputFile, StandardCharsets.UTF_8)) {
                 var baseSet = baseStream.collect(Collectors.toSet());
@@ -175,6 +179,7 @@ public class BatchCommand implements ExecutableCommand {
             } catch (IOException e) {
                 throw new UncheckedIOException(e.getMessage(), e);
             }
+            LOG.debug("diff check end");
         }
 
         LOG.info("diff end");
