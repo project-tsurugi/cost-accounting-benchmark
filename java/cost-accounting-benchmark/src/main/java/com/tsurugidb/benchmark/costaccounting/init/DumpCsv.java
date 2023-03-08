@@ -22,6 +22,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.StockTableDao;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -45,6 +46,7 @@ public class DumpCsv {
                     ItemConstructionMasterDao.TABLE_NAME, //
                     ItemManufacturingMasterDao.TABLE_NAME, //
                     CostMasterDao.TABLE_NAME, //
+                    StockTableDao.TABLE_NAME, //
                     ResultTableDao.TABLE_NAME);
         }
 
@@ -91,6 +93,9 @@ public class DumpCsv {
             case CostMasterDao.TABLE_NAME:
                 dumpCostMaster(writer);
                 break;
+            case StockTableDao.TABLE_NAME:
+                dumpStockTable(writer);
+                break;
             case ResultTableDao.TABLE_NAME:
                 dumpResultTable(writer);
                 break;
@@ -127,6 +132,11 @@ public class DumpCsv {
 
     private void dumpCostMaster(BufferedWriter writer) {
         var dao = dbManager.getCostMasterDao();
+        dump(writer, dao::forEach, entity -> entity.toCsv("\n"));
+    }
+
+    private void dumpStockTable(BufferedWriter writer) {
+        var dao = dbManager.getStockTableDao();
         dump(writer, dao::forEach, entity -> entity.toCsv("\n"));
     }
 

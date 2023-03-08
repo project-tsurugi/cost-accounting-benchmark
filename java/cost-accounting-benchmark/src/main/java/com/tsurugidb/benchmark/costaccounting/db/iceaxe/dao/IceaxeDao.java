@@ -367,6 +367,28 @@ public abstract class IceaxeDao<E> {
         }
     }
 
+    protected final <R> Stream<R> executeAndGetStream(TsurugiPreparedStatementQuery0<R> ps) {
+        debugExplain(ps, () -> ps.explain());
+        try {
+            var transaction = getTransaction();
+            var rs = transaction.executeQuery(ps);
+            return StreamSupport.stream(rs.spliterator(), false).onClose(() -> {
+                try {
+                    rs.close();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e.getMessage(), e);
+                } catch (TsurugiTransactionException e) {
+                    throw new TsurugiTransactionRuntimeException(e);
+                }
+            });
+        } catch (IOException e) {
+            throw new UncheckedIOException(e.getMessage(), e);
+        } catch (TsurugiTransactionException e) {
+            wipRetry(e);
+            throw new TsurugiTransactionRuntimeException(e);
+        }
+    }
+
     protected final <P, R> Stream<R> executeAndGetStream(TsurugiPreparedStatementQuery1<P, R> ps, P parameter) {
         debugExplain(ps, () -> ps.explain(parameter));
         try {

@@ -479,7 +479,7 @@ public class InitialData03ItemMaster extends InitialData {
         }
     }
 
-    private static final Map<Integer, ItemMaster> materialMap = BenchConst.init03MaterialCache() ? new HashMap<>() : null;
+    private static final Map<Integer, ItemMaster> materialMap = BenchConst.init03MaterialCache() ? new HashMap<>(BenchConst.initItemMaterialSize()) : null;
 
     private List<ItemMaster> findRandomMaterial(int seed, int size, ItemMasterDao dao) {
         int materialStartId = getMaterialStartId();
@@ -511,7 +511,7 @@ public class InitialData03ItemMaster extends InitialData {
             return;
         }
 
-        var setting = TgTmSetting.of(TgTxOption.ofRTX());
+        var setting = TgTmSetting.of(TgTxOption.ofRTX().label("initMaterialMap"));
         dbManager.execute(setting, () -> {
             var dao = dbManager.getItemMasterDao();
             try (var stream = dao.selectByType(batchDate, ItemType.RAW_MATERIAL)) {

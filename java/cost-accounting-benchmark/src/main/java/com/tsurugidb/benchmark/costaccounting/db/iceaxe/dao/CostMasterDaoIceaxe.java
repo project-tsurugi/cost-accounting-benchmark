@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
@@ -89,6 +90,20 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
         // Tsurugiにselect for updateは無い
         return in;
     }
+
+    @Override
+    public Stream<CostMaster> selectOrderIid() {
+        var ps = selectOrderIidCache.get();
+        return executeAndGetStream(ps);
+    }
+
+    private final CacheQuery<CostMaster> selectOrderIidCache = new CacheQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql() + " order by c_i_id";
+            this.resultMapping = getEntityResultMapping();
+        }
+    };
 
     private static final TgVariable<BigDecimal> vQuantity = BenchVariable.ofDecimal("quantity", CostMaster.C_STOCK_QUANTITY_SCALE);
     private static final TgVariable<BigDecimal> vAmount = BenchVariable.ofDecimal("amount", CostMaster.C_STOCK_AMOUNT_SCALE);

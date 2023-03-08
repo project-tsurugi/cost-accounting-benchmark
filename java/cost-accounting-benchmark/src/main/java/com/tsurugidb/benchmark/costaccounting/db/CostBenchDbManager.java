@@ -20,6 +20,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.StockTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.CostBenchDbManagerJdbc;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.CostBenchDbManagerTsubakuro;
@@ -41,6 +42,7 @@ public abstract class CostBenchDbManager implements Closeable {
     private ItemConstructionMasterDao itemConstructionMasterDao;
     private ItemManufacturingMasterDao itemManufacturingMasterDao;
     private CostMasterDao costMasterDao;
+    private StockTableDao stockTableDao;
     private ResultTableDao resultTableDao;
 
     private boolean isSingleTransaction = false;
@@ -137,6 +139,15 @@ public abstract class CostBenchDbManager implements Closeable {
     }
 
     protected abstract CostMasterDao newCostMasterDao();
+
+    public synchronized StockTableDao getStockTableDao() {
+        if (stockTableDao == null) {
+            this.stockTableDao = newStockTableDao();
+        }
+        return stockTableDao;
+    }
+
+    protected abstract StockTableDao newStockTableDao();
 
     public synchronized ResultTableDao getResultTableDao() {
         if (resultTableDao == null) {

@@ -12,6 +12,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,7 @@ import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateCostTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateManufacturingTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateMaterialTask;
+import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateStockTask;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.exception.TsurugiDiagnosticCodeProvider;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
@@ -145,6 +147,7 @@ public class CostAccountingOnline {
         taskList.add(BenchOnlineUpdateManufacturingTask::new);
         taskList.add(BenchOnlineUpdateMaterialTask::new);
         taskList.add(BenchOnlineUpdateCostTask::new);
+        taskList.add(BenchOnlineUpdateStockTask::new);
         taskList.add(BenchOnlineShowWeightTask::new);
         taskList.add(BenchOnlineShowQuantityTask::new);
         taskList.add(BenchOnlineShowCostTask::new);
@@ -271,18 +274,28 @@ public class CostAccountingOnline {
         }
     }
 
+    private List<Future<?>> futureList;
+
     public void start() throws Exception {
         this.dbManager = createDbManager();
 
         var appList = createOnlineApp();
         this.service = newExecutorService(appList.size());
         // オンラインアプリを実行する
-        appList.parallelStream().forEach(app -> service.submit(app));
+        this.futureList = appList.parallelStream().map(app -> service.submit(app)).collect(Collectors.toList());
     }
 
     public int terminate() {
         try (var c = dbManager) {
             terminateOnlineApp();
+            for (var future : futureList) {
+                try {
+                    future.get(1, TimeUnit.MINUTES);
+                } catch (Exception e) {
+                    exceptionList.add(e);
+                    LOG.warn("future error", e);
+                }
+            }
             terminateService();
         }
         return exceptionList.size();

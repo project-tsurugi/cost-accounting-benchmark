@@ -30,7 +30,7 @@ public class BenchBatchTxOption extends TgTmTxOptionAlways {
     }
 
     public BenchBatchTxOption(TgTxOption option) {
-        super(option, 100);
+        super(option, 1000);
         setTmOptionListener((attempt, e, tmOption) -> {
             if (attempt > 0) {
                 if (tmOption.isExecute()) {

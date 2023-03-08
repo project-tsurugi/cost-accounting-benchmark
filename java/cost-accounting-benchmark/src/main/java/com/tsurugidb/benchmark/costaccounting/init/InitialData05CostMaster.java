@@ -3,7 +3,6 @@ package com.tsurugidb.benchmark.costaccounting.init;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -106,7 +105,7 @@ public class InitialData05CostMaster extends InitialData {
 
         List<Integer> factoryIds = new ArrayList<>(factoryIdSet);
         int size = factoryIdSet.size() / 2; // 50%
-        Set<Integer> factorySet = new HashSet<>();
+        Set<Integer> factorySet = new TreeSet<>();
         while (factorySet.size() < size) {
             int factoryId = getRandomAndRemove(seed++, factoryIds);
             factorySet.add(factoryId);

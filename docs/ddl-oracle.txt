@@ -63,6 +63,18 @@ create table cost_master
   ,primary key(c_f_id, c_i_id)
 );
 
+-- 在庫テーブル
+drop table stock_table;
+create table stock_table
+(
+  s_date date, -- 日付
+  s_i_id number(9), -- 品目ID
+  s_stock_unit varchar2(5), -- 在庫単位
+  s_stock_quantity number(15, 4), -- 在庫数量（1日分）
+  s_stock_amount number(13, 2) -- 在庫金額（1日分）
+  ,primary key(s_date, s_i_id)
+);
+
 -- 度量衡マスター
 drop table measurement_master;
 create table measurement_master
@@ -88,15 +100,15 @@ create table result_table
   r_weight_unit varchar2(5), -- 重量単位
   r_weight number(9, 2), -- 重量（品目当たり）
   r_weight_total_unit varchar2(5), -- 重量計単位
-  r_weight_total number(11, 2), -- 重量計
+  r_weight_total number(12, 2), -- 重量計
   r_weight_ratio number(7, 3), -- 重量割合
   r_standard_quantity_unit varchar2(5), -- 標準量単位
   r_standard_quantity number(15, 4), -- 標準量（品目当たり）
   r_required_quantity_unit varchar2(5), -- 所要量単位
   r_required_quantity number(15, 4), -- 所要量
   r_unit_cost number(11, 2), -- 原価（品目当たり）
-  r_total_unit_cost number(11, 2), -- 総原価
+  r_total_unit_cost number(13, 2), -- 総原価
   r_manufacturing_cost number(11, 2), -- 製造原価（品目当たり）
-  r_total_manufacturing_cost number(11, 2) -- 総製造原価
+  r_total_manufacturing_cost number(13, 2) -- 総製造原価
   ,primary key(r_f_id, r_manufacturing_date, r_product_i_id, r_parent_i_id, r_i_id)
 );

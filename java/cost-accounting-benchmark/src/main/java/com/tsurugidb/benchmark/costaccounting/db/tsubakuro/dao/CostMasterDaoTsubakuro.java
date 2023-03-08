@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
@@ -58,6 +59,11 @@ public class CostMasterDaoTsubakuro extends TsubakuroDao<CostMaster> implements 
     public CostMaster lock(CostMaster in) {
         // Tsurugiにselect for updateは無い
         return in;
+    }
+
+    @Override
+    public Stream<CostMaster> selectOrderIid() {
+        throw new UnsupportedOperationException("not yet impl");
     }
 
     @Override

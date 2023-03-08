@@ -18,6 +18,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.StockTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.CostMasterDaoIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.FactoryMasterDaoIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.IceaxeDao;
@@ -26,6 +27,7 @@ import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.ItemManufacturingMas
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.ItemMasterDaoIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.MeasurementMasterDaoIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.ResultTableDaoIceaxe;
+import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.StockTableDaoIceaxe;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.TsurugiConnector;
 import com.tsurugidb.iceaxe.exception.TsurugiDiagnosticCodeProvider;
@@ -150,6 +152,11 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     @Override
     protected CostMasterDao newCostMasterDao() {
         return new CostMasterDaoIceaxe(this);
+    }
+
+    @Override
+    protected StockTableDao newStockTableDao() {
+        return new StockTableDaoIceaxe(this);
     }
 
     @Override

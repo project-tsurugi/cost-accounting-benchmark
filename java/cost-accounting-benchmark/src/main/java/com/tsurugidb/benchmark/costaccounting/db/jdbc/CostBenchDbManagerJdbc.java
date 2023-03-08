@@ -23,6 +23,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.StockTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.CostMasterDaoJdbc;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.FactoryMasterDaoJdbc;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.ItemConstructionMasterDaoJdbc;
@@ -31,6 +32,7 @@ import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.ItemMasterDaoJdbc;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcDao;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.MeasurementMasterDaoJdbc;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.ResultTableDaoJdbc;
+import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.StockTableDaoJdbc;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
@@ -143,6 +145,11 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
     @Override
     protected CostMasterDao newCostMasterDao() {
         return new CostMasterDaoJdbc(this);
+    }
+
+    @Override
+    protected StockTableDao newStockTableDao() {
+        return new StockTableDaoJdbc(this);
     }
 
     @Override
