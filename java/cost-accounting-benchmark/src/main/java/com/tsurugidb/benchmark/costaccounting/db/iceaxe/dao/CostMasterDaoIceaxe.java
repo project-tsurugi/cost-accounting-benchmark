@@ -4,12 +4,12 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
+import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.statement.TgParameterList;
 import com.tsurugidb.iceaxe.statement.TgParameterMapping;
 import com.tsurugidb.iceaxe.statement.TgVariable;
@@ -92,16 +92,18 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
     }
 
     @Override
-    public Stream<CostMaster> selectOrderIid() {
+    public BigDecimal selectSumByFactory(int fId) {
         var ps = selectOrderIidCache.get();
-        return executeAndGetStream(ps);
+        var param = TgParameterList.of(vFactoryId.bind(fId));
+        return executeAndGetRecord(ps, param);
     }
 
-    private final CacheQuery<CostMaster> selectOrderIidCache = new CacheQuery<>() {
+    private final CachePreparedQuery<TgParameterList, BigDecimal> selectOrderIidCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
-            this.sql = getSelectEntitySql() + " order by c_i_id";
-            this.resultMapping = getEntityResultMapping();
+            this.sql = "select sum(c_stock_amount) from " + TABLE_NAME + " where c_f_id = " + vFactoryId;
+            this.parameterMapping = TgParameterMapping.of(vFactoryId);
+            this.resultMapping = TgResultMapping.of(record -> record.nextDecimalOrNull());
         }
     };
 

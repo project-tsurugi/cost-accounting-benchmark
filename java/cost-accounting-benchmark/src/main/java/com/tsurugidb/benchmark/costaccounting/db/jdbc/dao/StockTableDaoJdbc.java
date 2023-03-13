@@ -1,6 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.db.jdbc.dao;
 
 import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.setDate;
+import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.setInt;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,9 +21,7 @@ public class StockTableDaoJdbc extends JdbcDao<StockTable> implements StockTable
     static {
         List<JdbcColumn<StockTable, ?>> list = new ArrayList<>();
         add(list, "s_date", StockTable::setSDate, StockTable::getSDate, JdbcUtil::setDate, JdbcUtil::getDate, true);
-        add(list, "s_i_id", StockTable::setSIId, StockTable::getSIId, JdbcUtil::setInt, JdbcUtil::getInt, true);
-        add(list, "s_stock_unit", StockTable::setSStockUnit, StockTable::getSStockUnit, JdbcUtil::setString, JdbcUtil::getString);
-        add(list, "s_stock_quantity", StockTable::setSStockQuantity, StockTable::getSStockQuantity, JdbcUtil::setDecimal, JdbcUtil::getDecimal);
+        add(list, "s_f_id", StockTable::setSFId, StockTable::getSFId, JdbcUtil::setInt, JdbcUtil::getInt, true);
         add(list, "s_stock_amount", StockTable::setSStockAmount, StockTable::getSStockAmount, JdbcUtil::setDecimal, JdbcUtil::getDecimal);
         COLUMN_LIST = list;
     }
@@ -42,11 +41,12 @@ public class StockTableDaoJdbc extends JdbcDao<StockTable> implements StockTable
     }
 
     @Override
-    public int deleteByDate(LocalDate date) {
-        String sql = "delete from " + TABLE_NAME + " where " + PS_COND_DATE;
+    public int deleteByDateFactory(LocalDate date, int fId) {
+        String sql = "delete from " + TABLE_NAME + " where " + PS_COND_DATE + " and s_f_id = ?";
         return executeUpdate(sql, ps -> {
             int i = 1;
             setDate(ps, i++, date);
+            setInt(ps, i++, fId);
         });
     }
 

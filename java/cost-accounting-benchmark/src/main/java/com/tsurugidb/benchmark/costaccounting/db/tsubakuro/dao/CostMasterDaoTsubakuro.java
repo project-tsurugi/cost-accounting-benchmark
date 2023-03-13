@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
@@ -62,7 +61,7 @@ public class CostMasterDaoTsubakuro extends TsubakuroDao<CostMaster> implements 
     }
 
     @Override
-    public Stream<CostMaster> selectOrderIid() {
+    public BigDecimal selectSumByFactory(int fId) {
         throw new UnsupportedOperationException("not yet impl");
     }
 

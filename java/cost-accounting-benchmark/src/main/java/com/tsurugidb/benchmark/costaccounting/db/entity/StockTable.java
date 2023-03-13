@@ -8,23 +8,14 @@ import java.time.LocalDate;
  */
 public class StockTable implements Cloneable {
 
-    /** s_stock_quantity unsigned numeric(15, 4) */
-    public static final int S_STOCK_QUANTITY_SCALE = 4;
-
     /** s_stock_amount unsigned numeric(13, 2) */
     public static final int S_STOCK_AMOUNT_SCALE = 2;
 
     /** s_date date(8) */
     private LocalDate sDate;
 
-    /** s_i_id unique ID(9) */
-    private Integer sIId;
-
-    /** s_stock_unit variable text(5) */
-    private String sStockUnit;
-
-    /** s_stock_quantity unsigned numeric(15, 4) */
-    private BigDecimal sStockQuantity;
+    /** s_f_id unique ID(4) */
+    private Integer sFId;
 
     /** s_stock_amount unsigned numeric(13, 2) */
     private BigDecimal sStockAmount;
@@ -37,28 +28,12 @@ public class StockTable implements Cloneable {
         return this.sDate;
     }
 
-    public void setSIId(Integer value) {
-        this.sIId = value;
+    public void setSFId(Integer value) {
+        this.sFId = value;
     }
 
-    public Integer getSIId() {
-        return this.sIId;
-    }
-
-    public void setSStockUnit(String value) {
-        this.sStockUnit = value;
-    }
-
-    public String getSStockUnit() {
-        return this.sStockUnit;
-    }
-
-    public void setSStockQuantity(BigDecimal value) {
-        this.sStockQuantity = value;
-    }
-
-    public BigDecimal getSStockQuantity() {
-        return this.sStockQuantity;
+    public Integer getSFId() {
+        return this.sFId;
     }
 
     public void setSStockAmount(BigDecimal value) {
@@ -79,11 +54,11 @@ public class StockTable implements Cloneable {
     }
 
     public String toCsv(String suffix) {
-        return sDate + "," + sIId + "," + sStockUnit + "," + sStockQuantity + "," + sStockAmount + suffix;
+        return sDate + "," + sFId + "," + sStockAmount + suffix;
     }
 
     @Override
     public String toString() {
-        return "StockTable(s_date=" + sDate + ", s_i_id=" + sIId + ", s_stock_unit=" + sStockUnit + ", s_stock_quantity=" + sStockQuantity + ", s_stock_amount=" + sStockAmount + ")";
+        return "StockTable(s_date=" + sDate + ", s_f_id=" + sFId + ", s_stock_amount=" + sStockAmount + ")";
     }
 }

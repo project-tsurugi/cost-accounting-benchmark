@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
@@ -77,9 +76,12 @@ public class CostMasterDaoJdbc extends JdbcDao<CostMaster> implements CostMaster
     }
 
     @Override
-    public Stream<CostMaster> selectOrderIid() {
-        String sql = "select * from " + TABLE_NAME + " order by c_i_id";
-        return executeQueryStream(sql, null, this::newEntity);
+    public BigDecimal selectSumByFactory(int fId) {
+        String sql = "select sum(c_stock_amount) from " + TABLE_NAME + " where c_f_id = ?";
+        return executeQuery1(sql, ps -> {
+            int i = 1;
+            setInt(ps, i++, fId);
+        }, rs -> rs.getBigDecimal(1));
     }
 
     @Override

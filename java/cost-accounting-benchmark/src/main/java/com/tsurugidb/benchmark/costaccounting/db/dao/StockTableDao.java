@@ -34,10 +34,10 @@ public interface StockTableDao {
     /**
      * <pre>
      * delete from stock_table
-     * where s_date = :date
+     * where s_date = :date and s_f_id = :fId
      * </pre>
      */
-    int deleteByDate(LocalDate date);
+    int deleteByDateFactory(LocalDate date, int fId);
 
     /**
      * <pre>

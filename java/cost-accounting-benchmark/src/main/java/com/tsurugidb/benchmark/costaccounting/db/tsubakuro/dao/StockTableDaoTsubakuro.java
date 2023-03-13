@@ -17,10 +17,7 @@ public class StockTableDaoTsubakuro extends TsubakuroDao<StockTable> implements 
     static {
         List<TsubakuroColumn<StockTable, ?>> list = new ArrayList<>();
         add(list, "s_date", AtomType.DATE, StockTable::setSDate, StockTable::getSDate, TsubakuroUtil::getParameter, TsubakuroUtil::getDate, true);
-        add(list, "s_i_id", AtomType.INT4, StockTable::setSIId, StockTable::getSIId, TsubakuroUtil::getParameter, TsubakuroUtil::getInt, true);
-        add(list, "s_stock_unit", AtomType.CHARACTER, StockTable::setSStockUnit, StockTable::getSStockUnit, TsubakuroUtil::getParameter, TsubakuroUtil::getString);
-        add(list, "s_stock_quantity", AtomType.DECIMAL, StockTable::setSStockQuantity, StockTable::getSStockQuantity,
-                (name, value) -> TsubakuroUtil.getParameter(name, value, StockTable.S_STOCK_QUANTITY_SCALE), TsubakuroUtil::getDecimal);
+        add(list, "s_f_id", AtomType.INT4, StockTable::setSFId, StockTable::getSFId, TsubakuroUtil::getParameter, TsubakuroUtil::getInt, true);
         add(list, "s_stock_amount", AtomType.DECIMAL, StockTable::setSStockAmount, StockTable::getSStockAmount,
                 (name, value) -> TsubakuroUtil.getParameter(name, value, StockTable.S_STOCK_AMOUNT_SCALE), TsubakuroUtil::getDecimal);
         COLUMN_LIST = list;
@@ -41,7 +38,7 @@ public class StockTableDaoTsubakuro extends TsubakuroDao<StockTable> implements 
     }
 
     @Override
-    public int deleteByDate(LocalDate date) {
+    public int deleteByDateFactory(LocalDate date, int fId) {
         throw new UnsupportedOperationException("not yet impl");
     }
 
