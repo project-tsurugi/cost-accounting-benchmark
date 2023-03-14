@@ -329,6 +329,10 @@ public class BenchConst {
         return getPropertyInt("init.parallelism", defaultValue);
     }
 
+    public static int initTaskThreshold() {
+        return getPropertyInt("init.task.threshold", 1000);
+    }
+
     public static boolean init03MaterialCache() {
         return getPropertyBoolean("init.03.material.cache", true);
     }

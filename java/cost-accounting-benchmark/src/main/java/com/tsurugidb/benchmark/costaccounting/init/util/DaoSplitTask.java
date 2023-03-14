@@ -4,11 +4,12 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 @SuppressWarnings("serial")
 public abstract class DaoSplitTask extends RecursiveAction {
-    public static final int TASK_THRESHOLD = 10000;
+    public static final int TASK_THRESHOLD = BenchConst.initTaskThreshold();
 
     private final CostBenchDbManager dbManager;
     private final TgTmSetting setting;
