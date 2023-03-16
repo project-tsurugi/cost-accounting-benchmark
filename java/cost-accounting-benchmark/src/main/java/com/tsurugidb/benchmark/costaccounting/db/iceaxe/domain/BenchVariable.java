@@ -7,36 +7,36 @@ import java.time.LocalDate;
 
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.domain.MeasurementType;
-import com.tsurugidb.iceaxe.statement.TgVariable;
-import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableInteger;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable.TgBindVariableInteger;
 
 public class BenchVariable {
 
-    public static TgVariableInteger ofInt(String name) {
-        return TgVariable.ofInt4(name);
+    public static TgBindVariableInteger ofInt(String name) {
+        return TgBindVariable.ofInt(name);
     }
 
-    public static TgVariable<LocalDate> ofDate(String name) {
-        return TgVariable.ofDate(name);
+    public static TgBindVariable<LocalDate> ofDate(String name) {
+        return TgBindVariable.ofDate(name);
     }
 
-    public static TgVariable<String> ofString(String name) {
-        return TgVariable.ofCharacter(name);
+    public static TgBindVariable<String> ofString(String name) {
+        return TgBindVariable.ofString(name);
     }
 
-    public static TgVariable<BigDecimal> ofDecimal(String name, int scale) {
-        return TgVariable.ofDecimal(name, scale, RoundingMode.HALF_UP);
+    public static TgBindVariable<BigDecimal> ofDecimal(String name, int scale) {
+        return TgBindVariable.ofDecimal(name, scale, RoundingMode.HALF_UP);
     }
 
-    public static TgVariable<BigInteger> ofBigInt(String name) {
-        return new TgVariableBigInteger(name);
+    public static TgBindVariable<BigInteger> ofBigInt(String name) {
+        return new TgBindVariableBigInteger(name);
     }
 
-    public static TgVariable<ItemType> ofItemType(String name) {
-        return new TgVariableItemType(name);
+    public static TgBindVariable<ItemType> ofItemType(String name) {
+        return new TgBindVariableItemType(name);
     }
 
-    public static TgVariable<MeasurementType> ofMeasurementType(String name) {
-        return new TgVariableMeasurementType(name);
+    public static TgBindVariable<MeasurementType> ofMeasurementType(String name) {
+        return new TgBindVariableMeasurementType(name);
     }
 }

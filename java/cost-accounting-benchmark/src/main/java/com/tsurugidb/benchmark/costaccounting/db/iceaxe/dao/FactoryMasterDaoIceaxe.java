@@ -8,10 +8,10 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.FactoryMaster;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
-import com.tsurugidb.iceaxe.result.TgResultMapping;
-import com.tsurugidb.iceaxe.statement.TgParameterList;
-import com.tsurugidb.iceaxe.statement.TgParameterMapping;
-import com.tsurugidb.iceaxe.statement.TgVariable;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
+import com.tsurugidb.iceaxe.sql.parameter.TgParameterMapping;
+import com.tsurugidb.iceaxe.sql.result.TgResultMapping;
 
 public class FactoryMasterDaoIceaxe extends IceaxeDao<FactoryMaster> implements FactoryMasterDao {
 
@@ -52,20 +52,20 @@ public class FactoryMasterDaoIceaxe extends IceaxeDao<FactoryMaster> implements 
         @Override
         protected void initialize() {
             this.sql = "select f_id from " + TABLE_NAME;
-            this.resultMapping = TgResultMapping.of(record -> record.nextInt4OrNull());
+            this.resultMapping = TgResultMapping.of(record -> record.nextIntOrNull());
         }
     };
 
-    private final TgVariable<Integer> vFactoryId = BenchVariable.ofInt("factoryId");
+    private final TgBindVariable<Integer> vFactoryId = BenchVariable.ofInt("factoryId");
 
     @Override
     public FactoryMaster selectById(int factoryId) {
         var ps = selectByIdCache.get();
-        var param = TgParameterList.of(vFactoryId.bind(factoryId));
-        return executeAndGetRecord(ps, param);
+        var parameter = TgBindParameters.of(vFactoryId.bind(factoryId));
+        return executeAndGetRecord(ps, parameter);
     }
 
-    private final CachePreparedQuery<TgParameterList, FactoryMaster> selectByIdCache = new CachePreparedQuery<>() {
+    private final CachePreparedQuery<TgBindParameters, FactoryMaster> selectByIdCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
             this.sql = getSelectEntitySql() + " where f_id = " + vFactoryId;

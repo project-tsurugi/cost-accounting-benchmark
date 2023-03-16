@@ -19,7 +19,6 @@ import com.tsurugidb.benchmark.costaccounting.debug.iceaxe_dbtest.DebugInsertDup
 import com.tsurugidb.benchmark.costaccounting.debug.iceaxe_dbtest.DebugSelectFetch;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.TsurugiConnector;
-import com.tsurugidb.iceaxe.session.TgSessionInfo;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
@@ -82,13 +81,12 @@ public class DebugCommand implements ExecutableCommand {
     private void debug(boolean sqlClient, boolean transaction) throws IOException {
         var endpoint = BenchConst.tsurugiEndpoint();
         LOG.info("endpoint={}", endpoint);
-        var connector = TsurugiConnector.createConnector(endpoint);
-        var info = TgSessionInfo.of();
+        var connector = TsurugiConnector.of(endpoint);
 
         LOG.info("create session start");
         var list = new ArrayList<TsurugiSession>();
         for (int i = 0; i < 60; i++) {
-            var session = connector.createSession(info);
+            var session = connector.createSession();
             list.add(session);
 
             if (sqlClient) {
@@ -271,14 +269,13 @@ public class DebugCommand implements ExecutableCommand {
     private void sessionLimit() throws IOException {
         var endpoint = BenchConst.tsurugiEndpoint();
         LOG.info("endpoint={}", endpoint);
-        var connector = TsurugiConnector.createConnector(endpoint);
+        var connector = TsurugiConnector.of(endpoint);
 
         var sessionList = new ArrayList<TsurugiSession>();
         try {
             for (int i = 1;; i++) {
                 LOG.info("create session {}", i);
-                var info = TgSessionInfo.of();
-                var session = connector.createSession(info);
+                var session = connector.createSession();
                 sessionList.add(session);
 
                 session.getLowSqlClient();

@@ -10,13 +10,13 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.StockTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockTable;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
-import com.tsurugidb.iceaxe.statement.TgParameterList;
-import com.tsurugidb.iceaxe.statement.TgParameterMapping;
-import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableInteger;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable.TgBindVariableInteger;
+import com.tsurugidb.iceaxe.sql.parameter.TgParameterMapping;
 
 public class StockTableDaoIceaxe extends IceaxeDao<StockTable> implements StockTableDao {
 
-    private static final TgVariableInteger S_F_ID = BenchVariable.ofInt("s_f_id");
+    private static final TgBindVariableInteger S_F_ID = BenchVariable.ofInt("s_f_id");
     private static final List<IceaxeColumn<StockTable, ?>> COLUMN_LIST;
     static {
         List<IceaxeColumn<StockTable, ?>> list = new ArrayList<>();
@@ -40,16 +40,16 @@ public class StockTableDaoIceaxe extends IceaxeDao<StockTable> implements StockT
         return doDeleteAll();
     }
 
-    private static final TgVariableInteger vFactoryId = S_F_ID.copy("fId");
+    private static final TgBindVariableInteger vFactoryId = S_F_ID.clone("fId");
 
     @Override
     public int deleteByDateFactory(LocalDate date, int fId) {
         var ps = deleteByDateCache.get();
-        var param = TgParameterList.of(vDate.bind(date), vFactoryId.bind(fId));
-        return executeAndGetCount(ps, param);
+        var parameter = TgBindParameters.of(vDate.bind(date), vFactoryId.bind(fId));
+        return executeAndGetCount(ps, parameter);
     }
 
-    private final CachePreparedStatement<TgParameterList> deleteByDateCache = new CachePreparedStatement<>() {
+    private final CachePreparedStatement<TgBindParameters> deleteByDateCache = new CachePreparedStatement<>() {
         @Override
         protected void initialize() {
             this.sql = "delete from " + TABLE_NAME + " where " + TG_COND_DATE + " and s_f_id = " + vFactoryId;

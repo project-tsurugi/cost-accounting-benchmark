@@ -17,16 +17,16 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.ItemConstructionMasterKe
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
-import com.tsurugidb.iceaxe.result.TgResultMapping;
-import com.tsurugidb.iceaxe.statement.TgParameterList;
-import com.tsurugidb.iceaxe.statement.TgParameterMapping;
-import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableInteger;
-import com.tsurugidb.iceaxe.statement.TgVariableList;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable.TgBindVariableInteger;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariables;
+import com.tsurugidb.iceaxe.sql.parameter.TgParameterMapping;
+import com.tsurugidb.iceaxe.sql.result.TgResultMapping;
 
 public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionMaster> implements ItemConstructionMasterDao {
 
-    private static final TgVariableInteger IC_PARENT_I_ID = BenchVariable.ofInt("ic_parent_i_id");
-    private static final TgVariableInteger IC_I_ID = BenchVariable.ofInt("ic_i_id");
+    private static final TgBindVariableInteger IC_PARENT_I_ID = BenchVariable.ofInt("ic_parent_i_id");
+    private static final TgBindVariableInteger IC_I_ID = BenchVariable.ofInt("ic_i_id");
     private static final List<IceaxeColumn<ItemConstructionMaster, ?>> COLUMN_LIST;
     static {
         List<IceaxeColumn<ItemConstructionMaster, ?>> list = new ArrayList<>();
@@ -69,11 +69,11 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
     @Override
     public List<ItemConstructionMaster> selectAll(LocalDate date) {
         var ps = selectAllCache.get();
-        var param = TgParameterList.of(vDate.bind(date));
-        return executeAndGetList(ps, param);
+        var parameter = TgBindParameters.of(vDate.bind(date));
+        return executeAndGetList(ps, parameter);
     }
 
-    private final CachePreparedQuery<TgParameterList, ItemConstructionMaster> selectAllCache = new CachePreparedQuery<>() {
+    private final CachePreparedQuery<TgBindParameters, ItemConstructionMaster> selectAllCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
             this.sql = getSelectEntitySql() + " where " + TG_COND_DATE + " order by ic_parent_i_id, ic_i_id";
@@ -85,31 +85,31 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
     @Override
     public List<ItemConstructionMasterIds> selectIds(LocalDate date) {
         var ps = selectIdsCache.get();
-        var param = TgParameterList.of(vDate.bind(date));
-        return executeAndGetList(ps, param);
+        var parameter = TgBindParameters.of(vDate.bind(date));
+        return executeAndGetList(ps, parameter);
     }
 
-    private final CachePreparedQuery<TgParameterList, ItemConstructionMasterIds> selectIdsCache = new CachePreparedQuery<>() {
+    private final CachePreparedQuery<TgBindParameters, ItemConstructionMasterIds> selectIdsCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
             this.sql = "select ic_parent_i_id, ic_i_id from " + TABLE_NAME + " where " + TG_COND_DATE + " order by ic_parent_i_id, ic_i_id";
             this.parameterMapping = TgParameterMapping.of(vDate);
             this.resultMapping = TgResultMapping.of(ItemConstructionMasterIds::new) //
-                    .int4(ItemConstructionMasterIds::setIcParentIId) //
-                    .int4(ItemConstructionMasterIds::setIcIId);
+                    .addInt(ItemConstructionMasterIds::setIcParentIId) //
+                    .addInt(ItemConstructionMasterIds::setIcIId);
         }
     };
 
-    private static final TgVariableInteger vParentId = IC_PARENT_I_ID.copy("parentId");
+    private static final TgBindVariableInteger vParentId = IC_PARENT_I_ID.clone("parentId");
 
     @Override
     public List<ItemConstructionMaster> selectByParentId(int parentId, LocalDate date) {
         var ps = selectByParentIdCache.get();
-        var param = TgParameterList.of(vParentId.bind(parentId), vDate.bind(date));
-        return executeAndGetList(ps, param);
+        var parameter = TgBindParameters.of(vParentId.bind(parentId), vDate.bind(date));
+        return executeAndGetList(ps, parameter);
     }
 
-    private final CachePreparedQuery<TgParameterList, ItemConstructionMaster> selectByParentIdCache = new CachePreparedQuery<>() {
+    private final CachePreparedQuery<TgBindParameters, ItemConstructionMaster> selectByParentIdCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
             this.sql = getSelectEntitySql() + " where ic_parent_i_id = " + vParentId + " and " + TG_COND_DATE + " order by ic_i_id";
@@ -118,16 +118,16 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
         }
     };
 
-    private static final TgVariableInteger vItemId = IC_I_ID.copy("itemId");
+    private static final TgBindVariableInteger vItemId = IC_I_ID.clone("itemId");
 
     @Override
     public ItemConstructionMaster selectById(int parentId, int itemId, LocalDate date) {
         var ps = selectByIdCache.get();
-        var param = TgParameterList.of(vParentId.bind(parentId), vItemId.bind(itemId), vDate.bind(date));
-        return executeAndGetRecord(ps, param);
+        var parameter = TgBindParameters.of(vParentId.bind(parentId), vItemId.bind(itemId), vDate.bind(date));
+        return executeAndGetRecord(ps, parameter);
     }
 
-    private final CachePreparedQuery<TgParameterList, ItemConstructionMaster> selectByIdCache = new CachePreparedQuery<>() {
+    private final CachePreparedQuery<TgBindParameters, ItemConstructionMaster> selectByIdCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
             this.sql = getSelectEntitySql() + " where ic_parent_i_id = " + vParentId + " and ic_i_id = " + vItemId + " and " + TG_COND_DATE;
@@ -143,18 +143,18 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
 
     @Override
     public List<ItemConstructionMasterKey> selectByItemType(LocalDate date, List<ItemType> typeList) {
-        var vlist = TgVariableList.of();
-        vlist.add(vDate);
-        var param = TgParameterList.of();
-        param.add(vDate.bind(date));
+        var variables = TgBindVariables.of();
+        variables.add(vDate);
+        var parameter = TgBindParameters.of();
+        parameter.add(vDate.bind(date));
 
         var inSql = new SqlIn("i_type");
         int i = 0;
         for (var type : typeList) {
             var variable = BenchVariable.ofItemType("t" + (i++));
-            vlist.add(variable);
+            variables.add(variable);
             inSql.add(variable);
-            param.add(variable.bind(type));
+            parameter.add(variable.bind(type));
         }
 
         var sql = "select ic_parent_i_id, ic_i_id, ic_effective_date" //
@@ -163,14 +163,14 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
                 + " where " + TG_COND_DATE //
                 + " and " + inSql //
         ;
-        var parameterMapping = TgParameterMapping.of(vlist);
+        var parameterMapping = TgParameterMapping.of(variables);
         var resultMapping = TgResultMapping.of(ItemConstructionMasterKey::new) //
-                .int4(ItemConstructionMasterKey::setIcParentIId) //
-                .int4(ItemConstructionMasterKey::setIcIId) //
-                .date(ItemConstructionMasterKey::setIcEffectiveDate);
+                .addInt(ItemConstructionMasterKey::setIcParentIId) //
+                .addInt(ItemConstructionMasterKey::setIcIId) //
+                .addDate(ItemConstructionMasterKey::setIcEffectiveDate);
         var session = getSession();
-        try (var ps = session.createPreparedQuery(sql, parameterMapping, resultMapping)) {
-            return executeAndGetList(ps, param);
+        try (var ps = session.createQuery(sql, parameterMapping, resultMapping)) {
+            return executeAndGetList(ps, parameter);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

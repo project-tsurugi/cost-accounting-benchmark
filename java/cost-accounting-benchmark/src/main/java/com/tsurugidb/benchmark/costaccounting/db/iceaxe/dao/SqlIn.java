@@ -1,7 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao;
 
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
-import com.tsurugidb.iceaxe.statement.TgVariable;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 
 public class SqlIn {
 
@@ -12,7 +12,7 @@ public class SqlIn {
         this.columnName = columnName;
     }
 
-    public void add(TgVariable<?> variable) {
+    public void add(TgBindVariable<?> variable) {
         var sqlName = variable.sqlName();
         add(sqlName);
     }

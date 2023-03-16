@@ -25,19 +25,19 @@ import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.IceaxeColumn.RecordGetter;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
-import com.tsurugidb.iceaxe.explain.TgStatementMetadata;
-import com.tsurugidb.iceaxe.result.TgEntityResultMapping;
-import com.tsurugidb.iceaxe.result.TgResultMapping;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
-import com.tsurugidb.iceaxe.statement.TgEntityParameterMapping;
-import com.tsurugidb.iceaxe.statement.TgParameterList;
-import com.tsurugidb.iceaxe.statement.TgParameterMapping;
-import com.tsurugidb.iceaxe.statement.TgVariable;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery0;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery1;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate0;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate1;
-import com.tsurugidb.iceaxe.statement.TsurugiSql;
+import com.tsurugidb.iceaxe.sql.TsurugiSql;
+import com.tsurugidb.iceaxe.sql.TsurugiSqlPreparedQuery;
+import com.tsurugidb.iceaxe.sql.TsurugiSqlPreparedStatement;
+import com.tsurugidb.iceaxe.sql.TsurugiSqlQuery;
+import com.tsurugidb.iceaxe.sql.TsurugiSqlStatement;
+import com.tsurugidb.iceaxe.sql.explain.TgStatementMetadata;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
+import com.tsurugidb.iceaxe.sql.parameter.TgParameterMapping;
+import com.tsurugidb.iceaxe.sql.parameter.mapping.TgEntityParameterMapping;
+import com.tsurugidb.iceaxe.sql.result.TgResultMapping;
+import com.tsurugidb.iceaxe.sql.result.mapping.TgEntityResultMapping;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionRuntimeException;
@@ -53,11 +53,11 @@ public abstract class IceaxeDao<E> {
     private final List<IceaxeColumn<E, ?>> columnList;
     private final Supplier<E> entitySupplier;
 
-    protected static <E, T> void add(List<IceaxeColumn<E, ?>> list, TgVariable<T> variable, BiConsumer<E, T> entitySetter, Function<E, T> entityGetter, RecordGetter<T> recordGetter) {
+    protected static <E, T> void add(List<IceaxeColumn<E, ?>> list, TgBindVariable<T> variable, BiConsumer<E, T> entitySetter, Function<E, T> entityGetter, RecordGetter<T> recordGetter) {
         add(list, variable, entitySetter, entityGetter, recordGetter, false);
     }
 
-    protected static <E, T> void add(List<IceaxeColumn<E, ?>> list, TgVariable<T> variable, BiConsumer<E, T> entitySetter, Function<E, T> entityGetter, RecordGetter<T> recordGetter,
+    protected static <E, T> void add(List<IceaxeColumn<E, ?>> list, TgBindVariable<T> variable, BiConsumer<E, T> entitySetter, Function<E, T> entityGetter, RecordGetter<T> recordGetter,
             boolean primaryKey) {
         list.add(new IceaxeColumn<>(variable, entitySetter, entityGetter, recordGetter, primaryKey));
     }
@@ -86,7 +86,7 @@ public abstract class IceaxeDao<E> {
     protected final int doDeleteAll() {
         var sql = "delete from " + tableName;
         var session = getSession();
-        try (var ps = session.createPreparedStatement(sql)) {
+        try (var ps = session.createStatement(sql)) {
             var transaction = getTransaction();
             return transaction.executeAndGetCount(ps);
         } catch (IOException e) {
@@ -236,20 +236,20 @@ public abstract class IceaxeDao<E> {
         protected abstract S generate(TsurugiSession session) throws IOException;
     }
 
-    protected abstract class CacheStatement extends AbstractCache<TsurugiPreparedStatementUpdate0> {
+    protected abstract class CacheStatement extends AbstractCache<TsurugiSqlStatement> {
 
         @Override
-        protected TsurugiPreparedStatementUpdate0 generate(TsurugiSession session) throws IOException {
-            return session.createPreparedStatement(sql);
+        protected TsurugiSqlStatement generate(TsurugiSession session) throws IOException {
+            return session.createStatement(sql);
         }
     }
 
-    protected abstract class CachePreparedStatement<P> extends AbstractCache<TsurugiPreparedStatementUpdate1<P>> {
+    protected abstract class CachePreparedStatement<P> extends AbstractCache<TsurugiSqlPreparedStatement<P>> {
         protected TgParameterMapping<P> parameterMapping;
 
         @Override
-        protected TsurugiPreparedStatementUpdate1<P> generate(TsurugiSession session) throws IOException {
-            return session.createPreparedStatement(sql, parameterMapping);
+        protected TsurugiSqlPreparedStatement<P> generate(TsurugiSession session) throws IOException {
+            return session.createStatement(sql, parameterMapping);
         }
     }
 
@@ -260,7 +260,7 @@ public abstract class IceaxeDao<E> {
         }
     }
 
-    protected final <P> int executeAndGetCount(TsurugiPreparedStatementUpdate1<P> ps, P parameter) {
+    protected final <P> int executeAndGetCount(TsurugiSqlPreparedStatement<P> ps, P parameter) {
         debugExplain(ps, () -> ps.explain(parameter));
         try {
             var transaction = getTransaction();
@@ -289,16 +289,16 @@ public abstract class IceaxeDao<E> {
         return false;
     }
 
-    protected abstract class CacheQuery<R> extends AbstractCache<TsurugiPreparedStatementQuery0<R>> {
+    protected abstract class CacheQuery<R> extends AbstractCache<TsurugiSqlQuery<R>> {
         protected TgResultMapping<R> resultMapping;
 
         @Override
-        protected TsurugiPreparedStatementQuery0<R> generate(TsurugiSession session) throws IOException {
-            return session.createPreparedQuery(sql, resultMapping);
+        protected TsurugiSqlQuery<R> generate(TsurugiSession session) throws IOException {
+            return session.createQuery(sql, resultMapping);
         }
     }
 
-    protected final <R> List<R> executeAndGetList(TsurugiPreparedStatementQuery0<R> ps) {
+    protected final <R> List<R> executeAndGetList(TsurugiSqlQuery<R> ps) {
 //        debugExplain(ps.getSql(), () -> ps.explain());
         try {
             var transaction = getTransaction();
@@ -318,17 +318,17 @@ public abstract class IceaxeDao<E> {
         }
     }
 
-    protected abstract class CachePreparedQuery<P, R> extends AbstractCache<TsurugiPreparedStatementQuery1<P, R>> {
+    protected abstract class CachePreparedQuery<P, R> extends AbstractCache<TsurugiSqlPreparedQuery<P, R>> {
         protected TgParameterMapping<P> parameterMapping;
         protected TgResultMapping<R> resultMapping;
 
         @Override
-        protected TsurugiPreparedStatementQuery1<P, R> generate(TsurugiSession session) throws IOException {
-            return session.createPreparedQuery(sql, parameterMapping, resultMapping);
+        protected TsurugiSqlPreparedQuery<P, R> generate(TsurugiSession session) throws IOException {
+            return session.createQuery(sql, parameterMapping, resultMapping);
         }
     }
 
-    protected final <R> R executeAndGetRecord(TsurugiPreparedStatementQuery0<R> ps) {
+    protected final <R> R executeAndGetRecord(TsurugiSqlQuery<R> ps) {
 //        debugExplain(ps.getSql(), () -> ps.explain());
         try {
             var transaction = getTransaction();
@@ -341,7 +341,7 @@ public abstract class IceaxeDao<E> {
         }
     }
 
-    protected final <P, R> R executeAndGetRecord(TsurugiPreparedStatementQuery1<P, R> ps, P parameter) {
+    protected final <P, R> R executeAndGetRecord(TsurugiSqlPreparedQuery<P, R> ps, P parameter) {
         debugExplain(ps, () -> ps.explain(parameter));
         try {
             var transaction = getTransaction();
@@ -354,7 +354,7 @@ public abstract class IceaxeDao<E> {
         }
     }
 
-    protected final <P, R> List<R> executeAndGetList(TsurugiPreparedStatementQuery1<P, R> ps, P parameter) {
+    protected final <P, R> List<R> executeAndGetList(TsurugiSqlPreparedQuery<P, R> ps, P parameter) {
         debugExplain(ps, () -> ps.explain(parameter));
         try {
             var transaction = getTransaction();
@@ -367,7 +367,7 @@ public abstract class IceaxeDao<E> {
         }
     }
 
-    protected final <R> Stream<R> executeAndGetStream(TsurugiPreparedStatementQuery0<R> ps) {
+    protected final <R> Stream<R> executeAndGetStream(TsurugiSqlQuery<R> ps) {
         debugExplain(ps, () -> ps.explain());
         try {
             var transaction = getTransaction();
@@ -389,7 +389,7 @@ public abstract class IceaxeDao<E> {
         }
     }
 
-    protected final <P, R> Stream<R> executeAndGetStream(TsurugiPreparedStatementQuery1<P, R> ps, P parameter) {
+    protected final <P, R> Stream<R> executeAndGetStream(TsurugiSqlPreparedQuery<P, R> ps, P parameter) {
         debugExplain(ps, () -> ps.explain(parameter));
         try {
             var transaction = getTransaction();
@@ -450,10 +450,10 @@ public abstract class IceaxeDao<E> {
         var sql = getSelectEntitySql() + " order by " + key;
         var resultMapping = getEntityResultMapping();
         var session = getSession();
-        try (var ps = session.createPreparedQuery(sql, TgParameterMapping.of(), resultMapping)) {
+        try (var ps = session.createQuery(sql, TgParameterMapping.of(), resultMapping)) {
             var transaction = getTransaction();
             try {
-                transaction.executeForEach(ps, TgParameterList.of(), entity -> entityConsumer.accept(entity));
+                transaction.executeForEach(ps, TgBindParameters.of(), entity -> entityConsumer.accept(entity));
             } catch (TsurugiTransactionException e) {
                 throw new TsurugiTransactionRuntimeException(e);
             }

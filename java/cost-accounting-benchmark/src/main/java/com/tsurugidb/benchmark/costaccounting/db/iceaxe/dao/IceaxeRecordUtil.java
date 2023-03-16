@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.domain.MeasurementType;
-import com.tsurugidb.iceaxe.result.TsurugiResultRecord;
+import com.tsurugidb.iceaxe.sql.result.TsurugiResultRecord;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 
 public class IceaxeRecordUtil {
@@ -15,7 +15,7 @@ public class IceaxeRecordUtil {
     // get from ResultRecord
 
     public static Integer getInt(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
-        return record.nextInt4OrNull();
+        return record.nextIntOrNull();
     }
 
     public static BigInteger getBigInt(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
@@ -32,7 +32,7 @@ public class IceaxeRecordUtil {
     }
 
     public static String getString(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
-        return record.nextCharacterOrNull();
+        return record.nextStringOrNull();
     }
 
     public static MeasurementType getMeasurementType(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {

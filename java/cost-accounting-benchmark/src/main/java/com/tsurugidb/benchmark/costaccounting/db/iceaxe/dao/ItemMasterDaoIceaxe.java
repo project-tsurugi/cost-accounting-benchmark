@@ -16,17 +16,17 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
-import com.tsurugidb.iceaxe.result.TgResultMapping;
-import com.tsurugidb.iceaxe.statement.TgParameterList;
-import com.tsurugidb.iceaxe.statement.TgParameterMapping;
-import com.tsurugidb.iceaxe.statement.TgVariable;
-import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableInteger;
-import com.tsurugidb.iceaxe.statement.TgVariableList;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable.TgBindVariableInteger;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariables;
+import com.tsurugidb.iceaxe.sql.parameter.TgParameterMapping;
+import com.tsurugidb.iceaxe.sql.result.TgResultMapping;
 
 public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMasterDao {
 
-    private static final TgVariableInteger I_ID = BenchVariable.ofInt("i_id");
-    private static final TgVariable<ItemType> I_TYPE = BenchVariable.ofItemType("i_type");
+    private static final TgBindVariableInteger I_ID = BenchVariable.ofInt("i_id");
+    private static final TgBindVariable<ItemType> I_TYPE = BenchVariable.ofItemType("i_type");
     private static final List<IceaxeColumn<ItemMaster, ?>> COLUMN_LIST;
     static {
         List<IceaxeColumn<ItemMaster, ?>> list = new ArrayList<>();
@@ -68,25 +68,25 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
             return selectByIdsWorkaround(ids, date);
         }
 
-        var vlist = TgVariableList.of();
+        var variables = TgBindVariables.of();
         var inSql = new SqlIn(I_ID.name());
-        var param = TgParameterList.of();
+        var parameter = TgBindParameters.of();
         int i = 0;
         for (int id : ids) {
-            var variable = I_ID.copy("id" + (i++));
-            vlist.add(variable);
+            var variable = I_ID.clone("id" + (i++));
+            variables.add(variable);
             inSql.add(variable);
-            param.add(variable.bind(id));
+            parameter.add(variable.bind(id));
         }
-        vlist.add(vDate);
-        param.add(vDate.bind(date));
+        variables.add(vDate);
+        parameter.add(vDate.bind(date));
 
         var sql = getSelectEntitySql() + " where " + inSql + " and " + TG_COND_DATE + " order by i_id";
-        var parameterMapping = TgParameterMapping.of(vlist);
+        var parameterMapping = TgParameterMapping.of(variables);
         var resultMapping = getEntityResultMapping();
         var session = getSession();
-        try (var ps = session.createPreparedQuery(sql, parameterMapping, resultMapping)) {
-            return executeAndGetList(ps, param);
+        try (var ps = session.createQuery(sql, parameterMapping, resultMapping)) {
+            return executeAndGetList(ps, parameter);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -97,15 +97,15 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
 
         var result = new ArrayList<ItemMaster>();
         for (int id : ids) {
-            var param = TgParameterList.of(vId.bind(id), vDate.bind(date));
-            var r = executeAndGetList(ps, param);
+            var parameter = TgBindParameters.of(vId.bind(id), vDate.bind(date));
+            var r = executeAndGetList(ps, parameter);
             result.addAll(r);
         }
         Collections.sort(result, Comparator.comparing(ItemMaster::getIId));
         return result;
     }
 
-    private final CachePreparedQuery<TgParameterList, ItemMaster> selectByIdsWorkaroundCache = new CachePreparedQuery<>() {
+    private final CachePreparedQuery<TgBindParameters, ItemMaster> selectByIdsWorkaroundCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
             this.sql = getSelectEntitySql() + " where i_id=" + vId + " and " + TG_COND_DATE;
@@ -114,16 +114,16 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
         }
     };
 
-    private static final TgVariable<ItemType> vType = I_TYPE.copy("type");
+    private static final TgBindVariable<ItemType> vType = I_TYPE.clone("type");
 
     @Override
     public Stream<ItemMaster> selectByType(LocalDate date, ItemType type) {
         var ps = selectByTypeCache.get();
-        var param = TgParameterList.of(vDate.bind(date), vType.bind(type));
-        return executeAndGetStream(ps, param);
+        var parameter = TgBindParameters.of(vDate.bind(date), vType.bind(type));
+        return executeAndGetStream(ps, parameter);
     }
 
-    private final CachePreparedQuery<TgParameterList, ItemMaster> selectByTypeCache = new CachePreparedQuery<>() {
+    private final CachePreparedQuery<TgBindParameters, ItemMaster> selectByTypeCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
             this.sql = getSelectEntitySql() + " where " + TG_COND_DATE + " and i_type = " + vType;
@@ -135,16 +135,16 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
     @Override
     public List<Integer> selectIdByType(LocalDate date, ItemType type) {
         var ps = selectIdByTypeCache.get();
-        var param = TgParameterList.of(vDate.bind(date), vType.bind(type));
-        return executeAndGetList(ps, param);
+        var parameter = TgBindParameters.of(vDate.bind(date), vType.bind(type));
+        return executeAndGetList(ps, parameter);
     }
 
-    private final CachePreparedQuery<TgParameterList, Integer> selectIdByTypeCache = new CachePreparedQuery<>() {
+    private final CachePreparedQuery<TgBindParameters, Integer> selectIdByTypeCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
             this.sql = "select i_id from " + TABLE_NAME + " where " + TG_COND_DATE + " and i_type = " + vType;
             this.parameterMapping = TgParameterMapping.of(vDate, vType);
-            this.resultMapping = TgResultMapping.of(record -> record.nextInt4());
+            this.resultMapping = TgResultMapping.of(record -> record.nextInt());
         }
     };
 
@@ -163,20 +163,20 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
         @Override
         protected void initialize() {
             this.sql = "select max(i_id) + 1 from " + TABLE_NAME;
-            this.resultMapping = TgResultMapping.of(record -> record.nextInt4());
+            this.resultMapping = TgResultMapping.of(record -> record.nextInt());
         }
     };
 
-    private static final TgVariableInteger vId = I_ID.copy("id");
+    private static final TgBindVariableInteger vId = I_ID.clone("id");
 
     @Override
     public ItemMaster selectByKey(int id, LocalDate date) {
         var ps = selectByKeyCache.get();
-        var param = TgParameterList.of(vId.bind(id), vDate.bind(date));
-        return executeAndGetRecord(ps, param);
+        var parameter = TgBindParameters.of(vId.bind(id), vDate.bind(date));
+        return executeAndGetRecord(ps, parameter);
     }
 
-    private final CachePreparedQuery<TgParameterList, ItemMaster> selectByKeyCache = new CachePreparedQuery<>() {
+    private final CachePreparedQuery<TgBindParameters, ItemMaster> selectByKeyCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
             this.sql = getSelectEntitySql() + " where i_id = " + vId + " and i_effective_date = " + vDate;
@@ -188,11 +188,11 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
     @Override
     public ItemMaster selectById(int id, LocalDate date) {
         var ps = selectByIdCache.get();
-        var param = TgParameterList.of(vId.bind(id), vDate.bind(date));
-        return executeAndGetRecord(ps, param);
+        var parameter = TgBindParameters.of(vId.bind(id), vDate.bind(date));
+        return executeAndGetRecord(ps, parameter);
     }
 
-    private final CachePreparedQuery<TgParameterList, ItemMaster> selectByIdCache = new CachePreparedQuery<>() {
+    private final CachePreparedQuery<TgBindParameters, ItemMaster> selectByIdCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
             this.sql = getSelectEntitySql() + " where i_id = " + vId + " and " + TG_COND_DATE;

@@ -9,7 +9,7 @@ import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.SqlBetween;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
-import com.tsurugidb.iceaxe.statement.TgVariable;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 
 public interface ItemMasterDao {
 
@@ -17,7 +17,7 @@ public interface ItemMasterDao {
 
     public static final String PS_COND_DATE = "? between i_effective_date and i_expired_date";
 
-    public static final TgVariable<LocalDate> vDate = BenchVariable.ofDate("date");
+    public static final TgBindVariable<LocalDate> vDate = BenchVariable.ofDate("date");
     public static final String TG_COND_DATE = new SqlBetween(vDate, "i_effective_date", "i_expired_date").toString();
 
     /**

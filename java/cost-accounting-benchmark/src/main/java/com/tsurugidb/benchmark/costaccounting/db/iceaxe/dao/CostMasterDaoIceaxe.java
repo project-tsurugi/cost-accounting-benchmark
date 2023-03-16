@@ -9,16 +9,16 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
-import com.tsurugidb.iceaxe.result.TgResultMapping;
-import com.tsurugidb.iceaxe.statement.TgParameterList;
-import com.tsurugidb.iceaxe.statement.TgParameterMapping;
-import com.tsurugidb.iceaxe.statement.TgVariable;
-import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableInteger;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable.TgBindVariableInteger;
+import com.tsurugidb.iceaxe.sql.parameter.TgParameterMapping;
+import com.tsurugidb.iceaxe.sql.result.TgResultMapping;
 
 public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMasterDao {
 
-    private static final TgVariableInteger C_F_ID = BenchVariable.ofInt("c_f_id");
-    private static final TgVariableInteger C_I_ID = BenchVariable.ofInt("c_i_id");
+    private static final TgBindVariableInteger C_F_ID = BenchVariable.ofInt("c_f_id");
+    private static final TgBindVariableInteger C_I_ID = BenchVariable.ofInt("c_i_id");
     private static final List<IceaxeColumn<CostMaster, ?>> COLUMN_LIST;
     static {
         List<IceaxeColumn<CostMaster, ?>> list = new ArrayList<>();
@@ -49,16 +49,16 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
         return doInsert(entity);
     }
 
-    private static final TgVariableInteger vFactoryId = C_F_ID.copy("fId");
+    private static final TgBindVariableInteger vFactoryId = C_F_ID.clone("fId");
 
     @Override
     public List<CostMaster> selectByFactory(int fId) {
         var ps = selectByFactoryCache.get();
-        var param = TgParameterList.of(vFactoryId.bind(fId));
-        return executeAndGetList(ps, param);
+        var parameter = TgBindParameters.of(vFactoryId.bind(fId));
+        return executeAndGetList(ps, parameter);
     }
 
-    private final CachePreparedQuery<TgParameterList, CostMaster> selectByFactoryCache = new CachePreparedQuery<>() {
+    private final CachePreparedQuery<TgBindParameters, CostMaster> selectByFactoryCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
             this.sql = getSelectEntitySql() + " where c_f_id = " + vFactoryId;
@@ -67,16 +67,16 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
         }
     };
 
-    private static final TgVariableInteger vItemId = C_I_ID.copy("iId");
+    private static final TgBindVariableInteger vItemId = C_I_ID.clone("iId");
 
     @Override
     public CostMaster selectById(int fId, int iId) {
         var ps = selectByIdCache.get();
-        var param = TgParameterList.of(vFactoryId.bind(fId), vItemId.bind(iId));
-        return executeAndGetRecord(ps, param);
+        var parameter = TgBindParameters.of(vFactoryId.bind(fId), vItemId.bind(iId));
+        return executeAndGetRecord(ps, parameter);
     }
 
-    private final CachePreparedQuery<TgParameterList, CostMaster> selectByIdCache = new CachePreparedQuery<>() {
+    private final CachePreparedQuery<TgBindParameters, CostMaster> selectByIdCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
             this.sql = getSelectEntitySql() + " where c_f_id = " + vFactoryId + " and c_i_id = " + vItemId;
@@ -94,11 +94,11 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
     @Override
     public BigDecimal selectSumByFactory(int fId) {
         var ps = selectOrderIidCache.get();
-        var param = TgParameterList.of(vFactoryId.bind(fId));
-        return executeAndGetRecord(ps, param);
+        var parameter = TgBindParameters.of(vFactoryId.bind(fId));
+        return executeAndGetRecord(ps, parameter);
     }
 
-    private final CachePreparedQuery<TgParameterList, BigDecimal> selectOrderIidCache = new CachePreparedQuery<>() {
+    private final CachePreparedQuery<TgBindParameters, BigDecimal> selectOrderIidCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
             this.sql = "select sum(c_stock_amount) from " + TABLE_NAME + " where c_f_id = " + vFactoryId;
@@ -107,17 +107,17 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
         }
     };
 
-    private static final TgVariable<BigDecimal> vQuantity = BenchVariable.ofDecimal("quantity", CostMaster.C_STOCK_QUANTITY_SCALE);
-    private static final TgVariable<BigDecimal> vAmount = BenchVariable.ofDecimal("amount", CostMaster.C_STOCK_AMOUNT_SCALE);
+    private static final TgBindVariable<BigDecimal> vQuantity = BenchVariable.ofDecimal("quantity", CostMaster.C_STOCK_QUANTITY_SCALE);
+    private static final TgBindVariable<BigDecimal> vAmount = BenchVariable.ofDecimal("amount", CostMaster.C_STOCK_AMOUNT_SCALE);
 
     @Override
     public int updateIncrease(CostMaster entity, BigDecimal quantity, BigDecimal amount) {
         var ps = updateIncreaseCache.get();
-        var param = TgParameterList.of(vFactoryId.bind(entity.getCFId()), vItemId.bind(entity.getCIId()), vQuantity.bind(quantity), vAmount.bind(amount));
-        return executeAndGetCount(ps, param);
+        var parameter = TgBindParameters.of(vFactoryId.bind(entity.getCFId()), vItemId.bind(entity.getCIId()), vQuantity.bind(quantity), vAmount.bind(amount));
+        return executeAndGetCount(ps, parameter);
     }
 
-    private final CachePreparedStatement<TgParameterList> updateIncreaseCache = new CachePreparedStatement<>() {
+    private final CachePreparedStatement<TgBindParameters> updateIncreaseCache = new CachePreparedStatement<>() {
         @Override
         protected void initialize() {
             this.sql = "update " + TABLE_NAME + " set" //
@@ -131,11 +131,11 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
     @Override
     public int updateDecrease(CostMaster entity, BigDecimal quantity) {
         var ps = updateDecreaseCache.get();
-        var param = TgParameterList.of(vFactoryId.bind(entity.getCFId()), vItemId.bind(entity.getCIId()), vQuantity.bind(quantity));
-        return executeAndGetCount(ps, param);
+        var parameter = TgBindParameters.of(vFactoryId.bind(entity.getCFId()), vItemId.bind(entity.getCIId()), vQuantity.bind(quantity));
+        return executeAndGetCount(ps, parameter);
     }
 
-    private final CachePreparedStatement<TgParameterList> updateDecreaseCache = new CachePreparedStatement<>() {
+    private final CachePreparedStatement<TgBindParameters> updateDecreaseCache = new CachePreparedStatement<>() {
         @Override
         protected void initialize() {
             String stockAmountType = "decimal(15," + CostMaster.C_STOCK_AMOUNT_SCALE + ")";

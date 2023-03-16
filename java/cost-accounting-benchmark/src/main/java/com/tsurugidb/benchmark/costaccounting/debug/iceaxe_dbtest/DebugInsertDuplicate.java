@@ -14,17 +14,16 @@ import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.TsurugiConnector;
-import com.tsurugidb.iceaxe.result.TsurugiResultEntity;
-import com.tsurugidb.iceaxe.session.TgSessionInfo;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
-import com.tsurugidb.iceaxe.statement.TgEntityParameterMapping;
-import com.tsurugidb.iceaxe.statement.TgParameterList;
-import com.tsurugidb.iceaxe.statement.TgParameterMapping;
-import com.tsurugidb.iceaxe.statement.TgVariable;
-import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableInteger;
-import com.tsurugidb.iceaxe.statement.TgVariable.TgVariableString;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementQuery0;
-import com.tsurugidb.iceaxe.statement.TsurugiPreparedStatementUpdate1;
+import com.tsurugidb.iceaxe.sql.TsurugiSqlPreparedStatement;
+import com.tsurugidb.iceaxe.sql.TsurugiSqlQuery;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable.TgBindVariableInteger;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable.TgBindVariableString;
+import com.tsurugidb.iceaxe.sql.parameter.TgParameterMapping;
+import com.tsurugidb.iceaxe.sql.parameter.mapping.TgEntityParameterMapping;
+import com.tsurugidb.iceaxe.sql.result.TsurugiResultEntity;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionIOException;
@@ -73,7 +72,7 @@ public class DebugInsertDuplicate {
     public void execute() throws Exception {
         var endpoint = BenchConst.tsurugiEndpoint();
         LOG.info("endpoint={}", endpoint);
-        var connector = TsurugiConnector.createConnector(endpoint);
+        var connector = TsurugiConnector.of(endpoint);
 
         initializeTable(connector);
         executeMain(new DbSessions(connector));
@@ -100,8 +99,7 @@ public class DebugInsertDuplicate {
             + ")";
 
     private void initializeTable(TsurugiConnector connector) throws IOException {
-        var info = TgSessionInfo.of();
-        try (var session = connector.createSession(info)) {
+        try (var session = connector.createSession()) {
             createTable(session, TEST, CREATE_TEST_SQL);
             createTable(session, TEST2, CREATE_TEST2_SQL);
             insertTestTable(session, 10);
@@ -121,13 +119,13 @@ public class DebugInsertDuplicate {
             + "(foo, bar, zzz)" //
             + "values(:foo, :bar, :zzz)";
     protected static final TgEntityParameterMapping<TestEntity> INSERT_MAPPING = TgParameterMapping.of(TestEntity.class) //
-            .int4("foo", TestEntity::getFoo) //
-            .int8("bar", TestEntity::getBar) //
-            .character("zzz", TestEntity::getZzz);
+            .addInt("foo", TestEntity::getFoo) //
+            .addLong("bar", TestEntity::getBar) //
+            .addString("zzz", TestEntity::getZzz);
 
     protected static void insertTestTable(TsurugiSession session, int size) throws IOException {
         var tm = session.createTransactionManager(TgTxOption.ofLTX(TEST));
-        try (var ps = session.createPreparedStatement(INSERT_SQL, INSERT_MAPPING)) {
+        try (var ps = session.createStatement(INSERT_SQL, INSERT_MAPPING)) {
             tm.execute((TsurugiTransactionAction) transaction -> {
                 for (int i = 0; i < size; i++) {
                     var entity = createTestEntity(i);
@@ -179,9 +177,9 @@ public class DebugInsertDuplicate {
 
         private static final AtomicInteger INSERT_COUNT = new AtomicInteger(0);
 
-        private static final TgVariableInteger vKey1 = TgVariable.ofInt4("key1");
-        private static final TgVariableInteger vKey2 = TgVariable.ofInt4("key2");
-        private static final TgVariableString vZzz2 = TgVariable.ofCharacter("zzz2");
+        private static final TgBindVariableInteger vKey1 = TgBindVariable.ofInt("key1");
+        private static final TgBindVariableInteger vKey2 = TgBindVariable.ofInt("key2");
+        private static final TgBindVariableString vZzz2 = TgBindVariable.ofString("zzz2");
 
         private final TsurugiSession session;
         private final TgTxOption txOption;
@@ -203,9 +201,9 @@ public class DebugInsertDuplicate {
                     + "values(" + insert2List.stream().map(v -> v.sqlName()).collect(Collectors.joining(", ")) + ")";
             var insert2Mapping = TgParameterMapping.of(insert2List);
 
-            try (var maxPs = session.createPreparedQuery(maxSql); //
-                    var insertPs = session.createPreparedStatement(INSERT_SQL, INSERT_MAPPING); //
-                    var insert2Ps = session.createPreparedStatement(insert2Sql, insert2Mapping)) {
+            try (var maxPs = session.createQuery(maxSql); //
+                    var insertPs = session.createStatement(INSERT_SQL, INSERT_MAPPING); //
+                    var insert2Ps = session.createStatement(insert2Sql, insert2Mapping)) {
                 var setting = TgTmSetting.ofAlways(txOption);
                 var tm = session.createTransactionManager(setting);
 
@@ -231,16 +229,16 @@ public class DebugInsertDuplicate {
             return null;
         }
 
-        private void execute(TsurugiTransaction transaction, TsurugiPreparedStatementQuery0<TsurugiResultEntity> maxPs, TsurugiPreparedStatementUpdate1<TestEntity> insertPs,
-                TsurugiPreparedStatementUpdate1<TgParameterList> insert2Ps) throws IOException, TsurugiTransactionException {
+        private void execute(TsurugiTransaction transaction, TsurugiSqlQuery<TsurugiResultEntity> maxPs, TsurugiSqlPreparedStatement<TestEntity> insertPs,
+                TsurugiSqlPreparedStatement<TgBindParameters> insert2Ps) throws IOException, TsurugiTransactionException {
             var max = transaction.executeAndFindRecord(maxPs).get();
-            int foo = max.getInt4("foo");
+            int foo = max.getInt("foo");
 
             var entity = new TestEntity(foo, foo, Integer.toString(foo));
             transaction.executeAndGetCount(insertPs, entity);
 
             for (int i = 0; i < 10; i++) {
-                var parameter = TgParameterList.of(vKey1.bind(foo), vKey2.bind(i + 1), vZzz2.bind(Integer.toString(foo)));
+                var parameter = TgBindParameters.of(vKey1.bind(foo), vKey2.bind(i + 1), vZzz2.bind(Integer.toString(foo)));
                 transaction.executeAndGetCount(insert2Ps, parameter);
             }
         }

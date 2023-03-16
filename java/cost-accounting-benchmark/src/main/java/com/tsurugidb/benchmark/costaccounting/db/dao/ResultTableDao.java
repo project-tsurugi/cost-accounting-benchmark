@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.entity.ResultTable;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
-import com.tsurugidb.iceaxe.statement.TgVariable;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 
 public interface ResultTableDao {
 
@@ -16,7 +16,7 @@ public interface ResultTableDao {
 
     public static final String PS_COND_DATE = "r_manufacturing_date = ?";
 
-    public static final TgVariable<LocalDate> vDate = BenchVariable.ofDate("date");
+    public static final TgBindVariable<LocalDate> vDate = BenchVariable.ofDate("date");
     public static final String TG_COND_DATE = "r_manufacturing_date = " + vDate.sqlName();
 
     /**

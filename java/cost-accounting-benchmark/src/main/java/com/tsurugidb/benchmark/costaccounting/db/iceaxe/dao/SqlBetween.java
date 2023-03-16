@@ -1,7 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao;
 
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
-import com.tsurugidb.iceaxe.statement.TgVariable;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 
 public class SqlBetween {
 
@@ -9,7 +9,7 @@ public class SqlBetween {
     private final String exp2;
     private final String exp3;
 
-    public SqlBetween(TgVariable<?> exp1, String exp2, String exp3) {
+    public SqlBetween(TgBindVariable<?> exp1, String exp2, String exp3) {
         this.exp1 = exp1.sqlName();
         this.exp2 = exp2;
         this.exp3 = exp3;

@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import com.tsurugidb.iceaxe.result.TsurugiResultRecord;
-import com.tsurugidb.iceaxe.statement.TgDataType;
-import com.tsurugidb.iceaxe.statement.TgEntityParameterMapping;
-import com.tsurugidb.iceaxe.statement.TgVariable;
+import com.tsurugidb.iceaxe.sql.TgDataType;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
+import com.tsurugidb.iceaxe.sql.parameter.mapping.TgEntityParameterMapping;
+import com.tsurugidb.iceaxe.sql.result.TsurugiResultRecord;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 
 /**
@@ -23,14 +23,14 @@ public class IceaxeColumn<E, V> {
         public V get(TsurugiResultRecord record) throws IOException, TsurugiTransactionException;
     }
 
-    private final TgVariable<V> variable;
+    private final TgBindVariable<V> variable;
 
     private final BiConsumer<E, V> entitySetter;
     private final Function<E, V> entityGetter;
     private final RecordGetter<V> recordGetter;
     private final boolean primaryKey;
 
-    public IceaxeColumn(TgVariable<V> variable, BiConsumer<E, V> entitySetter, Function<E, V> entityGetter, RecordGetter<V> recordGetter, boolean primaryKey) {
+    public IceaxeColumn(TgBindVariable<V> variable, BiConsumer<E, V> entitySetter, Function<E, V> entityGetter, RecordGetter<V> recordGetter, boolean primaryKey) {
         this.variable = variable;
         this.entitySetter = entitySetter;
         this.entityGetter = entityGetter;
@@ -50,7 +50,7 @@ public class IceaxeColumn<E, V> {
         return variable.type();
     }
 
-    public TgVariable<V> getVariable() {
+    public TgBindVariable<V> getVariable() {
         return variable;
     }
 

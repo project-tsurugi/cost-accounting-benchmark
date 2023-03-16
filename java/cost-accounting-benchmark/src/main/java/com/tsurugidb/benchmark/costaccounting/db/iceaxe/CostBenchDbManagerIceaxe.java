@@ -31,7 +31,7 @@ import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.StockTableDaoIceaxe;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.TsurugiConnector;
 import com.tsurugidb.iceaxe.exception.TsurugiDiagnosticCodeProvider;
-import com.tsurugidb.iceaxe.session.TgSessionInfo;
+import com.tsurugidb.iceaxe.session.TgSessionOption;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
 import com.tsurugidb.iceaxe.transaction.TgCommitType;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
@@ -49,14 +49,14 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManagerIceaxe.class);
 
     private final TsurugiConnector connector;
-    private final TgSessionInfo sessionInfo;
+    private final TgSessionOption sessionOption;
     private final TsurugiTransactionManager singleTransactionManager;
     private final List<TsurugiSession> sessionList = new CopyOnWriteArrayList<>();
     private final ThreadLocal<TsurugiTransactionManager> transactionManagerThreadLocal = new ThreadLocal<>() {
         @Override
         protected TsurugiTransactionManager initialValue() {
             try {
-                var session = connector.createSession(sessionInfo);
+                var session = connector.createSession(sessionOption);
                 sessionList.add(session);
                 LOG.debug("create session. sessionList.size={}", sessionList.size());
                 var tm = session.createTransactionManager();
@@ -75,12 +75,12 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
         super("ICEAXE", true);
         var endpoint = BenchConst.tsurugiEndpoint();
         LOG.info("endpoint={}", endpoint);
-        this.connector = TsurugiConnector.createConnector(endpoint);
+        var credential = new UsernamePasswordCredential(BenchConst.tsurugiUser(), BenchConst.tsurugiPassword());
+        this.connector = TsurugiConnector.of(endpoint, credential);
         try {
-            var credential = new UsernamePasswordCredential(BenchConst.tsurugiUser(), BenchConst.tsurugiPassword());
-            this.sessionInfo = TgSessionInfo.of(credential);
+            this.sessionOption = TgSessionOption.of();
             if (!isMultiSession) {
-                var session = connector.createSession(sessionInfo);
+                var session = connector.createSession(sessionOption);
                 var tm = session.createTransactionManager();
                 tm.addEventListener(counter);
                 this.singleTransactionManager = tm;

@@ -10,8 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.iceaxe.TsurugiConnector;
-import com.tsurugidb.iceaxe.session.TgSessionInfo;
-import com.tsurugidb.iceaxe.session.TgSessionInfo.TgTimeoutKey;
+import com.tsurugidb.iceaxe.session.TgSessionOption;
+import com.tsurugidb.iceaxe.session.TgSessionOption.TgTimeoutKey;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
 
 public class DbSessions implements Closeable {
@@ -33,11 +33,11 @@ public class DbSessions implements Closeable {
     }
 
     public TsurugiSession createSession() throws IOException {
-        var info = TgSessionInfo.of();
+        var sessionOption = TgSessionOption.of();
         if (timeUnit != null) {
-            info.timeout(TgTimeoutKey.DEFAULT, timeout, timeUnit);
+            sessionOption.setTimeout(TgTimeoutKey.DEFAULT, timeout, timeUnit);
         }
-        var session = connector.createSession(info);
+        var session = connector.createSession(sessionOption);
 
         sessionList.add(session);
         return session;

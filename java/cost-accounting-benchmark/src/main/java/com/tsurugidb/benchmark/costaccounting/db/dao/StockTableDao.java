@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockTable;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
-import com.tsurugidb.iceaxe.statement.TgVariable;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 
 public interface StockTableDao {
 
@@ -14,7 +14,7 @@ public interface StockTableDao {
 
     public static final String PS_COND_DATE = "s_date = ?";
 
-    public static final TgVariable<LocalDate> vDate = BenchVariable.ofDate("date");
+    public static final TgBindVariable<LocalDate> vDate = BenchVariable.ofDate("date");
     public static final String TG_COND_DATE = "s_date = " + vDate.sqlName();
 
     /**
