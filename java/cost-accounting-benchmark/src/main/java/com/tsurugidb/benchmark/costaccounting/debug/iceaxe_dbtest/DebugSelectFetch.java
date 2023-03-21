@@ -70,7 +70,7 @@ public class DebugSelectFetch extends DbTester {
                 var ps3 = session.createStatement(INSERT_SQL.replace(TEST, TEST2), INSERT_MAPPING)) {
             tm.execute(transaction -> {
                 int[] count = { 0 };
-                transaction.executeForEach(ps, fetch -> {
+                transaction.executeAndForEach(ps, fetch -> {
                     int foo = fetch.getInt("foo");
                     var parameter = TgBindParameters.of(cond.bind(foo));
                     var entity = transaction.executeAndFindRecord(ps2, parameter).get();

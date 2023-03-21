@@ -453,7 +453,7 @@ public abstract class IceaxeDao<E> {
         try (var ps = session.createQuery(sql, TgParameterMapping.of(), resultMapping)) {
             var transaction = getTransaction();
             try {
-                transaction.executeForEach(ps, TgBindParameters.of(), entity -> entityConsumer.accept(entity));
+                transaction.executeAndForEach(ps, TgBindParameters.of(), entity -> entityConsumer.accept(entity));
             } catch (TsurugiTransactionException e) {
                 throw new TsurugiTransactionRuntimeException(e);
             }
