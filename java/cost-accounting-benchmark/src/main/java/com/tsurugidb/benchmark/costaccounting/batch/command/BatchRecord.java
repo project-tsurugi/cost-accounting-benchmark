@@ -11,7 +11,7 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 public class BatchRecord {
 
     public static String header() {
-        return "dbmsType, option, scope, factory item, elapsed[s], tryCount, abortCount, difference";
+        return "dbmsType, option, scope, label, elapsed[s], tryCount, abortCount, difference, vsz[GB], rss[GB]";
     }
 
     private final BatchConfig config;
@@ -23,6 +23,8 @@ public class BatchRecord {
     private int tryCount;
     private int abortCount;
     private String diffCount;
+    private long vsz;
+    private long rss;
 
     public BatchRecord(BatchConfig config, int attempt) {
         this.config = config;
@@ -47,6 +49,11 @@ public class BatchRecord {
 
     public void setDiff(int diffCount) {
         setDiff(Integer.toString(diffCount));
+    }
+
+    public void setMemInfo(long vsz, long rss) {
+        this.vsz = vsz;
+        this.rss = rss;
     }
 
     public int attempt() {
@@ -148,6 +155,10 @@ public class BatchRecord {
         sb.append(abortCount);
         sb.append(",");
         sb.append(numberOfDifference());
+        sb.append(",");
+        sb.append(vsz == -1 ? "-" : String.format("%.1f", vsz / 1024f / 1024f / 1024f));
+        sb.append(",");
+        sb.append(rss == -1 ? "-" : String.format("%.1f", rss / 1024f / 1024f / 1024f));
         return sb.toString();
     }
 }

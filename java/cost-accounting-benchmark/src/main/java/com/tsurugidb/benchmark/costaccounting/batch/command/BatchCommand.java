@@ -25,6 +25,8 @@ import com.tsurugidb.benchmark.costaccounting.init.DumpCsv;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.watcher.TateyamaWatcher;
+import com.tsurugidb.benchmark.costaccounting.watcher.TateyamaWatcherService;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 public class BatchCommand implements ExecutableCommand {
@@ -81,6 +83,26 @@ public class BatchCommand implements ExecutableCommand {
         }
         CostBenchDbManager.initCounter();
 
+        int exitCode;
+        TateyamaWatcher watcher;
+        try (var watcherService = TateyamaWatcherService.of()) {
+            watcher = watcherService.start();
+            exitCode = execute1Main(config, attempt, records);
+        }
+
+        var record = records.get(records.size() - 1);
+        if (watcher != null) {
+            record.setMemInfo(watcher.getVsz(), watcher.getRss());
+        }
+        LOG.info("Finished. elapsed secs = {}.", record.elapsedMillis() / 1000.0);
+        LOG.info("Counter infos: \n---\n{}---", CostBenchDbManager.createCounterReport());
+
+        diff(record);
+
+        return exitCode;
+    }
+
+    private int execute1Main(BatchConfig config, int attempt, List<BatchRecord> records) throws Exception {
         CostAccountingOnline online = null;
         if (BenchConst.batchCommandOnline()) {
             online = new CostAccountingOnline(config.getBatchDate());
@@ -107,10 +129,6 @@ public class BatchCommand implements ExecutableCommand {
                 online = null;
             }
             record.finish(batch.getItemCount(), batch.getTryCount(), batch.getAbortCount());
-
-            LOG.info("Finished. elapsed secs = {}.", record.elapsedMillis() / 1000.0);
-            LOG.info("Counter infos: \n---\n{}---", CostBenchDbManager.createCounterReport());
-            diff(record);
 
             return exitCode;
         } finally {
