@@ -24,11 +24,13 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
     private static final Logger LOG = LoggerFactory.getLogger(BenchOnlineUpdateManufacturingTask.class);
 
+    public static final String TASK_NAME = "update-manufacturing";
+
     private final TgTmSetting settingPre;
     private final TgTmSetting settingMain;
 
     public BenchOnlineUpdateManufacturingTask() {
-        super("update-manufacturing");
+        super(TASK_NAME);
         this.settingPre = getSetting(() -> TgTxOption.ofRTX());
         this.settingMain = getSetting(() -> TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
     }

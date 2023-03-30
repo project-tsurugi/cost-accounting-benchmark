@@ -17,11 +17,12 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
  * 原価の照会
  */
 public class BenchOnlineShowCostTask extends BenchOnlineTask {
+    public static final String TASK_NAME = "show-cost";
 
     private final TgTmSetting settingMain;
 
     public BenchOnlineShowCostTask() {
-        super("show-cost");
+        super(TASK_NAME);
         this.settingMain = getSetting(() -> TgTxOption.ofRTX());
     }
 

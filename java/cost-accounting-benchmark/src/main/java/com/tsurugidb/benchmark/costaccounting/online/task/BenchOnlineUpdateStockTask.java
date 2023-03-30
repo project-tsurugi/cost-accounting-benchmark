@@ -13,11 +13,12 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
  * 在庫の更新
  */
 public class BenchOnlineUpdateStockTask extends BenchOnlineTask {
+    public static final String TASK_NAME = "update-stock";
 
     private final TgTmSetting settingMain;
 
     public BenchOnlineUpdateStockTask() {
-        super("update-stock");
+        super(TASK_NAME);
         this.settingMain = getSetting(() -> TgTxOption.ofLTX(StockTableDao.TABLE_NAME));
     }
 

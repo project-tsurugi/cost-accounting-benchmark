@@ -229,4 +229,8 @@ public abstract class CostBenchDbManager implements Closeable {
             throw new UncheckedIOException(e.getMessage(), e);
         }
     }
+
+    public static BenchDbCounter getCounter() {
+        return counter;
+    }
 }

@@ -24,6 +24,14 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.init.DumpCsv;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline;
+import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineNewItemTask;
+import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineShowCostTask;
+import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineShowQuantityTask;
+import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineShowWeightTask;
+import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateCostTask;
+import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateManufacturingTask;
+import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateMaterialTask;
+import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateStockTask;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.watcher.TateyamaWatcher;
 import com.tsurugidb.benchmark.costaccounting.watcher.TateyamaWatcherService;
@@ -33,6 +41,7 @@ public class BatchCommand implements ExecutableCommand {
     private static final Logger LOG = LoggerFactory.getLogger(BatchCommand.class);
 
     private Path baseResultFile;
+    private String onlineAppReport = "# Online Application Report \n\n";
 
     @Override
     public String getDescription() {
@@ -70,6 +79,9 @@ public class BatchCommand implements ExecutableCommand {
                         exitCode |= execute1(config, i, records);
 
                         writeResult(outputPath, records);
+                        if (BenchConst.batchCommandOnline()) {
+                            writeOnlineAppReport(records.get(records.size() - 1), outputPath);
+                        }
                     }
                 }
             }
@@ -214,5 +226,83 @@ public class BatchCommand implements ExecutableCommand {
                 pw.println(record);
             }
         }
+    }
+
+    private void writeOnlineAppReport(BatchRecord record, Path outputPath) {
+        String title = record.dbmsType().name() + "-" + record.option() + "-" + record.scope() + "-" + record.factory();
+        LOG.debug("Creating an online application report for {}", title);
+
+        Path onlineOutputPath;
+        {
+            String fileName;
+            {
+                var outputFileName = outputPath.getFileName();
+                if (outputFileName == null) {
+                    fileName = "online-app.md";
+                } else {
+                    var batchFileName = outputFileName.toString();
+                    int n = batchFileName.lastIndexOf(".");
+                    if (n >= 0) {
+                        fileName = batchFileName.substring(0, n) + ".online-app.md";
+                    } else {
+                        fileName = batchFileName + ".online-app.md";
+                    }
+                }
+            }
+
+            var dir = outputPath.getParent();
+            if (dir != null) {
+                onlineOutputPath = dir.resolve(fileName);
+            } else {
+                onlineOutputPath = Path.of(fileName);
+            }
+        }
+
+        String newReport = createOnlineAppReport(title);
+        LOG.debug("Online application report: {}", newReport);
+        this.onlineAppReport += newReport;
+
+        LOG.debug("Writing online application reports to {}", onlineOutputPath.toAbsolutePath());
+        try {
+            Files.writeString(onlineOutputPath, onlineAppReport);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e.getMessage(), e);
+        }
+    }
+
+    private String createOnlineAppReport(String title) {
+        var sb = new StringBuilder(2048);
+
+        // タイトル
+        sb.append("## ");
+        sb.append(title);
+        sb.append("\n\n");
+
+        // ヘッダ
+        sb.append(OnlineRecord.header1());
+        sb.append("\n");
+        sb.append(OnlineRecord.header2());
+        sb.append("\n");
+
+        createOnlineAppReport(sb, BenchOnlineNewItemTask.TASK_NAME);
+        createOnlineAppReport(sb, BenchOnlineUpdateManufacturingTask.TASK_NAME);
+        createOnlineAppReport(sb, BenchOnlineUpdateMaterialTask.TASK_NAME);
+        createOnlineAppReport(sb, BenchOnlineUpdateCostTask.TASK_NAME);
+        createOnlineAppReport(sb, BenchOnlineUpdateStockTask.TASK_NAME);
+        createOnlineAppReport(sb, BenchOnlineShowWeightTask.TASK_NAME);
+        createOnlineAppReport(sb, BenchOnlineShowQuantityTask.TASK_NAME);
+        createOnlineAppReport(sb, BenchOnlineShowCostTask.TASK_NAME);
+
+        return sb.toString();
+    }
+
+    private void createOnlineAppReport(StringBuilder sb, String taskName) {
+        int threads = BenchConst.onlineThreadSize(taskName);
+        int tpm = BenchConst.onlineExecutePerMinute(taskName);
+        var counter = CostBenchDbManager.getCounter();
+
+        var record = new OnlineRecord(taskName, threads, tpm, counter);
+        sb.append(record);
+        sb.append("\n");
     }
 }

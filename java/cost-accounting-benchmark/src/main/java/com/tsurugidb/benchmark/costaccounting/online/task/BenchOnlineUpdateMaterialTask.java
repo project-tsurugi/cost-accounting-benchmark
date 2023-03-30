@@ -26,10 +26,12 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
     private static final Logger LOG = LoggerFactory.getLogger(BenchOnlineUpdateMaterialTask.class);
 
+    public static final String TASK_NAME = "update-material";
+
     private final TgTmSetting settingMain;
 
     public BenchOnlineUpdateMaterialTask() {
-        super("update-material");
+        super(TASK_NAME);
         this.settingMain = getSetting(() -> TgTxOption.ofLTX(ItemConstructionMasterDao.TABLE_NAME));
     }
 

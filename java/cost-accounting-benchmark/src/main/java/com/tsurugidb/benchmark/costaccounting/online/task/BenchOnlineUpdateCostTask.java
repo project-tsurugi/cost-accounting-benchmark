@@ -17,11 +17,12 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
  * 原価の変更
  */
 public class BenchOnlineUpdateCostTask extends BenchOnlineTask {
+    public static final String TASK_NAME = "update-cost";
 
     private final TgTmSetting settingMain;
 
     public BenchOnlineUpdateCostTask() {
-        super("update-cost");
+        super(TASK_NAME);
         this.settingMain = getSetting(() -> TgTxOption.ofLTX(CostMasterDao.TABLE_NAME));
     }
 

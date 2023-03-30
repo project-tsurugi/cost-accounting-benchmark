@@ -18,11 +18,12 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
  * 重量の照会
  */
 public class BenchOnlineShowWeightTask extends BenchOnlineTask {
+    public static final String TASK_NAME = "show-weight";
 
     private final TgTmSetting settingMain;
 
     public BenchOnlineShowWeightTask() {
-        super("show-weight");
+        super(TASK_NAME);
         this.settingMain = getSetting(() -> TgTxOption.ofRTX());
     }
 
