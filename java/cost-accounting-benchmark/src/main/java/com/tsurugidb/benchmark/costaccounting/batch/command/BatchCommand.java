@@ -28,7 +28,8 @@ import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineNewItemTask
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineShowCostTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineShowQuantityTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineShowWeightTask;
-import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateCostTask;
+import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateCostAddTask;
+import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateCostSubTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateManufacturingTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateMaterialTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateStockTask;
@@ -287,7 +288,8 @@ public class BatchCommand implements ExecutableCommand {
         createOnlineAppReport(sb, BenchOnlineNewItemTask.TASK_NAME);
         createOnlineAppReport(sb, BenchOnlineUpdateManufacturingTask.TASK_NAME);
         createOnlineAppReport(sb, BenchOnlineUpdateMaterialTask.TASK_NAME);
-        createOnlineAppReport(sb, BenchOnlineUpdateCostTask.TASK_NAME);
+        createOnlineAppReport(sb, BenchOnlineUpdateCostAddTask.TASK_NAME);
+        createOnlineAppReport(sb, BenchOnlineUpdateCostSubTask.TASK_NAME);
         createOnlineAppReport(sb, BenchOnlineUpdateStockTask.TASK_NAME);
         createOnlineAppReport(sb, BenchOnlineShowWeightTask.TASK_NAME);
         createOnlineAppReport(sb, BenchOnlineShowQuantityTask.TASK_NAME);

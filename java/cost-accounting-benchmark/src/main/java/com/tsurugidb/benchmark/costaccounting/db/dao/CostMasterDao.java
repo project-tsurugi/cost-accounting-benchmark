@@ -34,11 +34,12 @@ public interface CostMasterDao {
 
     /**
      * <pre>
-     * select * from cost_master
+     * select c_i_id from cost_master
      * where c_f_id = :fId
+     * order by c_i_id
      * </pre>
      */
-    List<CostMaster> selectByFactory(int fId);
+    List<Integer> selectIdByFactory(int fId);
 
     /**
      * <pre>
@@ -46,16 +47,7 @@ public interface CostMasterDao {
      * where c_f_id = :fId and c_i_id = :iId
      * </pre>
      */
-    CostMaster selectById(int fId, int iId);
-
-    /**
-     * <pre>
-     * select * from cost_master
-     * where c_f_id = :in.cFId and c_i_id = :in.cIId
-     * for update
-     * </pre>
-     */
-    CostMaster lock(CostMaster in);
+    CostMaster selectById(int fId, int iId, boolean forUpdate);
 
     /**
      * <pre>
@@ -67,7 +59,7 @@ public interface CostMasterDao {
 
     /**
      * <pre>
-     * update from cost_master set
+     * update cost_master set
      * c_stock_quantity = c_stock_quantity + :quantity,
      * c_stock_amount   = c_stock_amount   + :amount
      * where c_f_id = entity.cFId and c_i_id = entity.cIId
@@ -77,13 +69,23 @@ public interface CostMasterDao {
 
     /**
      * <pre>
-     * update from cost_master set
+     * update cost_master set
      * c_stock_quantity = c_stock_quantity + :quantity,
      * c_stock_amount   = c_stock_amount   - c_stock_amount * :quantity / c_stock_quantity
      * where c_f_id = entity.cFId and c_i_id = entity.cIId
      * </pre>
      */
     int updateDecrease(CostMaster entity, BigDecimal quantity);
+
+    /**
+     * <pre>
+     * update cost_master set
+     * c_stock_quantity = 0,
+     * c_stock_amount   = 0
+     * where c_f_id = entity.cFId and c_i_id = entity.cIId
+     * </pre>
+     */
+    int updateZero(CostMaster entity);
 
     void forEach(Consumer<CostMaster> entityConsumer);
 }

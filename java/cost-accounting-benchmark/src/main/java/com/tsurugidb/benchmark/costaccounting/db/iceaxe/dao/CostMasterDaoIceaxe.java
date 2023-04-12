@@ -9,8 +9,10 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
+import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable.TgBindVariableBigDecimal;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable.TgBindVariableInteger;
 import com.tsurugidb.iceaxe.sql.parameter.TgParameterMapping;
 import com.tsurugidb.iceaxe.sql.result.TgResultMapping;
@@ -52,25 +54,25 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
     private static final TgBindVariableInteger vFactoryId = C_F_ID.clone("fId");
 
     @Override
-    public List<CostMaster> selectByFactory(int fId) {
-        var ps = selectByFactoryCache.get();
+    public List<Integer> selectIdByFactory(int fId) {
+        var ps = selectIdByFactoryCache.get();
         var parameter = TgBindParameters.of(vFactoryId.bind(fId));
         return executeAndGetList(ps, parameter);
     }
 
-    private final CachePreparedQuery<TgBindParameters, CostMaster> selectByFactoryCache = new CachePreparedQuery<>() {
+    private final CachePreparedQuery<TgBindParameters, Integer> selectIdByFactoryCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
-            this.sql = getSelectEntitySql() + " where c_f_id = " + vFactoryId;
+            this.sql = "select c_i_id from " + TABLE_NAME + " where c_f_id = " + vFactoryId + " order by c_i_id";
             this.parameterMapping = TgParameterMapping.of(vFactoryId);
-            this.resultMapping = getEntityResultMapping();
+            this.resultMapping = TgResultMapping.of(int.class);
         }
     };
 
     private static final TgBindVariableInteger vItemId = C_I_ID.clone("iId");
 
     @Override
-    public CostMaster selectById(int fId, int iId) {
+    public CostMaster selectById(int fId, int iId, boolean forUpdate) {
         var ps = selectByIdCache.get();
         var parameter = TgBindParameters.of(vFactoryId.bind(fId), vItemId.bind(iId));
         return executeAndGetRecord(ps, parameter);
@@ -84,12 +86,6 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
             this.resultMapping = getEntityResultMapping();
         }
     };
-
-    @Override
-    public CostMaster lock(CostMaster in) {
-        // Tsurugiにselect for updateは無い
-        return in;
-    }
 
     @Override
     public BigDecimal selectSumByFactory(int fId) {
@@ -144,6 +140,38 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
                     + ",c_stock_amount = cast(c_stock_amount - c_stock_amount * " + vQuantity + " / c_stock_quantity as " + stockAmountType + ")" //
                     + " where c_f_id=" + vFactoryId + " and c_i_id=" + vItemId;
             this.parameterMapping = TgParameterMapping.of(vFactoryId, vItemId, vQuantity);
+        }
+    };
+
+    private static final TgBindVariableBigDecimal vZero = TgBindVariable.ofDecimal("zero");
+
+    @Override
+    public int updateZero(CostMaster entity) {
+        var ps = updateZeroCache.get();
+        if (BenchConst.WORKAROUND) {
+            var parameter = TgBindParameters.of(vFactoryId.bind(entity.getCFId()), vItemId.bind(entity.getCIId()), vZero.bind(BigDecimal.ZERO));
+            return executeAndGetCount(ps, parameter);
+        }
+        var parameter = TgBindParameters.of(vFactoryId.bind(entity.getCFId()), vItemId.bind(entity.getCIId()));
+        return executeAndGetCount(ps, parameter);
+    }
+
+    private final CachePreparedStatement<TgBindParameters> updateZeroCache = new CachePreparedStatement<>() {
+        @Override
+        protected void initialize() {
+            if (BenchConst.WORKAROUND) {
+                this.sql = "update " + TABLE_NAME + " set" //
+                        + " c_stock_quantity = " + vZero //
+                        + ",c_stock_amount = " + vZero //
+                        + " where c_f_id=" + vFactoryId + " and c_i_id=" + vItemId;
+                this.parameterMapping = TgParameterMapping.of(vFactoryId, vItemId, vZero);
+                return;
+            }
+            this.sql = "update " + TABLE_NAME + " set" //
+                    + " c_stock_quantity = 0" //
+                    + ",c_stock_amount = 0" //
+                    + " where c_f_id=" + vFactoryId + " and c_i_id=" + vItemId;
+            this.parameterMapping = TgParameterMapping.of(vFactoryId, vItemId);
         }
     };
 

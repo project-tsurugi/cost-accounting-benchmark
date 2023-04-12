@@ -45,19 +45,13 @@ public class CostMasterDaoTsubakuro extends TsubakuroDao<CostMaster> implements 
     }
 
     @Override
-    public List<CostMaster> selectByFactory(int fId) {
+    public List<Integer> selectIdByFactory(int fId) {
         throw new UnsupportedOperationException("not yet impl");
     }
 
     @Override
-    public CostMaster selectById(int fId, int iId) {
+    public CostMaster selectById(int fId, int iId, boolean forUpdate) {
         throw new UnsupportedOperationException("not yet impl");
-    }
-
-    @Override
-    public CostMaster lock(CostMaster in) {
-        // Tsurugiにselect for updateは無い
-        return in;
     }
 
     @Override
@@ -72,6 +66,11 @@ public class CostMasterDaoTsubakuro extends TsubakuroDao<CostMaster> implements 
 
     @Override
     public int updateDecrease(CostMaster entity, BigDecimal quantity) {
+        throw new UnsupportedOperationException("not yet impl");
+    }
+
+    @Override
+    public int updateZero(CostMaster entity) {
         throw new UnsupportedOperationException("not yet impl");
     }
 

@@ -1,4 +1,4 @@
-Draft 2023/03/13
+Draft 2023-04-12
 
 # 原価計算ベンチマーク
 
@@ -143,7 +143,7 @@ benchmark2-batch.md参照。
   - 製造品目マスターのUPDATEまたはINSERT
 - 原材料の変更
   - 品目構成マスターのDELETEまたはINSERT
-- 原価の変更
+- 原価の変更（在庫増加・在庫減少）
   - 原価マスターのSELECT（FOR UPDATE）およびUPDATE
 - 在庫の更新
   - 原価マスターのSELECTおよび在庫テーブルへのDELETE・INSERT

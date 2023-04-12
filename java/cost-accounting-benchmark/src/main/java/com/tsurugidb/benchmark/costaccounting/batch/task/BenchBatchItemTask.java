@@ -430,7 +430,7 @@ public class BenchBatchItemTask {
 
     protected CostMaster selectCostMaster(int factoryId, int itemId) {
         CostMasterDao dao = dbManager.getCostMasterDao();
-        return dao.selectById(factoryId, itemId);
+        return dao.selectById(factoryId, itemId, false);
     }
 
     protected void insertResult(BomNode node, int factoryId, int productId, BigInteger manufacturingQuantity) {

@@ -47,31 +47,24 @@ public class CostMasterDaoJdbc extends JdbcDao<CostMaster> implements CostMaster
     }
 
     @Override
-    public List<CostMaster> selectByFactory(int fId) {
-        String sql = "select * from " + TABLE_NAME + " where c_f_id = ?";
+    public List<Integer> selectIdByFactory(int fId) {
+        String sql = "select c_i_id  from " + TABLE_NAME + " where c_f_id = ? order by c_i_id";
         return executeQueryList(sql, ps -> {
             int i = 1;
             setInt(ps, i++, fId);
-        }, this::newEntity);
+        }, rs -> rs.getInt("c_i_id"));
     }
 
     @Override
-    public CostMaster selectById(int fId, int iId) {
+    public CostMaster selectById(int fId, int iId, boolean forUpdate) {
         String sql = "select * from " + TABLE_NAME + " where c_f_id = ? and c_i_id = ?";
+        if (forUpdate) {
+            sql += " for update";
+        }
         return executeQuery1(sql, ps -> {
             int i = 1;
             setInt(ps, i++, fId);
             setInt(ps, i++, iId);
-        }, this::newEntity);
-    }
-
-    @Override
-    public CostMaster lock(CostMaster in) {
-        String sql = "select * from " + TABLE_NAME + " where c_f_id = ? and c_i_id = ? for update";
-        return executeQuery1(sql, ps -> {
-            int i = 1;
-            setInt(ps, i++, in.getCFId());
-            setInt(ps, i++, in.getCIId());
         }, this::newEntity);
     }
 
@@ -109,6 +102,19 @@ public class CostMasterDaoJdbc extends JdbcDao<CostMaster> implements CostMaster
             int i = 1;
             setDecimal(ps, i++, quantity);
             setDecimal(ps, i++, quantity);
+            setInt(ps, i++, entity.getCFId());
+            setInt(ps, i++, entity.getCIId());
+        });
+    }
+
+    @Override
+    public int updateZero(CostMaster entity) {
+        String sql = "update " + TABLE_NAME + " set" //
+                + " c_stock_quantity = 0" //
+                + ",c_stock_amount = 0" //
+                + " where c_f_id=? and c_i_id=?";
+        return executeUpdate(sql, ps -> {
+            int i = 1;
             setInt(ps, i++, entity.getCFId());
             setInt(ps, i++, entity.getCIId());
         });
