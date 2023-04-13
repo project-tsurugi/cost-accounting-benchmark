@@ -125,6 +125,9 @@ public class TableEntityWriter extends WriterWrapper {
         case "date":
             importSet.add("java.time.LocalDate");
             return "LocalDate";
+        case "time":
+            importSet.add("java.time.LocalTime");
+            return "LocalTime";
         default:
             throw new UnsupportedOperationException(typeName);
         }

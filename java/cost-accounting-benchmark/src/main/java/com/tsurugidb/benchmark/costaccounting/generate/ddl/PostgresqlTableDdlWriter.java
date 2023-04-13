@@ -22,6 +22,8 @@ public class PostgresqlTableDdlWriter extends TableDdlWriter {
             return getTypeWithSize(row, "varchar");
         case "date":
             return "date";
+        case "time":
+            return "time";
         default:
             throw new UnsupportedOperationException(typeName);
         }

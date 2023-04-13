@@ -22,6 +22,8 @@ public class OracleTableDdlWriter extends TableDdlWriter {
             return getTypeWithSize(row, "varchar2");
         case "date":
             return "date";
+        case "time":
+            return "time";
         default:
             throw new UnsupportedOperationException(typeName);
         }

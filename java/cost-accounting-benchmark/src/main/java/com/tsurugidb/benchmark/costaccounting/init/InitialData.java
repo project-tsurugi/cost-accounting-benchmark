@@ -32,7 +32,8 @@ public class InitialData {
         InitialData03ItemMaster.main(args);
         InitialData04ItemManufacturingMaster.main(args);
         InitialData05CostMaster.main(args);
-        InitialData06ResultTable.main(args);
+        InitialData06StockHistory.main(args);
+        InitialData07ResultTable.main(args);
     }
 
     public static final LocalDate DEFAULT_BATCH_DATE = BenchConst.initBatchDate();

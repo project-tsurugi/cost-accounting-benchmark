@@ -3,8 +3,8 @@ package com.tsurugidb.benchmark.costaccounting.online.task;
 import java.math.BigDecimal;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
-import com.tsurugidb.benchmark.costaccounting.db.dao.StockTableDao;
-import com.tsurugidb.benchmark.costaccounting.db.entity.StockTable;
+import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
+import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
@@ -19,13 +19,13 @@ public class BenchOnlineUpdateStockTask extends BenchOnlineTask {
 
     public BenchOnlineUpdateStockTask() {
         super(TASK_NAME);
-        this.settingMain = getSetting(() -> TgTxOption.ofLTX(StockTableDao.TABLE_NAME));
+        this.settingMain = getSetting(() -> TgTxOption.ofLTX(StockHistoryDao.TABLE_NAME));
     }
 
     @Override
     protected boolean execute1() {
         return dbManager.execute(settingMain, () -> {
-            var dao = dbManager.getStockTableDao();
+            var dao = dbManager.getStockHistoryDao();
             dao.deleteByDateFactory(date, factoryId);
 
             executeInsert();
@@ -34,12 +34,12 @@ public class BenchOnlineUpdateStockTask extends BenchOnlineTask {
     }
 
     protected void executeInsert() {
-        var dao = dbManager.getStockTableDao();
+        var dao = dbManager.getStockHistoryDao();
 
         var costMasterDao = dbManager.getCostMasterDao();
         BigDecimal amount = costMasterDao.selectSumByFactory(factoryId);
 
-        var entity = new StockTable();
+        var entity = new StockHistory();
         entity.setSDate(date);
         entity.setSFId(factoryId);
         entity.setSStockAmount(amount);

@@ -4,13 +4,13 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.function.Consumer;
 
-import com.tsurugidb.benchmark.costaccounting.db.entity.StockTable;
+import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 
-public interface StockTableDao {
+public interface StockHistoryDao {
 
-    public static final String TABLE_NAME = "stock_table";
+    public static final String TABLE_NAME = "stock_history";
 
     public static final String PS_COND_DATE = "s_date = ?";
 
@@ -19,21 +19,21 @@ public interface StockTableDao {
 
     /**
      * <pre>
-     * truncate table stock_table
+     * truncate table stock_history
      * </pre>
      */
     void truncate();
 
     /**
      * <pre>
-     * delete from stock_table
+     * delete from stock_history
      * </pre>
      */
     int deleteAll();
 
     /**
      * <pre>
-     * delete from stock_table
+     * delete from stock_history
      * where s_date = :date and s_f_id = :fId
      * </pre>
      */
@@ -41,13 +41,13 @@ public interface StockTableDao {
 
     /**
      * <pre>
-     * insert into stock_table
+     * insert into stock_history
      * values(:entity)
      * </pre>
      */
-    int insert(StockTable entity);
+    int insert(StockHistory entity);
 
-    int[] insertBatch(Collection<StockTable> entityList);
+    int[] insertBatch(Collection<StockHistory> entityList);
 
-    void forEach(Consumer<StockTable> entityConsumer);
+    void forEach(Consumer<StockHistory> entityConsumer);
 }

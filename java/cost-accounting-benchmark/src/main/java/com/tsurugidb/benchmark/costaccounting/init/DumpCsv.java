@@ -22,7 +22,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
-import com.tsurugidb.benchmark.costaccounting.db.dao.StockTableDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -46,7 +46,7 @@ public class DumpCsv {
                     ItemConstructionMasterDao.TABLE_NAME, //
                     ItemManufacturingMasterDao.TABLE_NAME, //
                     CostMasterDao.TABLE_NAME, //
-                    StockTableDao.TABLE_NAME, //
+                    StockHistoryDao.TABLE_NAME, //
                     ResultTableDao.TABLE_NAME);
         }
 
@@ -93,8 +93,8 @@ public class DumpCsv {
             case CostMasterDao.TABLE_NAME:
                 dumpCostMaster(writer);
                 break;
-            case StockTableDao.TABLE_NAME:
-                dumpStockTable(writer);
+            case StockHistoryDao.TABLE_NAME:
+                dumpStockHistory(writer);
                 break;
             case ResultTableDao.TABLE_NAME:
                 dumpResultTable(writer);
@@ -135,8 +135,8 @@ public class DumpCsv {
         dump(writer, dao::forEach, entity -> entity.toCsv("\n"));
     }
 
-    private void dumpStockTable(BufferedWriter writer) {
-        var dao = dbManager.getStockTableDao();
+    private void dumpStockHistory(BufferedWriter writer) {
+        var dao = dbManager.getStockHistoryDao();
         dump(writer, dao::forEach, entity -> entity.toCsv("\n"));
     }
 

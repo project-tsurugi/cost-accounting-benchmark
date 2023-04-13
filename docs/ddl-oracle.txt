@@ -63,14 +63,18 @@ create table cost_master
   ,primary key(c_f_id, c_i_id)
 );
 
--- 在庫テーブル
-drop table stock_table;
-create table stock_table
+-- 在庫履歴
+drop table stock_history;
+create table stock_history
 (
   s_date date, -- 日付
   s_f_id number(4), -- 工場ID
-  s_stock_amount number(13, 2) -- 在庫金額（1日分）
-  ,primary key(s_date, s_f_id)
+  s_i_id number(9), -- 品目ID
+  s_time time, -- 時刻
+  s_stock_unit varchar2(5), -- 在庫単位
+  s_stock_quantity number(15, 4), -- 在庫数量
+  s_stock_amount number(13, 2) -- 在庫金額
+  ,primary key(s_date, s_f_id, s_i_id, s_time)
 );
 
 -- 度量衡マスター

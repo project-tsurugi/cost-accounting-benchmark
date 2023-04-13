@@ -17,7 +17,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
-import com.tsurugidb.benchmark.costaccounting.db.dao.StockTableDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.CostMasterDaoTsubakuro;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.FactoryMasterDaoTsubakuro;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.ItemConstructionMasterDaoTsubakuro;
@@ -25,7 +25,7 @@ import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.ItemManufacturing
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.ItemMasterDaoTsubakuro;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.MeasurementMasterDaoTsubakuro;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.ResultTableDaoTsubakuro;
-import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.StockTableDaoTsubakuro;
+import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.StockHistoryDaoTsubakuro;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.TsubakuroDao;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
@@ -119,8 +119,8 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
     }
 
     @Override
-    protected StockTableDao newStockTableDao() {
-        return new StockTableDaoTsubakuro(this);
+    protected StockHistoryDao newStockHistoryDao() {
+        return new StockHistoryDaoTsubakuro(this);
     }
 
     @Override

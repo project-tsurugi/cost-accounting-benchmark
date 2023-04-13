@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.domain.MeasurementType;
@@ -52,6 +53,13 @@ public class TsubakuroUtil {
     }
 
     public static Parameter getParameter(String name, LocalDate value) {
+        if (value == null) {
+            return Parameters.ofNull(name);
+        }
+        return Parameters.of(name, value);
+    }
+
+    public static Parameter getParameter(String name, LocalTime value) {
         if (value == null) {
             return Parameters.ofNull(name);
         }
@@ -106,6 +114,17 @@ public class TsubakuroUtil {
             switch (type) {
             case DATE:
                 return rs.fetchDateValue();
+            default:
+                throw new UnsupportedOperationException("atomType=" + type);
+            }
+        });
+    }
+
+    public static LocalTime getTime(ResultSet rs, int index) throws IOException, ServerException, InterruptedException {
+        return getValue(rs, index, type -> {
+            switch (type) {
+            case TIME_OF_DAY:
+                return rs.fetchTimeOfDayValue();
             default:
                 throw new UnsupportedOperationException("atomType=" + type);
             }

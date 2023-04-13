@@ -27,4 +27,5 @@ call_java com.tsurugidb.benchmark.costaccounting.init.InitialData02FactoryMaster
 call_java com.tsurugidb.benchmark.costaccounting.init.InitialData03ItemMaster
 call_java com.tsurugidb.benchmark.costaccounting.init.InitialData04ItemManufacturingMaster
 call_java com.tsurugidb.benchmark.costaccounting.init.InitialData05CostMaster
-call_java com.tsurugidb.benchmark.costaccounting.init.InitialData06ResultTable
+call_java com.tsurugidb.benchmark.costaccounting.init.InitialData06StockHistory
+call_java com.tsurugidb.benchmark.costaccounting.init.InitialData07ResultTable

@@ -6,28 +6,32 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.tsurugidb.benchmark.costaccounting.db.dao.StockTableDao;
-import com.tsurugidb.benchmark.costaccounting.db.entity.StockTable;
+import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
+import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable.TgBindVariableInteger;
 import com.tsurugidb.iceaxe.sql.parameter.TgParameterMapping;
 
-public class StockTableDaoIceaxe extends IceaxeDao<StockTable> implements StockTableDao {
+public class StockHistoryDaoIceaxe extends IceaxeDao<StockHistory> implements StockHistoryDao {
 
     private static final TgBindVariableInteger S_F_ID = BenchVariable.ofInt("s_f_id");
-    private static final List<IceaxeColumn<StockTable, ?>> COLUMN_LIST;
+    private static final List<IceaxeColumn<StockHistory, ?>> COLUMN_LIST;
     static {
-        List<IceaxeColumn<StockTable, ?>> list = new ArrayList<>();
-        add(list, BenchVariable.ofDate("s_date"), StockTable::setSDate, StockTable::getSDate, IceaxeRecordUtil::getDate, true);
-        add(list, S_F_ID, StockTable::setSFId, StockTable::getSFId, IceaxeRecordUtil::getInt, true);
-        add(list, BenchVariable.ofDecimal("s_stock_amount", StockTable.S_STOCK_AMOUNT_SCALE), StockTable::setSStockAmount, StockTable::getSStockAmount, IceaxeRecordUtil::getDecimal);
+        List<IceaxeColumn<StockHistory, ?>> list = new ArrayList<>();
+        add(list, BenchVariable.ofDate("s_date"), StockHistory::setSDate, StockHistory::getSDate, IceaxeRecordUtil::getDate, true);
+        add(list, S_F_ID, StockHistory::setSFId, StockHistory::getSFId, IceaxeRecordUtil::getInt, true);
+        add(list, BenchVariable.ofInt("s_i_id"), StockHistory::setSIId, StockHistory::getSIId, IceaxeRecordUtil::getInt, true);
+        add(list, BenchVariable.ofTime("s_time"), StockHistory::setSTime, StockHistory::getSTime, IceaxeRecordUtil::getTime, true);
+        add(list, BenchVariable.ofString("s_stock_unit"), StockHistory::setSStockUnit, StockHistory::getSStockUnit, IceaxeRecordUtil::getString);
+        add(list, BenchVariable.ofDecimal("s_stock_quantity", StockHistory.S_STOCK_QUANTITY_SCALE), StockHistory::setSStockQuantity, StockHistory::getSStockQuantity, IceaxeRecordUtil::getDecimal);
+        add(list, BenchVariable.ofDecimal("s_stock_amount", StockHistory.S_STOCK_AMOUNT_SCALE), StockHistory::setSStockAmount, StockHistory::getSStockAmount, IceaxeRecordUtil::getDecimal);
         COLUMN_LIST = list;
     }
 
-    public StockTableDaoIceaxe(CostBenchDbManagerIceaxe dbManager) {
-        super(dbManager, TABLE_NAME, COLUMN_LIST, StockTable::new);
+    public StockHistoryDaoIceaxe(CostBenchDbManagerIceaxe dbManager) {
+        super(dbManager, TABLE_NAME, COLUMN_LIST, StockHistory::new);
     }
 
     @Override
@@ -58,17 +62,17 @@ public class StockTableDaoIceaxe extends IceaxeDao<StockTable> implements StockT
     };
 
     @Override
-    public int insert(StockTable entity) {
+    public int insert(StockHistory entity) {
         return doInsert(entity);
     }
 
     @Override
-    public int[] insertBatch(Collection<StockTable> entityList) {
+    public int[] insertBatch(Collection<StockHistory> entityList) {
         return doInsert(entityList);
     }
 
     @Override
-    public void forEach(Consumer<StockTable> entityConsumer) {
+    public void forEach(Consumer<StockHistory> entityConsumer) {
         doForEach(entityConsumer);
     }
 }

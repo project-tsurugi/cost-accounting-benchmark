@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.domain.MeasurementType;
@@ -18,6 +19,10 @@ public class BenchVariable {
 
     public static TgBindVariable<LocalDate> ofDate(String name) {
         return TgBindVariable.ofDate(name);
+    }
+
+    public static TgBindVariable<LocalTime> ofTime(String name) {
+        return TgBindVariable.ofTime(name);
     }
 
     public static TgBindVariable<String> ofString(String name) {

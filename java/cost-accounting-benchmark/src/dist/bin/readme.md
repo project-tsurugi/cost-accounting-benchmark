@@ -122,7 +122,9 @@ ICEAXE,LTX,item_master,10000[-1:1],deleteAll,333,0,265,68,1
    - 製造品目マスターのデータを生成する。
 6. InitialData05CostMaster
    - 原価マスターのデータを生成する。
-7. InitialData06ResultTable
+7. InitialData06StockHistory
+   - 在庫履歴をクリアする。
+8. InitialData07ResultTable
    - 結果テーブルをクリアする。
 
 この初期データ作成処理で生成されたデータは、指定された基準日のデータしか整合性が保証されない。

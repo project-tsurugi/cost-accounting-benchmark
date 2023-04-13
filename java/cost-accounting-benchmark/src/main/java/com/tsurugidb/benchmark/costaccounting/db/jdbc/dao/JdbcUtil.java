@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.domain.MeasurementType;
@@ -37,6 +38,10 @@ public class JdbcUtil {
 
     public static void setDate(PreparedStatement ps, int i, LocalDate value) throws SQLException {
         ps.setDate(i, sdate(value));
+    }
+
+    public static void setTime(PreparedStatement ps, int i, LocalTime value) throws SQLException {
+        ps.setTime(i, stime(value));
     }
 
     public static void setString(PreparedStatement ps, int i, String value) throws SQLException {
@@ -79,6 +84,10 @@ public class JdbcUtil {
         return ldate(rs.getDate(name));
     }
 
+    public static LocalTime getTime(ResultSet rs, String name) throws SQLException {
+        return ltime(rs.getTime(name));
+    }
+
     public static String getString(ResultSet rs, String name) throws SQLException {
         return rs.getString(name);
     }
@@ -107,5 +116,19 @@ public class JdbcUtil {
             return null;
         }
         return date.toLocalDate();
+    }
+
+    private static java.sql.Time stime(LocalTime time) {
+        if (time == null) {
+            return null;
+        }
+        return java.sql.Time.valueOf(time);
+    }
+
+    private static LocalTime ltime(java.sql.Time time) {
+        if (time == null) {
+            return null;
+        }
+        return time.toLocalTime();
     }
 }

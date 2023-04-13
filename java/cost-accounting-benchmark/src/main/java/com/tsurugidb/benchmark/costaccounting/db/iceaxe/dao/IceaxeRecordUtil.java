@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.domain.MeasurementType;
@@ -29,6 +30,10 @@ public class IceaxeRecordUtil {
 
     public static LocalDate getDate(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
         return record.nextDateOrNull();
+    }
+
+    public static LocalTime getTime(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
+        return record.nextTimeOrNull();
     }
 
     public static String getString(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
