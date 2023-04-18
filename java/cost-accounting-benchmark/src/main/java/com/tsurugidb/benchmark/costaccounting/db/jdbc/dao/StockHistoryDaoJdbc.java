@@ -1,11 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.db.jdbc.dao;
 
-import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.setDate;
-import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.setInt;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -42,16 +38,6 @@ public class StockHistoryDaoJdbc extends JdbcDao<StockHistory> implements StockH
     @Override
     public int deleteAll() {
         return doDeleteAll();
-    }
-
-    @Override
-    public int deleteByDateFactory(LocalDate date, int fId) {
-        String sql = "delete from " + TABLE_NAME + " where " + PS_COND_DATE + " and s_f_id = ?";
-        return executeUpdate(sql, ps -> {
-            int i = 1;
-            setDate(ps, i++, date);
-            setInt(ps, i++, fId);
-        });
     }
 
     @Override

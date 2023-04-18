@@ -1,6 +1,5 @@
 package com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -40,11 +39,6 @@ public class StockHistoryDaoTsubakuro extends TsubakuroDao<StockHistory> impleme
     @Override
     public int deleteAll() {
         return doDeleteAll();
-    }
-
-    @Override
-    public int deleteByDateFactory(LocalDate date, int fId) {
-        throw new UnsupportedOperationException("not yet impl");
     }
 
     @Override

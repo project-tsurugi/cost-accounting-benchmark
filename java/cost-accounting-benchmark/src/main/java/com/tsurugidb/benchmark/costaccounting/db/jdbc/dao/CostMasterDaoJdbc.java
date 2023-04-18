@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
@@ -47,8 +48,23 @@ public class CostMasterDaoJdbc extends JdbcDao<CostMaster> implements CostMaster
     }
 
     @Override
+    public Stream<CostMaster> selectAll() {
+        String sql = "select * from " + TABLE_NAME;
+        return executeQueryStream(sql, null, this::newEntity);
+    }
+
+    @Override
+    public Stream<CostMaster> selectByFactory(int fId) {
+        String sql = "select * from " + TABLE_NAME + " where c_f_id = ?";
+        return executeQueryStream(sql, ps -> {
+            int i = 1;
+            setInt(ps, i++, fId);
+        }, this::newEntity);
+    }
+
+    @Override
     public List<Integer> selectIdByFactory(int fId) {
-        String sql = "select c_i_id  from " + TABLE_NAME + " where c_f_id = ? order by c_i_id";
+        String sql = "select c_i_id from " + TABLE_NAME + " where c_f_id = ? order by c_i_id";
         return executeQueryList(sql, ps -> {
             int i = 1;
             setInt(ps, i++, fId);
@@ -66,15 +82,6 @@ public class CostMasterDaoJdbc extends JdbcDao<CostMaster> implements CostMaster
             setInt(ps, i++, fId);
             setInt(ps, i++, iId);
         }, this::newEntity);
-    }
-
-    @Override
-    public BigDecimal selectSumByFactory(int fId) {
-        String sql = "select sum(c_stock_amount) from " + TABLE_NAME + " where c_f_id = ?";
-        return executeQuery1(sql, ps -> {
-            int i = 1;
-            setInt(ps, i++, fId);
-        }, rs -> rs.getBigDecimal(1));
     }
 
     @Override

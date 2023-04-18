@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
@@ -51,7 +52,39 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
         return doInsert(entity);
     }
 
+    @Override
+    public Stream<CostMaster> selectAll() {
+        var ps = selectAllCache.get();
+        var parameter = TgBindParameters.of();
+        return executeAndGetStream(ps, parameter);
+    }
+
+    private final CachePreparedQuery<TgBindParameters, CostMaster> selectAllCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql();
+            this.parameterMapping = TgParameterMapping.of();
+            this.resultMapping = getEntityResultMapping();
+        }
+    };
+
     private static final TgBindVariableInteger vFactoryId = C_F_ID.clone("fId");
+
+    @Override
+    public Stream<CostMaster> selectByFactory(int fId) {
+        var ps = selectByFactoryCache.get();
+        var parameter = TgBindParameters.of(vFactoryId.bind(fId));
+        return executeAndGetStream(ps, parameter);
+    }
+
+    private final CachePreparedQuery<TgBindParameters, CostMaster> selectByFactoryCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = getSelectEntitySql() + " where c_f_id = " + vFactoryId;
+            this.parameterMapping = TgParameterMapping.of(vFactoryId);
+            this.resultMapping = getEntityResultMapping();
+        }
+    };
 
     @Override
     public List<Integer> selectIdByFactory(int fId) {
@@ -84,22 +117,6 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
             this.sql = getSelectEntitySql() + " where c_f_id = " + vFactoryId + " and c_i_id = " + vItemId;
             this.parameterMapping = TgParameterMapping.of(vFactoryId, vItemId);
             this.resultMapping = getEntityResultMapping();
-        }
-    };
-
-    @Override
-    public BigDecimal selectSumByFactory(int fId) {
-        var ps = selectOrderIidCache.get();
-        var parameter = TgBindParameters.of(vFactoryId.bind(fId));
-        return executeAndGetRecord(ps, parameter);
-    }
-
-    private final CachePreparedQuery<TgBindParameters, BigDecimal> selectOrderIidCache = new CachePreparedQuery<>() {
-        @Override
-        protected void initialize() {
-            this.sql = "select sum(c_stock_amount) from " + TABLE_NAME + " where c_f_id = " + vFactoryId;
-            this.parameterMapping = TgParameterMapping.of(vFactoryId);
-            this.resultMapping = TgResultMapping.of(record -> record.nextDecimalOrNull());
         }
     };
 

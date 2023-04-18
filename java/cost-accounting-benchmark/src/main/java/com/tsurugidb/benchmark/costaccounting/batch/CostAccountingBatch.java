@@ -295,15 +295,15 @@ public class CostAccountingBatch {
             batchParallelism = factoryList.size();
         }
 
-        ExecutorService pool = Executors.newFixedThreadPool(batchParallelism);
+        ExecutorService service = Executors.newFixedThreadPool(batchParallelism);
         List<Future<Void>> resultList = Collections.emptyList();
         try {
-            resultList = pool.invokeAll(threadList);
+            resultList = service.invokeAll(threadList);
         } catch (InterruptedException e) {
             LOG.debug("InterruptedException", e);
             exitCode = 1;
         } finally {
-            pool.shutdownNow();
+            service.shutdownNow();
         }
 
         for (Future<Void> result : resultList) {
@@ -380,7 +380,7 @@ public class CostAccountingBatch {
         });
 
         int size = 8;
-        ExecutorService pool = Executors.newFixedThreadPool(size);
+        ExecutorService service = Executors.newFixedThreadPool(size);
         threadList.clear();
         List<Callable<Void>> list = Stream.generate(() -> new Callable<Void>() {
 
@@ -410,12 +410,12 @@ public class CostAccountingBatch {
 
         int exitCode = 0;
         try {
-            pool.invokeAll(list);
+            service.invokeAll(list);
         } catch (InterruptedException e) {
             LOG.debug("InterruptedException", e);
             exitCode = 1;
         } finally {
-            pool.shutdown();
+            service.shutdown();
         }
         for (var thread : threadList) {
             this.itemCount += thread.getItemCount();

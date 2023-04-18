@@ -3,6 +3,7 @@ package com.tsurugidb.benchmark.costaccounting.db.dao;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 
@@ -34,6 +35,21 @@ public interface CostMasterDao {
 
     /**
      * <pre>
+     * select * from cost_master
+     * </pre>
+     */
+    Stream<CostMaster> selectAll();
+
+    /**
+     * <pre>
+     * select * from cost_master
+     * where c_f_id = :fId
+     * </pre>
+     */
+    Stream<CostMaster> selectByFactory(int fId);
+
+    /**
+     * <pre>
      * select c_i_id from cost_master
      * where c_f_id = :fId
      * order by c_i_id
@@ -48,14 +64,6 @@ public interface CostMasterDao {
      * </pre>
      */
     CostMaster selectById(int fId, int iId, boolean forUpdate);
-
-    /**
-     * <pre>
-     * select sum(c_stock_amount) from cost_master
-     * where c_f_id = :fId
-     * </pre>
-     */
-    BigDecimal selectSumByFactory(int fId);
 
     /**
      * <pre>

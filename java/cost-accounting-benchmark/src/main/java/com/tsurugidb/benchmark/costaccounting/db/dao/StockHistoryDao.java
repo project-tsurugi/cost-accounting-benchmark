@@ -33,14 +33,6 @@ public interface StockHistoryDao {
 
     /**
      * <pre>
-     * delete from stock_history
-     * where s_date = :date and s_f_id = :fId
-     * </pre>
-     */
-    int deleteByDateFactory(LocalDate date, int fId);
-
-    /**
-     * <pre>
      * insert into stock_history
      * values(:entity)
      * </pre>
