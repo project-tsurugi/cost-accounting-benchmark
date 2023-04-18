@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -24,6 +25,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.init.DumpCsv;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline;
+import com.tsurugidb.benchmark.costaccounting.online.periodic.BenchPeriodicUpdateStockTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineNewItemTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineShowCostTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineShowQuantityTask;
@@ -32,7 +34,6 @@ import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateCostA
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateCostSubTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateManufacturingTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateMaterialTask;
-import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateStockTask;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.watcher.TateyamaWatcher;
 import com.tsurugidb.benchmark.costaccounting.watcher.TateyamaWatcherService;
@@ -290,21 +291,32 @@ public class BatchCommand implements ExecutableCommand {
         createOnlineAppReport(sb, BenchOnlineUpdateMaterialTask.TASK_NAME);
         createOnlineAppReport(sb, BenchOnlineUpdateCostAddTask.TASK_NAME);
         createOnlineAppReport(sb, BenchOnlineUpdateCostSubTask.TASK_NAME);
-        createOnlineAppReport(sb, BenchOnlineUpdateStockTask.TASK_NAME);
         createOnlineAppReport(sb, BenchOnlineShowWeightTask.TASK_NAME);
         createOnlineAppReport(sb, BenchOnlineShowQuantityTask.TASK_NAME);
         createOnlineAppReport(sb, BenchOnlineShowCostTask.TASK_NAME);
+        createOnlineAppReport(sb, BenchPeriodicUpdateStockTask.TASK_NAME);
 
         return sb.toString();
     }
 
     private void createOnlineAppReport(StringBuilder sb, String taskName) {
         int threads = BenchConst.onlineThreadSize(taskName);
-        int tpm = BenchConst.onlineExecutePerMinute(taskName);
+        var tpm = getTpm(taskName);
         var counter = CostBenchDbManager.getCounter();
 
         var record = new OnlineRecord(taskName, threads, tpm, counter);
         sb.append(record);
         sb.append("\n");
+    }
+
+    private String getTpm(String taskName) {
+        switch (taskName) {
+        case BenchPeriodicUpdateStockTask.TASK_NAME:
+            long interval = BenchConst.onlineInterval(taskName);
+            return String.format("%.3f", (double) TimeUnit.MINUTES.toMillis(1) / interval);
+        default:
+            int tpm = BenchConst.onlineExecutePerMinute(taskName);
+            return Integer.toString(tpm);
+        }
     }
 }

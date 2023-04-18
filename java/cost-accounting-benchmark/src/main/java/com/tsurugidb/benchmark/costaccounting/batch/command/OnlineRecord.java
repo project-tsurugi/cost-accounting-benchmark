@@ -6,19 +6,19 @@ import com.tsurugidb.benchmark.costaccounting.db.BenchDbCounter.CounterName;
 public class OnlineRecord {
 
     public static String header1() {
-        return "| title | threads | tpm/thread | success | occ-try | occ-abort | occ-success | occ<br>abandoned<br>retry | ltx-try | ltx-abort | ltx-success | ltx<br>abandoned<br>retry | fail |";
+        return "| title | threads | tpm/thread | success | occ-try | occ-abort | occ-success | occ<br>abandoned<br>retry | ltx-try | ltx-abort | ltx-success | ltx<br>abandoned<br>retry | fail | task start | target nothing | task success | task fail |";
     }
 
     public static String header2() {
-        return "|-------|--------:|-----------:|--------:|--------:|----------:|------------:|--------------------------:|--------:|----------:|------------:|--------------------------:|-----:|";
+        return "|-------|--------:|-----------:|--------:|--------:|----------:|------------:|--------------------------:|--------:|----------:|------------:|--------------------------:|-----:|-----------:|---------------:|-------------:|----------:|";
     }
 
     private final String title;
     private final int threads;
-    private final int tpm;
+    private final String tpm;
     private final BenchDbCounter counter;
 
-    public OnlineRecord(String title, int threads, int tpm, BenchDbCounter counter) {
+    public OnlineRecord(String title, int threads, String tpm, BenchDbCounter counter) {
         this.title = title;
         this.threads = threads;
         this.tpm = tpm;
@@ -54,6 +54,14 @@ public class OnlineRecord {
         sb.append(counter.getCount(title, CounterName.LTX_ABANDONED_RETRY));
         sb.append("|");
         sb.append(counter.getCount(title, CounterName.FAIL));
+        sb.append("|");
+        sb.append(counter.getCount(title, CounterName.TASK_START));
+        sb.append("|");
+        sb.append(counter.getCount(title, CounterName.TASK_NOTHING));
+        sb.append("|");
+        sb.append(counter.getCount(title, CounterName.TASK_SUCCESS));
+        sb.append("|");
+        sb.append(counter.getCount(title, CounterName.TASK_FAIL));
         sb.append("|");
         return sb.toString();
     }

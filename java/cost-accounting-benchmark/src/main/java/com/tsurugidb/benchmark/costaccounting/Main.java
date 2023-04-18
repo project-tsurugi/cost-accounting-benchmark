@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 
 import com.tsurugidb.benchmark.costaccounting.batch.command.BatchCommand;
 import com.tsurugidb.benchmark.costaccounting.debug.DebugCommand;
+import com.tsurugidb.benchmark.costaccounting.debug.TestCommand;
 import com.tsurugidb.benchmark.costaccounting.generate.command.DdlCommand;
 import com.tsurugidb.benchmark.costaccounting.init.command.CheckConstraintCommand;
 import com.tsurugidb.benchmark.costaccounting.init.command.CreateTableCommand;
@@ -25,6 +26,7 @@ public class Main {
         addCommand("time", TimeCommand::new);
         addCommand("executeBatch", BatchCommand::new);
         addCommand("debug", DebugCommand::new);
+        addCommand("test", TestCommand::new);
     }
 
     private static void addCommand(String name, Supplier<ExecutableCommand> creator) {

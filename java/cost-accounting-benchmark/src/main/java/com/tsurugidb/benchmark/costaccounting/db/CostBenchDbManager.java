@@ -195,6 +195,10 @@ public abstract class CostBenchDbManager implements Closeable {
         counter.reset();
     }
 
+    public void incrementTaskCounter(String label, CounterName counterName) {
+        counter.increment(label, counterName);
+    }
+
     /**
      * カウンターのレポートを作成する
      *

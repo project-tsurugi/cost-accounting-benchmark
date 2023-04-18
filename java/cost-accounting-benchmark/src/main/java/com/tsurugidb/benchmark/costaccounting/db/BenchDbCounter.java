@@ -22,7 +22,8 @@ public class BenchDbCounter extends TgTmLabelCounter {
         // for online
         OCC_TRY, OCC_ABORT, OCC_SUCCESS, OCC_ABANDONED_RETRY, //
         LTX_TRY, LTX_ABORT, LTX_SUCCESS, LTX_ABANDONED_RETRY, //
-        FAIL
+        FAIL, //
+        TASK_START, TASK_NOTHING, TASK_SUCCESS, TASK_FAIL
     }
 
     private static class OnlineCounter {
@@ -34,6 +35,10 @@ public class BenchDbCounter extends TgTmLabelCounter {
         private AtomicInteger ltxAbort = new AtomicInteger(0);
         private AtomicInteger ltxSuccess = new AtomicInteger(0);
         private AtomicInteger ltxAbandonedRetry = new AtomicInteger(0);
+        private AtomicInteger taskStart = new AtomicInteger(0);
+        private AtomicInteger taskNothing = new AtomicInteger(0);
+        private AtomicInteger taskSuccess = new AtomicInteger(0);
+        private AtomicInteger taskFail = new AtomicInteger(0);
     }
 
     private final Map<String, OnlineCounter> onlineCounterMap = new ConcurrentHashMap<>();
@@ -51,6 +56,10 @@ public class BenchDbCounter extends TgTmLabelCounter {
 
     private OnlineCounter getOnlineCounter(TgTxOption txOption) {
         String label = label(txOption);
+        return getOnlineCounter(label);
+    }
+
+    private OnlineCounter getOnlineCounter(String label) {
         return onlineCounterMap.computeIfAbsent(label, k -> new OnlineCounter());
     }
 
@@ -144,6 +153,27 @@ public class BenchDbCounter extends TgTmLabelCounter {
         }
     }
 
+    // for task
+    public void increment(String label, CounterName name) {
+        var count = getOnlineCounter(label);
+        switch (name) {
+        case TASK_START:
+            count.taskStart.incrementAndGet();
+            break;
+        case TASK_NOTHING:
+            count.taskNothing.incrementAndGet();
+            break;
+        case TASK_SUCCESS:
+            count.taskSuccess.incrementAndGet();
+            break;
+        case TASK_FAIL:
+            count.taskFail.incrementAndGet();
+            break;
+        default:
+            throw new AssertionError(name);
+        }
+    }
+
     // result
 
     public int getCount(String label, CounterName name) {
@@ -174,6 +204,14 @@ public class BenchDbCounter extends TgTmLabelCounter {
             return getOnlineCount(label, counter -> counter.ltxAbandonedRetry.get());
         case FAIL:
             return getCount(label, TgTmCount::failCount);
+        case TASK_START:
+            return getOnlineCount(label, counter -> counter.taskStart.get());
+        case TASK_NOTHING:
+            return getOnlineCount(label, counter -> counter.taskNothing.get());
+        case TASK_SUCCESS:
+            return getOnlineCount(label, counter -> counter.taskSuccess.get());
+        case TASK_FAIL:
+            return getOnlineCount(label, counter -> counter.taskFail.get());
         default:
             throw new AssertionError(name);
         }

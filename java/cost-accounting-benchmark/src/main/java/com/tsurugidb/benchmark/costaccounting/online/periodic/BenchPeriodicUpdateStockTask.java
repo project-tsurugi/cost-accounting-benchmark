@@ -1,4 +1,4 @@
-package com.tsurugidb.benchmark.costaccounting.online.task;
+package com.tsurugidb.benchmark.costaccounting.online.periodic;
 
 import java.time.LocalTime;
 
@@ -13,12 +13,12 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 /**
  * 在庫履歴の追加
  */
-public class BenchOnlineUpdateStockTask extends BenchOnlineTask {
+public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
     public static final String TASK_NAME = "update-stock";
 
     private final TgTmSetting settingMain;
 
-    public BenchOnlineUpdateStockTask() {
+    public BenchPeriodicUpdateStockTask() {
         super(TASK_NAME);
         this.settingMain = getSetting(() -> TgTxOption.ofLTX(StockHistoryDao.TABLE_NAME));
     }
@@ -59,13 +59,13 @@ public class BenchOnlineUpdateStockTask extends BenchOnlineTask {
     }
 
     // for test
-    public static void main(String[] args) {
-        BenchOnlineUpdateStockTask task = new BenchOnlineUpdateStockTask();
+    public static void main(String... args) {
+        var task = new BenchPeriodicUpdateStockTask();
 
         try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
             task.setDao(manager);
 
-            task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
+            task.initialize(InitialData.DEFAULT_BATCH_DATE);
 
             task.execute();
         }

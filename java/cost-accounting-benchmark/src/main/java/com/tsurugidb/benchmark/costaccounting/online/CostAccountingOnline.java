@@ -20,6 +20,9 @@ import org.slf4j.LoggerFactory;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
 import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
+import com.tsurugidb.benchmark.costaccounting.online.periodic.BenchPeriodicTask;
+import com.tsurugidb.benchmark.costaccounting.online.periodic.BenchPeriodicUpdateStockTask;
+import com.tsurugidb.benchmark.costaccounting.online.periodic.CostAccountingPeriodicAppSchedule;
 import com.tsurugidb.benchmark.costaccounting.online.random.CostAccountingOnlineAppRandom;
 import com.tsurugidb.benchmark.costaccounting.online.schedule.CostAccountingOnlineAppSchedule;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineNewItemTask;
@@ -31,7 +34,7 @@ import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateCostA
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateCostSubTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateManufacturingTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateMaterialTask;
-import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateStockTask;
+import com.tsurugidb.benchmark.costaccounting.online.task.BenchTask;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.exception.TsurugiDiagnosticCodeProvider;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
@@ -140,21 +143,21 @@ public class CostAccountingOnline {
         return appList;
     }
 
-    private List<CostAccountingOnlineAppSchedule> createOnlineAppSchedule() {
+    private List<Runnable> createOnlineAppSchedule() {
         var factoryList = getAllFactory();
 
-        var taskList = new ArrayList<Supplier<BenchOnlineTask>>();
+        var taskList = new ArrayList<Supplier<BenchTask>>();
         taskList.add(BenchOnlineNewItemTask::new);
         taskList.add(BenchOnlineUpdateManufacturingTask::new);
         taskList.add(BenchOnlineUpdateMaterialTask::new);
         taskList.add(BenchOnlineUpdateCostAddTask::new);
         taskList.add(BenchOnlineUpdateCostSubTask::new);
-        taskList.add(BenchOnlineUpdateStockTask::new);
         taskList.add(BenchOnlineShowWeightTask::new);
         taskList.add(BenchOnlineShowQuantityTask::new);
         taskList.add(BenchOnlineShowCostTask::new);
+        taskList.add(BenchPeriodicUpdateStockTask::new);
 
-        var appList = new ArrayList<CostAccountingOnlineAppSchedule>();
+        var appList = new ArrayList<Runnable>();
         for (var taskSupplier : taskList) {
             var task = taskSupplier.get();
             String taskName = task.getTitle();
@@ -167,7 +170,14 @@ public class CostAccountingOnline {
                 }
                 task.setDao(dbManager);
 
-                var app = new CostAccountingOnlineAppSchedule(task, i, factoryList, batchDate, terminationRequested);
+                Runnable app;
+                if (task instanceof BenchOnlineTask) {
+                    var onlineTask = (BenchOnlineTask) task;
+                    app = new CostAccountingOnlineAppSchedule(onlineTask, i, factoryList, batchDate, terminationRequested);
+                } else {
+                    var periodicTask = (BenchPeriodicTask) task;
+                    app = new CostAccountingPeriodicAppSchedule(periodicTask, i, factoryList, batchDate, terminationRequested);
+                }
                 appList.add(app);
             }
         }

@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -286,6 +287,11 @@ public class BenchConst {
         return getPropertyInt("online.schedule.execute.per.minute." + taskName, -1);
     }
 
+    public static long onlineInterval(String taskName) {
+        int seconds = getPropertyInt("online.schedule.interval." + taskName, -1);
+        return TimeUnit.SECONDS.toMillis(seconds);
+    }
+
     // initial data
 
     public static DbManagerType initDbManagerType() {
@@ -380,7 +386,7 @@ public class BenchConst {
 
     // properties
 
-    private static Properties properties;
+    private static volatile Properties properties;
 
     private static Properties getProperties(boolean requiredFile) {
         if (properties == null) {
