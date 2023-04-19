@@ -287,9 +287,24 @@ public class BenchConst {
         return getPropertyInt("online.schedule.execute.per.minute." + taskName, -1);
     }
 
-    public static long onlineInterval(String taskName) {
-        int seconds = getPropertyInt("online.schedule.interval." + taskName, -1);
+    public static String periodicTsurugiTxOption(String taskName) {
+        String s = getProperty("periodic.tsurugi.tx.option." + taskName, null);
+        if (s == null) {
+            s = getProperty("periodic.tsurugi.tx.option", null);
+        }
+        if (s == null) {
+            return onlineTsurugiTxOption(taskName);
+        }
+        return s;
+    }
+
+    public static long periodicInterval(String taskName) {
+        int seconds = getPropertyInt("periodic.schedule.interval." + taskName, -1);
         return TimeUnit.SECONDS.toMillis(seconds);
+    }
+
+    public static int periodicSplitSize(String taskName) {
+        return getPropertyInt("periodic.schedule.split.size." + taskName, 1);
     }
 
     // initial data

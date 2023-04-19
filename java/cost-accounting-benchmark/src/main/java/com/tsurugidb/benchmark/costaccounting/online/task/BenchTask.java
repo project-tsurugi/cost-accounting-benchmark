@@ -37,7 +37,7 @@ public abstract class BenchTask {
     }
 
     private TgTmSetting createSetting(Supplier<TgTxOption> ltxSupplier) {
-        String option = BenchConst.onlineTsurugiTxOption(title);
+        String option = getTsurugiTxOption();
         String head = option.substring(0, 3).toUpperCase();
         switch (head) {
         case "OCC":
@@ -71,6 +71,8 @@ public abstract class BenchTask {
             return TgTmSetting.of(TgTxOption.ofOCC(), size1, txOption2, size2);
         }
     }
+
+    protected abstract String getTsurugiTxOption();
 
     private static final Map<String, Boolean> ONCE_LOG_MAP = new ConcurrentHashMap<>();
 

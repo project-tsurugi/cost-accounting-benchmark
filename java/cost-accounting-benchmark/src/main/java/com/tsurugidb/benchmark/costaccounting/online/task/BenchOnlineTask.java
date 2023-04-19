@@ -24,6 +24,11 @@ public abstract class BenchOnlineTask extends BenchTask {
         super(title);
     }
 
+    @Override
+    protected String getTsurugiTxOption() {
+        return BenchConst.onlineTsurugiTxOption(title);
+    }
+
     public void initializeForRandom(int threadId, BufferedWriter writer) {
         this.threadId = threadId;
         this.writer = writer;

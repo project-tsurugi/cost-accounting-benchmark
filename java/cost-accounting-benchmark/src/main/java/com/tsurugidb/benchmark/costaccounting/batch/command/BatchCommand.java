@@ -312,7 +312,7 @@ public class BatchCommand implements ExecutableCommand {
     private String getTpm(String taskName) {
         switch (taskName) {
         case BenchPeriodicUpdateStockTask.TASK_NAME:
-            long interval = BenchConst.onlineInterval(taskName);
+            long interval = BenchConst.periodicInterval(taskName);
             return String.format("%.3f", (double) TimeUnit.MINUTES.toMillis(1) / interval);
         default:
             int tpm = BenchConst.onlineExecutePerMinute(taskName);

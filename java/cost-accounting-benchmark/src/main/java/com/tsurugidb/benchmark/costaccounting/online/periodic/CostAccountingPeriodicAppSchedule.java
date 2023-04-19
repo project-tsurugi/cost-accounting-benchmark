@@ -28,11 +28,11 @@ public class CostAccountingPeriodicAppSchedule implements Runnable {
 
     public CostAccountingPeriodicAppSchedule(BenchPeriodicTask task, int threadId, List<Integer> factoryList, LocalDate date, AtomicBoolean terminationRequested) {
         this.periodicTask = task;
-        task.initialize(date);
+        task.initialize(factoryList, date);
         this.terminationRequested = terminationRequested;
 
         this.name = "periodic." + task.getTitle() + "." + threadId;
-        this.interval = BenchConst.onlineInterval(task.getTitle());
+        this.interval = BenchConst.periodicInterval(task.getTitle());
     }
 
     @Override
