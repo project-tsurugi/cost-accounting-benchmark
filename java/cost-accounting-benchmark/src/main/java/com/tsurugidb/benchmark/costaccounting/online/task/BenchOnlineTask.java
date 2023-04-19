@@ -8,9 +8,12 @@ import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst.ConsoleType;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 
 public abstract class BenchOnlineTask extends BenchTask {
+
+    private static final ConsoleType CONSOLE_TYPE = BenchConst.onlineConsoleType();
 
     private int threadId;
     private BufferedWriter writer;
@@ -115,7 +118,15 @@ public abstract class BenchOnlineTask extends BenchTask {
 
     protected void console(String format, Object... args) {
         String s = String.format(format, args);
-        System.out.println(s);
+        switch (CONSOLE_TYPE) {
+        case NULL:
+            return;
+        case STDOUT:
+            System.out.println(s);
+            break;
+        default:
+            throw new AssertionError(CONSOLE_TYPE);
+        }
     }
 
     private long sleepTime = Integer.MIN_VALUE;

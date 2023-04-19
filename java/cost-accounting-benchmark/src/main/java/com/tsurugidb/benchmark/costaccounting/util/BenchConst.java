@@ -287,6 +287,20 @@ public class BenchConst {
         return getPropertyInt("online.schedule.execute.per.minute." + taskName, -1);
     }
 
+    public enum ConsoleType {
+        NULL, STDOUT
+    }
+
+    public static ConsoleType onlineConsoleType() {
+        String key = "online.console.type";
+        String s = getProperty(key, ConsoleType.STDOUT.name());
+        try {
+            return ConsoleType.valueOf(s.toUpperCase());
+        } catch (Exception e) {
+            throw new RuntimeException("invalid ConsoleType. " + key + "=" + s, e);
+        }
+    }
+
     public static String periodicTsurugiTxOption(String taskName) {
         String s = getProperty("periodic.tsurugi.tx.option." + taskName, null);
         if (s == null) {
