@@ -1,5 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.debug;
 
+import java.util.Arrays;
+
 import com.tsurugidb.benchmark.costaccounting.ExecutableCommand;
 import com.tsurugidb.benchmark.costaccounting.online.periodic.BenchPeriodicUpdateStockTask;
 
@@ -21,7 +23,7 @@ public class TestCommand implements ExecutableCommand {
         String type = args[1];
         switch (type) {
         case "update-stock":
-            BenchPeriodicUpdateStockTask.main();
+            BenchPeriodicUpdateStockTask.main(Arrays.copyOfRange(args, 2, args.length));
             break;
         default:
             throw new UnsupportedOperationException("unsupported operation. type=" + type);

@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.tsurugidb.benchmark.costaccounting.batch.StringUtil;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
@@ -168,9 +169,22 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
         try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
             task.setDao(manager);
 
-            task.initialize(List.of(1), InitialData.DEFAULT_BATCH_DATE);
+            List<Integer> factoryList = List.of();
+            if (0 < args.length) {
+                factoryList = StringUtil.toIntegerList(args[0]);
+            }
+            if (factoryList.isEmpty()) {
+                factoryList = manager.execute(TgTmSetting.of(TgTxOption.ofRTX()), () -> {
+                    return manager.getFactoryMasterDao().selectAllId();
+                });
+            }
+            LOG.info("factoryList={}", StringUtil.toString(factoryList));
 
+            task.initialize(factoryList, InitialData.DEFAULT_BATCH_DATE);
+
+            LOG.info("start");
             task.execute();
+            LOG.info("end");
         }
     }
 }
