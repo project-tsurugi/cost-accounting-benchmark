@@ -156,6 +156,8 @@ public class CostAccountingOnlineAppSchedule implements Runnable {
             try {
                 onlineTask.execute();
                 return;
+            } catch (UncheckedIOException e) {
+                throw e;
             } catch (RuntimeException e) {
                 LOG.info("Caught exception, retrying... ", e);
             }

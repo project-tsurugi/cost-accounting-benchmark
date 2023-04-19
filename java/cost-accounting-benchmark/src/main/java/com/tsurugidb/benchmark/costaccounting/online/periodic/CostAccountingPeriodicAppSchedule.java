@@ -1,5 +1,6 @@
 package com.tsurugidb.benchmark.costaccounting.online.periodic;
 
+import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -78,6 +79,8 @@ public class CostAccountingPeriodicAppSchedule implements Runnable {
             try {
                 periodicTask.execute();
                 return;
+            } catch (UncheckedIOException e) {
+                throw e;
             } catch (RuntimeException e) {
                 LOG.info("Caught exception, retrying... ", e);
             }
