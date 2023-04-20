@@ -38,7 +38,7 @@ public class DbTester {
         return staticSession;
     }
 
-    protected void closeSession() throws IOException {
+    protected void closeSession() throws IOException, InterruptedException {
         if (staticSession != null) {
             staticSession.close();
         }
@@ -46,18 +46,18 @@ public class DbTester {
 
     // utility
 
-    protected void dropTestTable() throws IOException {
+    protected void dropTestTable() throws IOException, InterruptedException {
         dropTable(TEST);
     }
 
-    protected void dropTable(String tableName) throws IOException {
+    protected void dropTable(String tableName) throws IOException, InterruptedException {
         if (existsTable(tableName)) {
             var sql = "drop table " + tableName;
             executeDdl(getSession(), sql);
         }
     }
 
-    protected boolean existsTable(String tableName) throws IOException {
+    protected boolean existsTable(String tableName) throws IOException, InterruptedException {
         var session = getSession();
         var opt = session.findTableMetadata(tableName);
         return opt.isPresent();
@@ -71,11 +71,11 @@ public class DbTester {
             + "  primary key(foo)" //
             + ")";
 
-    protected void createTestTable() throws IOException {
+    protected void createTestTable() throws IOException, InterruptedException {
         executeDdl(getSession(), CREATE_TEST_SQL);
     }
 
-    protected void executeDdl(TsurugiSession session, String sql) throws IOException {
+    protected void executeDdl(TsurugiSession session, String sql) throws IOException, InterruptedException {
         var tm = session.createTransactionManager();
         tm.executeDdl(sql);
     }
@@ -88,7 +88,7 @@ public class DbTester {
             .addLong("bar", TestEntity::getBar) //
             .addString("zzz", TestEntity::getZzz);
 
-    protected void insertTestTable(int size) throws IOException {
+    protected void insertTestTable(int size) throws IOException, InterruptedException {
         var session = getSession();
         var tm = session.createTransactionManager(TgTxOption.ofLTX(TEST));
         try (var ps = session.createStatement(INSERT_SQL, INSERT_MAPPING)) {
@@ -108,7 +108,7 @@ public class DbTester {
         return new TestEntity(i, i, Integer.toString(i));
     }
 
-    protected void insertTestTable(TestEntity entity) throws IOException {
+    protected void insertTestTable(TestEntity entity) throws IOException, InterruptedException {
         var session = getSession();
         var tm = createTransactionManagerOcc(session, 3);
         try (var ps = session.createStatement(INSERT_SQL, INSERT_MAPPING)) {

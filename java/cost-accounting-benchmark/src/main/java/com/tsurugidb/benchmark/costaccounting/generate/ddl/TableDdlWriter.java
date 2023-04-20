@@ -32,15 +32,15 @@ public abstract class TableDdlWriter extends WriterWrapper {
         writeCreate(";");
     }
 
-    public String getDropDdl() throws IOException {
+    public String getDropDdl() throws IOException, InterruptedException {
         return getDdl(() -> writeDrop(""));
     }
 
-    public String getCreateDdl() throws IOException {
+    public String getCreateDdl() throws IOException, InterruptedException {
         return getDdl(() -> writeCreate(""));
     }
 
-    private String getDdl(IoRunnable runnable) throws IOException {
+    private String getDdl(IoRunnable runnable) throws IOException, InterruptedException {
         try (var writer = new StringWriter(1024)) {
             setWriter(writer);
             runnable.run();

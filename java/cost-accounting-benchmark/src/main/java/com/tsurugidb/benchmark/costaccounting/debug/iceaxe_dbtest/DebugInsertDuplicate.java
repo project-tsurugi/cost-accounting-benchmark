@@ -98,7 +98,7 @@ public class DebugInsertDuplicate {
             + "  primary key(key1, key2)" //
             + ")";
 
-    private void initializeTable(TsurugiConnector connector) throws IOException {
+    private void initializeTable(TsurugiConnector connector) throws IOException, InterruptedException {
         try (var session = connector.createSession()) {
             createTable(session, TEST, CREATE_TEST_SQL);
             createTable(session, TEST2, CREATE_TEST2_SQL);
@@ -106,7 +106,7 @@ public class DebugInsertDuplicate {
         }
     }
 
-    private static void createTable(TsurugiSession session, String tableName, String createSql) throws IOException {
+    private static void createTable(TsurugiSession session, String tableName, String createSql) throws IOException, InterruptedException {
         var tm = session.createTransactionManager();
         if (session.findTableMetadata(tableName).isPresent()) {
             tm.executeDdl("drop table " + tableName);
@@ -123,7 +123,7 @@ public class DebugInsertDuplicate {
             .addLong("bar", TestEntity::getBar) //
             .addString("zzz", TestEntity::getZzz);
 
-    protected static void insertTestTable(TsurugiSession session, int size) throws IOException {
+    protected static void insertTestTable(TsurugiSession session, int size) throws IOException, InterruptedException {
         var tm = session.createTransactionManager(TgTxOption.ofLTX(TEST));
         try (var ps = session.createStatement(INSERT_SQL, INSERT_MAPPING)) {
             tm.execute((TsurugiTransactionAction) transaction -> {
@@ -230,7 +230,7 @@ public class DebugInsertDuplicate {
         }
 
         private void execute(TsurugiTransaction transaction, TsurugiSqlQuery<TsurugiResultEntity> maxPs, TsurugiSqlPreparedStatement<TestEntity> insertPs,
-                TsurugiSqlPreparedStatement<TgBindParameters> insert2Ps) throws IOException, TsurugiTransactionException {
+                TsurugiSqlPreparedStatement<TgBindParameters> insert2Ps) throws IOException, InterruptedException, TsurugiTransactionException {
             var max = transaction.executeAndFindRecord(maxPs).get();
             int foo = max.getInt("foo");
 

@@ -107,6 +107,8 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
             return executeAndGetCount(ps, parameter);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

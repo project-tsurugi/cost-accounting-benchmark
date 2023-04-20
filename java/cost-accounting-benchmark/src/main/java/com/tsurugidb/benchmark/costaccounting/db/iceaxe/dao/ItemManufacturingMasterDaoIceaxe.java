@@ -134,6 +134,8 @@ public class ItemManufacturingMasterDaoIceaxe extends IceaxeDao<ItemManufacturin
             return executeAndGetStream(ps, parameter);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

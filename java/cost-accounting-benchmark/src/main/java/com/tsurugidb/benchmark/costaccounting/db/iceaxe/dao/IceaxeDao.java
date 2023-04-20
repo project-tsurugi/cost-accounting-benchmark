@@ -91,6 +91,8 @@ public abstract class IceaxeDao<E> {
             return transaction.executeAndGetCount(ps);
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } catch (TsurugiTransactionException e) {
             throw new TsurugiTransactionRuntimeException(e);
         }
@@ -227,13 +229,15 @@ public abstract class IceaxeDao<E> {
                     return generate(session);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e.getMessage(), e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
             });
         }
 
         protected abstract void initialize();
 
-        protected abstract S generate(TsurugiSession session) throws IOException;
+        protected abstract S generate(TsurugiSession session) throws IOException, InterruptedException;
     }
 
     protected abstract class CacheStatement extends AbstractCache<TsurugiSqlStatement> {
@@ -248,7 +252,7 @@ public abstract class IceaxeDao<E> {
         protected TgParameterMapping<P> parameterMapping;
 
         @Override
-        protected TsurugiSqlPreparedStatement<P> generate(TsurugiSession session) throws IOException {
+        protected TsurugiSqlPreparedStatement<P> generate(TsurugiSession session) throws IOException, InterruptedException {
             return session.createStatement(sql, parameterMapping);
         }
     }
@@ -267,6 +271,8 @@ public abstract class IceaxeDao<E> {
             return transaction.executeAndGetCount(ps, parameter);
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } catch (TsurugiTransactionException e) {
             if (isUniqueConstraint(e)) {
                 throw new UniqueConstraintException(e);
@@ -305,6 +311,8 @@ public abstract class IceaxeDao<E> {
             return transaction.executeAndGetList(ps);
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } catch (TsurugiTransactionException e) {
             wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
@@ -323,7 +331,7 @@ public abstract class IceaxeDao<E> {
         protected TgResultMapping<R> resultMapping;
 
         @Override
-        protected TsurugiSqlPreparedQuery<P, R> generate(TsurugiSession session) throws IOException {
+        protected TsurugiSqlPreparedQuery<P, R> generate(TsurugiSession session) throws IOException, InterruptedException {
             return session.createQuery(sql, parameterMapping, resultMapping);
         }
     }
@@ -335,6 +343,8 @@ public abstract class IceaxeDao<E> {
             return transaction.executeAndFindRecord(ps).orElse(null);
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } catch (TsurugiTransactionException e) {
             wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
@@ -348,6 +358,8 @@ public abstract class IceaxeDao<E> {
             return transaction.executeAndFindRecord(ps, parameter).orElse(null);
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } catch (TsurugiTransactionException e) {
             wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
@@ -361,6 +373,8 @@ public abstract class IceaxeDao<E> {
             return transaction.executeAndGetList(ps, parameter);
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } catch (TsurugiTransactionException e) {
             wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
@@ -377,12 +391,16 @@ public abstract class IceaxeDao<E> {
                     rs.close();
                 } catch (IOException e) {
                     throw new UncheckedIOException(e.getMessage(), e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 } catch (TsurugiTransactionException e) {
                     throw new TsurugiTransactionRuntimeException(e);
                 }
             });
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } catch (TsurugiTransactionException e) {
             wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
@@ -399,12 +417,16 @@ public abstract class IceaxeDao<E> {
                     rs.close();
                 } catch (IOException e) {
                     throw new UncheckedIOException(e.getMessage(), e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 } catch (TsurugiTransactionException e) {
                     throw new TsurugiTransactionRuntimeException(e);
                 }
             });
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } catch (TsurugiTransactionException e) {
             wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
@@ -415,7 +437,7 @@ public abstract class IceaxeDao<E> {
 
     @FunctionalInterface
     private interface ExplainSupplier {
-        TgStatementMetadata get() throws IOException;
+        TgStatementMetadata get() throws IOException, InterruptedException;
     }
 
     protected void debugExplain(TsurugiSql ps, ExplainSupplier explain) {
@@ -459,6 +481,8 @@ public abstract class IceaxeDao<E> {
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 }

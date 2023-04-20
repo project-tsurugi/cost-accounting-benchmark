@@ -26,7 +26,7 @@ public class DebugSelectFetch extends DbTester {
         }
     }
 
-    public void execute() throws IOException {
+    public void execute() throws IOException, InterruptedException {
         try {
             beforeAll();
             fetch();
@@ -36,7 +36,7 @@ public class DebugSelectFetch extends DbTester {
         }
     }
 
-    private void beforeAll() throws IOException {
+    private void beforeAll() throws IOException, InterruptedException {
         LOG.debug("init start");
 
         dropTestTable();
@@ -51,12 +51,12 @@ public class DebugSelectFetch extends DbTester {
 
     private static final String TEST2 = "test2";
 
-    private void createTest2Table() throws IOException {
+    private void createTest2Table() throws IOException, InterruptedException {
         var sql = CREATE_TEST_SQL.replace(TEST, TEST2);
         executeDdl(getSession(), sql);
     }
 
-    void fetch() throws IOException {
+    void fetch() throws IOException, InterruptedException {
         LOG.info("size={}", size);
 
         var cond = TgBindVariable.ofInt("foo");

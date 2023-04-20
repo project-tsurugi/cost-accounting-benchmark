@@ -182,6 +182,8 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                             }
                         } catch (IOException e) {
                             throw new UncheckedIOException(e);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
                         }
                     }
 
@@ -193,6 +195,8 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                             throw new UncheckedIOException(e);
                         }
                         LOG.warn("executeDdl exception={}", e.getMessage());
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
                 }
             }
@@ -224,6 +228,8 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
             });
         } catch (IOException e) {
             throw new UncheckedIOException(Thread.currentThread().getName() + " " + e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(Thread.currentThread().getName() + " " + e.getMessage(), e);
         }
     }
 
@@ -259,6 +265,8 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
             throw new UncheckedIOException(Thread.currentThread().getName() + " " + e.getMessage(), e);
         } catch (IOException e) {
             throw new UncheckedIOException(Thread.currentThread().getName() + " " + e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(Thread.currentThread().getName() + " " + e.getMessage(), e);
         }
     }
 
@@ -319,6 +327,8 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
             transaction.rollback();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(Thread.currentThread().getName() + " " + e.getMessage(), e);
         } catch (TsurugiTransactionException e) {
             throw new TsurugiTransactionRuntimeException(e);
         }
@@ -326,22 +336,28 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
 
     @Override
     public void close() {
-        UncheckedIOException u = null;
+        RuntimeException re = null;
         for (var session : sessionList) {
             LOG.debug("close session {}", session);
             try {
                 session.close();
             } catch (IOException e) {
-                if (u == null) {
-                    u = new UncheckedIOException(e.getMessage(), e);
+                if (re == null) {
+                    re = new UncheckedIOException(e.getMessage(), e);
                 } else {
-                    u.addSuppressed(e);
+                    re.addSuppressed(e);
+                }
+            } catch (InterruptedException e) {
+                if (re == null) {
+                    re = new RuntimeException(e);
+                } else {
+                    re.addSuppressed(e);
                 }
             }
         }
 
-        if (u != null) {
-            throw u;
+        if (re != null) {
+            throw re;
         }
     }
 }

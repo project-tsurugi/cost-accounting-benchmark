@@ -78,7 +78,7 @@ public class DebugCommand implements ExecutableCommand {
         return 0;
     }
 
-    private void debug(boolean sqlClient, boolean transaction) throws IOException {
+    private void debug(boolean sqlClient, boolean transaction) throws IOException, InterruptedException {
         var endpoint = BenchConst.tsurugiEndpoint();
         LOG.info("endpoint={}", endpoint);
         var connector = TsurugiConnector.of(endpoint);
@@ -183,6 +183,9 @@ public class DebugCommand implements ExecutableCommand {
                     } catch (IOException e) {
                         LOG.warn("sqlClient error", e);
                         throw new UncheckedIOException(e.getMessage(), e);
+                    } catch (InterruptedException e) {
+                        LOG.warn("sqlClient error", e);
+                        throw new RuntimeException(e);
                     }
                     while (alive.get()) {
                         try {
@@ -266,7 +269,7 @@ public class DebugCommand implements ExecutableCommand {
         LOG.info("factory{} end", factoryId);
     }
 
-    private void sessionLimit() throws IOException {
+    private void sessionLimit() throws IOException, InterruptedException {
         var endpoint = BenchConst.tsurugiEndpoint();
         LOG.info("endpoint={}", endpoint);
         var connector = TsurugiConnector.of(endpoint);

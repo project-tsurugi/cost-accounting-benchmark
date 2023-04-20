@@ -20,7 +20,7 @@ public class IceaxeColumn<E, V> {
 
     @FunctionalInterface
     public interface RecordGetter<V> {
-        public V get(TsurugiResultRecord record) throws IOException, TsurugiTransactionException;
+        public V get(TsurugiResultRecord record) throws IOException, InterruptedException, TsurugiTransactionException;
     }
 
     private final TgBindVariable<V> variable;
@@ -63,7 +63,7 @@ public class IceaxeColumn<E, V> {
     }
 
     // entity.setFId(record.getInt("f_id"));
-    public void fillEntity(E entity, TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
+    public void fillEntity(E entity, TsurugiResultRecord record) throws IOException, InterruptedException, TsurugiTransactionException {
         V value = recordGetter.get(record);
         entitySetter.accept(entity, value);
     }

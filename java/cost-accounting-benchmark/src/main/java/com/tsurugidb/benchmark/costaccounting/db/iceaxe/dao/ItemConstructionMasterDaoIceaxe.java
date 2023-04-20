@@ -173,6 +173,8 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
             return executeAndGetList(ps, parameter);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

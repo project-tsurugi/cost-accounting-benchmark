@@ -15,37 +15,37 @@ public class IceaxeRecordUtil {
 
     // get from ResultRecord
 
-    public static Integer getInt(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
+    public static Integer getInt(TsurugiResultRecord record) throws IOException, InterruptedException, TsurugiTransactionException {
         return record.nextIntOrNull();
     }
 
-    public static BigInteger getBigInt(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
+    public static BigInteger getBigInt(TsurugiResultRecord record) throws IOException, InterruptedException, TsurugiTransactionException {
         BigDecimal value = getDecimal(record);
         return (value == null) ? null : value.toBigInteger();
     }
 
-    public static BigDecimal getDecimal(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
+    public static BigDecimal getDecimal(TsurugiResultRecord record) throws IOException, InterruptedException, TsurugiTransactionException {
         return record.nextDecimalOrNull();
     }
 
-    public static LocalDate getDate(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
+    public static LocalDate getDate(TsurugiResultRecord record) throws IOException, InterruptedException, TsurugiTransactionException {
         return record.nextDateOrNull();
     }
 
-    public static LocalTime getTime(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
+    public static LocalTime getTime(TsurugiResultRecord record) throws IOException, InterruptedException, TsurugiTransactionException {
         return record.nextTimeOrNull();
     }
 
-    public static String getString(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
+    public static String getString(TsurugiResultRecord record) throws IOException, InterruptedException, TsurugiTransactionException {
         return record.nextStringOrNull();
     }
 
-    public static MeasurementType getMeasurementType(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
+    public static MeasurementType getMeasurementType(TsurugiResultRecord record) throws IOException, InterruptedException, TsurugiTransactionException {
         String value = getString(record);
         return (value == null) ? null : MeasurementType.of(value);
     }
 
-    public static ItemType getItemType(TsurugiResultRecord record) throws IOException, TsurugiTransactionException {
+    public static ItemType getItemType(TsurugiResultRecord record) throws IOException, InterruptedException, TsurugiTransactionException {
         String value = getString(record);
         return (value == null) ? null : ItemType.of(value);
     }

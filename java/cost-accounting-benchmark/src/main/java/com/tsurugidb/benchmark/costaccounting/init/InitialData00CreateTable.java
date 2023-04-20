@@ -17,7 +17,7 @@ public class InitialData00CreateTable extends InitialData {
         super(null);
     }
 
-    private void main(DbmsType dbmsType) throws IOException {
+    private void main(DbmsType dbmsType) throws IOException, InterruptedException {
         logStart();
 
         var generator = DdlGenerator.createDdlGenerator(dbmsType);

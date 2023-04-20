@@ -61,7 +61,7 @@ public abstract class DdlGenerator {
         }
     }
 
-    public void executeDdl(CostBenchDbManager dbManager) throws IOException {
+    public void executeDdl(CostBenchDbManager dbManager) throws IOException, InterruptedException {
         InputStream srcFile = BenchConst.tableXlsxStream(LOG);
 
         try (Workbook workbook = WorkbookFactory.create(srcFile)) {
