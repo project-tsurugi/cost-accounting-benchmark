@@ -21,7 +21,7 @@ public class BenchOnlineUpdateCostSubTask extends BenchOnlineTask {
 
     public BenchOnlineUpdateCostSubTask() {
         super(TASK_NAME);
-        this.settingPre = TgTmSetting.ofAlways(TgTxOption.ofRTX());
+        this.settingPre = TgTmSetting.ofAlways(TgTxOption.ofRTX().label(TASK_NAME + ".pre"));
         this.settingMain = getSetting(() -> TgTxOption.ofLTX(CostMasterDao.TABLE_NAME));
     }
 
