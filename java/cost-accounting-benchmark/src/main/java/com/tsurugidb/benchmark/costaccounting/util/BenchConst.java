@@ -318,7 +318,7 @@ public class BenchConst {
     }
 
     public static int periodicSplitSize(String taskName) {
-        return getPropertyInt("periodic.schedule.split.size." + taskName, 1);
+        return getPropertyInt("periodic.schedule." + taskName + ".split.size", 1);
     }
 
     // initial data

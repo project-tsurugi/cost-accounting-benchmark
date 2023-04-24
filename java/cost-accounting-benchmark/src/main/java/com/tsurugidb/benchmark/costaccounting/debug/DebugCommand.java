@@ -2,18 +2,26 @@ package com.tsurugidb.benchmark.costaccounting.debug;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.ExecutableCommand;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
+import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
+import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ResultTable;
+import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.debug.iceaxe_dbtest.DebugInsertDuplicate;
 import com.tsurugidb.benchmark.costaccounting.debug.iceaxe_dbtest.DebugSelectFetch;
@@ -44,15 +52,6 @@ public class DebugCommand implements ExecutableCommand {
 
         String type = args[1];
         switch (type) {
-        case "1":
-            debug(false, false);
-            break;
-        case "2":
-            debug(true, false);
-            break;
-        case "3":
-            debug(false, true);
-            break;
         case "tsubakuro":
             tsubakuro();
             break;
@@ -71,6 +70,18 @@ public class DebugCommand implements ExecutableCommand {
         case "fetch":
             new DebugSelectFetch(args).execute();
             break;
+        case "select-cost":
+            selectCost(arg(args, 2, "txOption"));
+            break;
+        case "insert-stock":
+            insertStock(arg(args, 2, "txOption"), argInt(args, 3, "recordSize"));
+            break;
+        case "copy-stock":
+            copyStock(arg(args, 2, "txOption"));
+            break;
+        case "copy-stock.list":
+            copyStockList(arg(args, 2, "txOption"));
+            break;
         default:
             throw new UnsupportedOperationException("unsupported operation. type=" + type);
         }
@@ -78,40 +89,18 @@ public class DebugCommand implements ExecutableCommand {
         return 0;
     }
 
-    private void debug(boolean sqlClient, boolean transaction) throws IOException, InterruptedException {
-        var endpoint = BenchConst.tsurugiEndpoint();
-        LOG.info("endpoint={}", endpoint);
-        var connector = TsurugiConnector.of(endpoint);
-
-        LOG.info("create session start");
-        var list = new ArrayList<TsurugiSession>();
-        for (int i = 0; i < 60; i++) {
-            var session = connector.createSession();
-            list.add(session);
-
-            if (sqlClient) {
-                session.getLowSqlClient();
-            }
+    private String arg(String[] args, int index, String name) {
+        if (index < args.length) {
+            return args[index];
         }
-        LOG.info("create session end");
+        throw new RuntimeException("too few arguments. " + name);
+    }
 
-        if (transaction) {
-            LOG.info("createTransaction start");
-            int i = 0;
-            for (var session : list) {
-                LOG.info("createTransaction {}", i++);
-                try (var tx = session.createTransaction(TgTxOption.ofOCC())) {
-                    tx.getLowTransaction();
-                }
-            }
-            LOG.info("createTransaction end");
+    private int argInt(String[] args, int index, String name) {
+        if (index < args.length) {
+            return Integer.parseInt(args[index]);
         }
-
-        LOG.info("close session start");
-        for (var session : list) {
-            session.close();
-        }
-        LOG.info("close session end");
+        throw new RuntimeException("too few arguments. " + name);
     }
 
     private void tsubakuro() {
@@ -287,6 +276,144 @@ public class DebugCommand implements ExecutableCommand {
             for (var session : sessionList) {
                 session.close();
             }
+        }
+    }
+
+    private void selectCost(String txType) {
+        try (var dbManager = createDbManager()) {
+            LOG.info("selectCost start");
+            var setting = TgTmSetting.of(getTxOption(txType, CostMasterDao.TABLE_NAME));
+            long start = System.currentTimeMillis();
+            dbManager.execute(setting, () -> {
+                var costMasterDao = dbManager.getCostMasterDao();
+                int[] count = { 0 };
+                try (var stream = costMasterDao.selectAll()) {
+                    stream.forEach(cost -> count[0]++);
+                }
+                LOG.info("selectCost count={}", count[0]);
+            });
+            long end = System.currentTimeMillis();
+            LOG.info("selectCost end {}", end - start);
+        }
+    }
+
+    private TgTxOption getTxOption(String type, String wp) {
+        switch (type.toUpperCase()) {
+        case "OCC":
+            return TgTxOption.ofOCC();
+        case "LTX":
+            return TgTxOption.ofLTX(wp);
+        case "RTX":
+            return TgTxOption.ofRTX();
+        default:
+            throw new IllegalArgumentException(type);
+        }
+    }
+
+    private void insertStock(String txType, int recordSize) {
+        try (var dbManager = createDbManager()) {
+            LOG.info("insertStock start");
+            var setting = TgTmSetting.of(getTxOption(txType, StockHistoryDao.TABLE_NAME));
+            var date = BenchConst.initBatchDate();
+            var time = LocalTime.now();
+            var dao = dbManager.getStockHistoryDao();
+            long start = System.currentTimeMillis();
+            dbManager.execute(setting, () -> {
+                for (int i = 0; i < recordSize; i++) {
+                    var entity = new StockHistory();
+                    entity.setSDate(date);
+                    entity.setSFId((i % 60) + 1);
+                    entity.setSIId(i);
+                    entity.setSTime(time);
+                    entity.setSStockUnit("test");
+                    entity.setSStockQuantity(BigDecimal.ZERO);
+                    entity.setSStockAmount(BigDecimal.ZERO);
+                    dao.insert(entity);
+
+                    if ((i + 1) % 10000 == 0) {
+                        LOG.info("inserted {}", i + 1);
+                    }
+                }
+            });
+            long end = System.currentTimeMillis();
+            LOG.info("insertStock end {}", end - start);
+        }
+    }
+
+    private void copyStock(String txType) {
+        try (var dbManager = createDbManager()) {
+            LOG.info("copyStock start");
+            var setting = TgTmSetting.of(getTxOption(txType, StockHistoryDao.TABLE_NAME));
+            var date = BenchConst.initBatchDate();
+            var time = LocalTime.now();
+            var dao = dbManager.getStockHistoryDao();
+            long start = System.currentTimeMillis();
+            dbManager.execute(setting, () -> {
+                var costMasterDao = dbManager.getCostMasterDao();
+                int[] count = { 0 };
+                try (var stream = costMasterDao.selectAll()) {
+                    stream.forEach(cost -> {
+                        int i = count[0];
+                        var entity = new StockHistory();
+                        entity.setSDate(date);
+                        entity.setSFId((i % 60) + 1);
+                        entity.setSIId(i);
+                        entity.setSTime(time);
+                        entity.setSStockUnit("test");
+                        entity.setSStockQuantity(BigDecimal.ZERO);
+                        entity.setSStockAmount(BigDecimal.ZERO);
+                        dao.insert(entity);
+
+                        if ((i + 1) % 10000 == 0) {
+                            LOG.info("inserted {}", i + 1);
+                        }
+                        count[0]++;
+                    });
+                    LOG.info("copied {}", count[0]);
+                }
+            });
+            long end = System.currentTimeMillis();
+            LOG.info("copyStock end {}", end - start);
+        }
+    }
+
+    private void copyStockList(String txType) {
+        try (var dbManager = createDbManager()) {
+            LOG.info("copyStock.list start");
+            var setting = TgTmSetting.of(getTxOption(txType, StockHistoryDao.TABLE_NAME));
+            var date = BenchConst.initBatchDate();
+            var time = LocalTime.now();
+            var dao = dbManager.getStockHistoryDao();
+            long start = System.currentTimeMillis();
+            dbManager.execute(setting, () -> {
+                var costMasterDao = dbManager.getCostMasterDao();
+                List<CostMaster> costList;
+                try (var stream = costMasterDao.selectAll()) {
+                    costList = stream.collect(Collectors.toList());
+                }
+                LOG.info("select {}", costList.size());
+                int i = 0;
+                for (@SuppressWarnings("unused")
+                var cost : costList) {
+                    var entity = new StockHistory();
+                    entity.setSDate(date);
+                    entity.setSFId((i % 60) + 1);
+                    entity.setSIId(i);
+                    entity.setSTime(time);
+                    entity.setSStockUnit("test");
+                    entity.setSStockQuantity(BigDecimal.ZERO);
+                    entity.setSStockAmount(BigDecimal.ZERO);
+                    dao.insert(entity);
+
+                    if ((i + 1) % 10000 == 0) {
+                        LOG.info("inserted {}", i + 1);
+                    }
+                    i++;
+                }
+                LOG.info("copied {}", i);
+            });
+            long end = System.currentTimeMillis();
+            LOG.info("copyStock.list end {}", end - start);
         }
     }
 

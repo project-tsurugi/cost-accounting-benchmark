@@ -32,20 +32,17 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
     public static final String TASK_NAME = "update-stock";
 
     private final TgTmSetting settingMain;
+    private final int threadSize;
 
     public BenchPeriodicUpdateStockTask() {
         super(TASK_NAME);
         this.settingMain = getSetting(() -> TgTxOption.ofLTX(StockHistoryDao.TABLE_NAME));
-    }
-
-    @Override
-    protected String getTsurugiTxOption() {
-        return BenchConst.periodicTsurugiTxOption(title);
+        this.threadSize = BenchConst.periodicSplitSize(TASK_NAME);
+        LOG.info("split.size={}", threadSize);
     }
 
     @Override
     protected boolean execute1() {
-        int threadSize = BenchConst.periodicSplitSize(TASK_NAME);
         if (threadSize <= 1) {
             return executeAll();
         } else {
@@ -183,8 +180,10 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
             task.initialize(factoryList, InitialData.DEFAULT_BATCH_DATE);
 
             LOG.info("start");
+            long start = System.currentTimeMillis();
             task.execute();
-            LOG.info("end");
+            long end = System.currentTimeMillis();
+            LOG.info("end {}", end - start);
         }
     }
 }

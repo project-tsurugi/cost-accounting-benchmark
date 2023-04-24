@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchTask;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 public abstract class BenchPeriodicTask extends BenchTask {
 
@@ -12,6 +13,11 @@ public abstract class BenchPeriodicTask extends BenchTask {
 
     public BenchPeriodicTask(String tableName) {
         super(tableName);
+    }
+
+    @Override
+    protected String getTsurugiTxOption() {
+        return BenchConst.periodicTsurugiTxOption(title);
     }
 
     public void initialize(List<Integer> factoryList, LocalDate date) {
