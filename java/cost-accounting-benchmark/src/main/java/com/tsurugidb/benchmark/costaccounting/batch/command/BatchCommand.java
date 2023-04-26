@@ -35,6 +35,7 @@ import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateCostS
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateManufacturingTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateMaterialTask;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.benchmark.costaccounting.watcher.TateyamaWatcher;
 import com.tsurugidb.benchmark.costaccounting.watcher.TateyamaWatcherService;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
@@ -93,7 +94,22 @@ public class BatchCommand implements ExecutableCommand {
 
     private int execute1(BatchConfig config, int attempt, List<BatchRecord> records) throws Exception {
         if (BenchConst.batchCommandInitData()) {
+            LOG.info("initdata start");
             InitialData.main();
+            LOG.info("initdata end");
+        }
+        if (BenchConst.batchCommandPreBatch()) {
+            LOG.info("pre-batch start");
+            var preConfig = new BatchConfig(BenchConst.PARALLEL_FACTORY_SESSION, config.getBatchDate(), config.getFactoryList(), 100);
+            preConfig.setIsolationLevel(IsolationLevel.READ_COMMITTED);
+            preConfig.setDefaultTxOption(getOption("LTX"));
+
+            var batch = new CostAccountingBatch();
+            int exitCode = batch.main(preConfig);
+            if (exitCode != 0) {
+                throw new RuntimeException("pre-batch exitCode=" + exitCode);
+            }
+            LOG.info("pre-batch end");
         }
         CostBenchDbManager.initCounter();
 

@@ -221,6 +221,10 @@ public class BenchConst {
         return getPropertyBoolean("batch-command.with.initdata", false);
     }
 
+    public static boolean batchCommandPreBatch() {
+        return getPropertyBoolean("batch-command.with.prebatch", false);
+    }
+
     public static boolean batchCommandOnline() {
         return getPropertyBoolean("batch-command.with.online", false);
     }
