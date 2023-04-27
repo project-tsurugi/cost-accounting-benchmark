@@ -12,6 +12,7 @@ import com.tsurugidb.benchmark.costaccounting.init.command.CheckConstraintComman
 import com.tsurugidb.benchmark.costaccounting.init.command.CreateTableCommand;
 import com.tsurugidb.benchmark.costaccounting.init.command.CreateTestDataCommand;
 import com.tsurugidb.benchmark.costaccounting.init.command.DumpCsvCommand;
+import com.tsurugidb.benchmark.costaccounting.online.command.OnlineCommand;
 import com.tsurugidb.benchmark.costaccounting.time.TimeCommand;
 
 public class Main {
@@ -25,6 +26,7 @@ public class Main {
         addCommand("dumpCsv", DumpCsvCommand::new);
         addCommand("time", TimeCommand::new);
         addCommand("executeBatch", BatchCommand::new);
+        addCommand("executeOnline", OnlineCommand::new);
         addCommand("debug", DebugCommand::new);
         addCommand("test", TestCommand::new);
     }

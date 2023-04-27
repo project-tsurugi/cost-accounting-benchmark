@@ -19,6 +19,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
+import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
@@ -31,14 +32,18 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
 
     public static final String TASK_NAME = "update-stock";
 
-    private final TgTmSetting settingMain;
+    private TgTmSetting settingMain;
     private final int threadSize;
 
     public BenchPeriodicUpdateStockTask() {
         super(TASK_NAME);
-        this.settingMain = getSetting(() -> TgTxOption.ofLTX(StockHistoryDao.TABLE_NAME));
         this.threadSize = BenchConst.periodicSplitSize(TASK_NAME);
         LOG.info("split.size={}", threadSize);
+    }
+
+    @Override
+    public void initializeSetting(OnlineConfig config) {
+        this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(StockHistoryDao.TABLE_NAME));
     }
 
     @Override

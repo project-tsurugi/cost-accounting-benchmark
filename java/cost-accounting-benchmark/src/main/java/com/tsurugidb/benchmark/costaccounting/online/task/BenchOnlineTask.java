@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
@@ -12,6 +13,17 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst.ConsoleType;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 
 public abstract class BenchOnlineTask extends BenchTask {
+
+    public static final List<String> TASK_NAME_LIST = List.of( //
+            BenchOnlineNewItemTask.TASK_NAME, //
+            BenchOnlineUpdateManufacturingTask.TASK_NAME, //
+            BenchOnlineUpdateMaterialTask.TASK_NAME, //
+            BenchOnlineUpdateCostAddTask.TASK_NAME, //
+            BenchOnlineUpdateCostSubTask.TASK_NAME, //
+            BenchOnlineShowWeightTask.TASK_NAME, //
+            BenchOnlineShowQuantityTask.TASK_NAME, //
+            BenchOnlineShowCostTask.TASK_NAME //
+    );
 
     private static final ConsoleType CONSOLE_TYPE = BenchConst.onlineConsoleType();
 
@@ -25,11 +37,6 @@ public abstract class BenchOnlineTask extends BenchTask {
 
     public BenchOnlineTask(String title) {
         super(title);
-    }
-
-    @Override
-    protected String getTsurugiTxOption() {
-        return BenchConst.onlineTsurugiTxOption(title);
     }
 
     public void initializeForRandom(int threadId, BufferedWriter writer) {
@@ -133,7 +140,7 @@ public abstract class BenchOnlineTask extends BenchTask {
 
     public long getSleepTime() {
         if (sleepTime < 0) {
-            this.sleepTime = TimeUnit.SECONDS.toMillis(BenchConst.onlineTaskSleepTime(title));
+            this.sleepTime = TimeUnit.SECONDS.toMillis(BenchConst.onlineRandomTaskSleepTime(title));
         }
         return sleepTime;
     }

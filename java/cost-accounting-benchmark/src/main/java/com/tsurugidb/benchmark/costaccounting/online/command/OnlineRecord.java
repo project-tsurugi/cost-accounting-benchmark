@@ -1,4 +1,4 @@
-package com.tsurugidb.benchmark.costaccounting.batch.command;
+package com.tsurugidb.benchmark.costaccounting.online.command;
 
 import com.tsurugidb.benchmark.costaccounting.db.BenchDbCounter;
 import com.tsurugidb.benchmark.costaccounting.db.BenchDbCounter.CounterName;

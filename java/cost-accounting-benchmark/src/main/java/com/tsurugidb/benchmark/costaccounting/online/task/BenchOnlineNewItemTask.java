@@ -5,9 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemConstructionMasterDao;
@@ -19,6 +16,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData03ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData04ItemManufacturingMaster;
+import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -26,17 +24,19 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
  * 新規開発商品の追加
  */
 public class BenchOnlineNewItemTask extends BenchOnlineTask {
-    private static final Logger LOG = LoggerFactory.getLogger(BenchOnlineNewItemTask.class);
-
     public static final String TASK_NAME = "new-item";
 
-    private final TgTmSetting settingPre;
-    private final TgTmSetting settingMain;
+    private TgTmSetting settingPre;
+    private TgTmSetting settingMain;
 
     public BenchOnlineNewItemTask() {
         super(TASK_NAME);
-        this.settingPre = getSetting(() -> TgTxOption.ofLTX(ItemMasterDao.TABLE_NAME, ItemConstructionMasterDao.TABLE_NAME));
-        this.settingMain = getSetting(() -> TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
+    }
+
+    @Override
+    public void initializeSetting(OnlineConfig config) {
+        this.settingPre = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemMasterDao.TABLE_NAME, ItemConstructionMasterDao.TABLE_NAME));
+        this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
     }
 
     @Override

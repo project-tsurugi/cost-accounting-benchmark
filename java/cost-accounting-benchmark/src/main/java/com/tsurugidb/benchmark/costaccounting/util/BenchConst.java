@@ -268,15 +268,15 @@ public class BenchConst {
         return getProperty("online.type", ONLINE_RANDOM);
     }
 
-    public static int onlineThreadSize() {
+    public static int onlineRandomThreadSize() {
         return getPropertyInt("online.random.thread.size");
     }
 
-    public static int onlineTaskRatio(String taskName) {
+    public static int onlineRandomTaskRatio(String taskName) {
         return getPropertyInt("online.random.task.ratio." + taskName, 0);
     }
 
-    public static int onlineTaskSleepTime(String taskName) {
+    public static int onlineRandomTaskSleepTime(String taskName) {
         return getPropertyInt("online.random.task.sleep." + taskName, 0);
     }
 
@@ -316,6 +316,10 @@ public class BenchConst {
         return s;
     }
 
+    public static int periodicThreadSize(String taskName) {
+        return getPropertyInt("periodic.schedule.thread.size." + taskName, 0);
+    }
+
     public static long periodicInterval(String taskName) {
         int seconds = getPropertyInt("periodic.schedule.interval." + taskName, -1);
         return TimeUnit.SECONDS.toMillis(seconds);
@@ -323,6 +327,42 @@ public class BenchConst {
 
     public static int periodicSplitSize(String taskName) {
         return getPropertyInt("periodic.schedule." + taskName + ".split.size", 1);
+    }
+
+    public static String onlineCommandLabel() {
+        return getProperty("online-command.label", null);
+    }
+
+    public static List<IsolationLevel> onlineCommandIsolationLevel() {
+        return getCommandIsolationLevel("online-command.isolation.level");
+    }
+
+    public static List<String> onlineCommandTxOption() {
+        return getCommandTxOption("online-command.tx.option");
+    }
+
+    public static String onlineCommandFactoryList() {
+        return getProperty("online-command.factory.list", "all");
+    }
+
+    public static int onlineCommandExecuteTimes() {
+        return getPropertyInt("online-command.execute.times", 1);
+    }
+
+    public static boolean onlineCommandInitData() {
+        return getPropertyBoolean("online-command.with.initdata", true);
+    }
+
+    public static boolean onlineCommandPreBatch() {
+        return getPropertyBoolean("online-command.with.prebatch", false);
+    }
+
+    public static int onlineCommandExecuteTime() {
+        return getPropertyInt("online-command.execute.time");
+    }
+
+    public static String onlineCommandResultFile() {
+        return getProperty("online-command.result.file");
     }
 
     // initial data

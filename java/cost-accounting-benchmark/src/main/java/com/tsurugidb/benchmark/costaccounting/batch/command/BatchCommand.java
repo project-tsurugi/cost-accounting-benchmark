@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -25,15 +24,8 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.init.DumpCsv;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline;
-import com.tsurugidb.benchmark.costaccounting.online.periodic.BenchPeriodicUpdateStockTask;
-import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineNewItemTask;
-import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineShowCostTask;
-import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineShowQuantityTask;
-import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineShowWeightTask;
-import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateCostAddTask;
-import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateCostSubTask;
-import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateManufacturingTask;
-import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateMaterialTask;
+import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
+import com.tsurugidb.benchmark.costaccounting.online.command.OnlineAppReport;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.benchmark.costaccounting.watcher.TateyamaWatcher;
@@ -44,7 +36,7 @@ public class BatchCommand implements ExecutableCommand {
     private static final Logger LOG = LoggerFactory.getLogger(BatchCommand.class);
 
     private Path baseResultFile;
-    private String onlineAppReport = "# Online Application Report \n\n";
+    private final OnlineAppReport onlineAppReport = new OnlineAppReport();
 
     @Override
     public String getDescription() {
@@ -79,11 +71,15 @@ public class BatchCommand implements ExecutableCommand {
                         config.setIsolationLevel(isolationLevel);
                         config.setDefaultTxOption(getOption(txOption));
 
-                        exitCode |= execute1(config, i, records);
+                        OnlineConfig onlineConfig = null;
+                        if (BenchConst.batchCommandOnline()) {
+                            onlineConfig = CostAccountingOnline.createDefaultConfig(batchDate);
+                        }
+                        exitCode |= execute1(config, onlineConfig, i, records);
 
                         writeResult(outputPath, records);
                         if (BenchConst.batchCommandOnline()) {
-                            writeOnlineAppReport(records.get(records.size() - 1), outputPath);
+                            writeOnlineAppReport(onlineConfig, records.get(records.size() - 1), outputPath);
                         }
                     }
                 }
@@ -92,7 +88,7 @@ public class BatchCommand implements ExecutableCommand {
         return exitCode;
     }
 
-    private int execute1(BatchConfig config, int attempt, List<BatchRecord> records) throws Exception {
+    private int execute1(BatchConfig config, OnlineConfig onlineConfig, int attempt, List<BatchRecord> records) throws Exception {
         if (BenchConst.batchCommandInitData()) {
             LOG.info("initdata start");
             InitialData.main();
@@ -117,7 +113,7 @@ public class BatchCommand implements ExecutableCommand {
         TateyamaWatcher watcher;
         try (var watcherService = TateyamaWatcherService.of()) {
             watcher = watcherService.start();
-            exitCode = execute1Main(config, attempt, records);
+            exitCode = execute1Main(config, onlineConfig, attempt, records);
         }
 
         var record = records.get(records.size() - 1);
@@ -132,10 +128,10 @@ public class BatchCommand implements ExecutableCommand {
         return exitCode;
     }
 
-    private int execute1Main(BatchConfig config, int attempt, List<BatchRecord> records) throws Exception {
+    private int execute1Main(BatchConfig config, OnlineConfig onlineConfig, int attempt, List<BatchRecord> records) throws Exception {
         CostAccountingOnline online = null;
-        if (BenchConst.batchCommandOnline()) {
-            online = new CostAccountingOnline(config.getBatchDate());
+        if (onlineConfig != null) {
+            online = new CostAccountingOnline();
         }
 
         int exitCode = 0;
@@ -146,7 +142,7 @@ public class BatchCommand implements ExecutableCommand {
 
             var batch = new CostAccountingBatch();
             if (online != null) {
-                online.start();
+                online.start(onlineConfig);
             }
             record.start();
             exitCode = batch.main(config);
@@ -163,11 +159,7 @@ public class BatchCommand implements ExecutableCommand {
             return exitCode;
         } finally {
             if (online != null) {
-                if (online.terminate() != 0) {
-                    if (exitCode == 0) {
-                        return 2;
-                    }
-                }
+                online.terminate();
             }
         }
     }
@@ -246,93 +238,8 @@ public class BatchCommand implements ExecutableCommand {
         }
     }
 
-    private void writeOnlineAppReport(BatchRecord record, Path outputPath) {
-        String title = record.dbmsType().name() + "-" + record.option() + "-" + record.scope() + "-" + record.factory();
-        LOG.debug("Creating an online application report for {}", title);
-
-        Path onlineOutputPath;
-        {
-            String fileName;
-            {
-                var outputFileName = outputPath.getFileName();
-                if (outputFileName == null) {
-                    fileName = "online-app.md";
-                } else {
-                    var batchFileName = outputFileName.toString();
-                    int n = batchFileName.lastIndexOf(".");
-                    if (n >= 0) {
-                        fileName = batchFileName.substring(0, n) + ".online-app.md";
-                    } else {
-                        fileName = batchFileName + ".online-app.md";
-                    }
-                }
-            }
-
-            var dir = outputPath.getParent();
-            if (dir != null) {
-                onlineOutputPath = dir.resolve(fileName);
-            } else {
-                onlineOutputPath = Path.of(fileName);
-            }
-        }
-
-        String newReport = createOnlineAppReport(title);
-        LOG.debug("Online application report: {}", newReport);
-        this.onlineAppReport += newReport;
-
-        LOG.debug("Writing online application reports to {}", onlineOutputPath.toAbsolutePath());
-        try {
-            Files.writeString(onlineOutputPath, onlineAppReport);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e.getMessage(), e);
-        }
-    }
-
-    private String createOnlineAppReport(String title) {
-        var sb = new StringBuilder(2048);
-
-        // タイトル
-        sb.append("## ");
-        sb.append(title);
-        sb.append("\n\n");
-
-        // ヘッダ
-        sb.append(OnlineRecord.header1());
-        sb.append("\n");
-        sb.append(OnlineRecord.header2());
-        sb.append("\n");
-
-        createOnlineAppReport(sb, BenchOnlineNewItemTask.TASK_NAME);
-        createOnlineAppReport(sb, BenchOnlineUpdateManufacturingTask.TASK_NAME);
-        createOnlineAppReport(sb, BenchOnlineUpdateMaterialTask.TASK_NAME);
-        createOnlineAppReport(sb, BenchOnlineUpdateCostAddTask.TASK_NAME);
-        createOnlineAppReport(sb, BenchOnlineUpdateCostSubTask.TASK_NAME);
-        createOnlineAppReport(sb, BenchOnlineShowWeightTask.TASK_NAME);
-        createOnlineAppReport(sb, BenchOnlineShowQuantityTask.TASK_NAME);
-        createOnlineAppReport(sb, BenchOnlineShowCostTask.TASK_NAME);
-        createOnlineAppReport(sb, BenchPeriodicUpdateStockTask.TASK_NAME);
-
-        return sb.toString();
-    }
-
-    private void createOnlineAppReport(StringBuilder sb, String taskName) {
-        int threads = BenchConst.onlineThreadSize(taskName);
-        var tpm = getTpm(taskName);
-        var counter = CostBenchDbManager.getCounter();
-
-        var record = new OnlineRecord(taskName, threads, tpm, counter);
-        sb.append(record);
-        sb.append("\n");
-    }
-
-    private String getTpm(String taskName) {
-        switch (taskName) {
-        case BenchPeriodicUpdateStockTask.TASK_NAME:
-            long interval = BenchConst.periodicInterval(taskName);
-            return String.format("%.3f", (double) TimeUnit.MINUTES.toMillis(1) / interval);
-        default:
-            int tpm = BenchConst.onlineExecutePerMinute(taskName);
-            return Integer.toString(tpm);
-        }
+    private void writeOnlineAppReport(OnlineConfig onlineConfig, BatchRecord record, Path outputPath) {
+        String title = record.dbmsType().name() + " " + record.factory() + " " + record.scope() + " " + record.option();
+        onlineAppReport.writeOnlineAppReport(onlineConfig, title, outputPath);
     }
 }

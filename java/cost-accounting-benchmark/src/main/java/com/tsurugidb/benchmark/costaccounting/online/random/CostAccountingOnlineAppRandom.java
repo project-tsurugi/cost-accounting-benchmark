@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
+import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineNewItemTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineShowCostTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineShowQuantityTask;
@@ -44,11 +45,11 @@ public class CostAccountingOnlineAppRandom implements Runnable {
 
     private final BenchRandom random = new BenchRandom();
 
-    public CostAccountingOnlineAppRandom(int id, CostBenchDbManager dbManager, List<Integer> factoryList, LocalDate date, AtomicBoolean terminationRequested) {
+    public CostAccountingOnlineAppRandom(OnlineConfig config, int id, CostBenchDbManager dbManager, List<Integer> factoryList, AtomicBoolean terminationRequested) {
         this.threadId = id;
         this.dbManager = dbManager;
         this.factoryList = factoryList;
-        this.date = date;
+        this.date = config.getBatchDate();
         this.terminationRequested = terminationRequested;
 
         taskList.add(new BenchOnlineNewItemTask());
@@ -61,6 +62,10 @@ public class CostAccountingOnlineAppRandom implements Runnable {
         taskList.add(new BenchOnlineShowQuantityTask());
         taskList.add(new BenchOnlineShowCostTask());
 
+        for (var task : taskList) {
+            task.initializeSetting(config);
+        }
+
         this.taskRatioMax = initializeTaskRatio(taskList);
     }
 
@@ -68,7 +73,7 @@ public class CostAccountingOnlineAppRandom implements Runnable {
         int sum = 0;
         for (BenchOnlineTask task : taskList) {
             String title = task.getTitle();
-            int ratio = BenchConst.onlineTaskRatio(title);
+            int ratio = BenchConst.onlineRandomTaskRatio(title);
             if (ratio > 0) {
                 sum += ratio;
                 taskRatioMap.put(sum, task);

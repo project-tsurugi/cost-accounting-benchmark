@@ -5,9 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemConstructionMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
@@ -17,6 +14,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.ItemConstructionMasterKe
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData03ItemMaster;
+import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -24,15 +22,17 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
  * 原材料の変更
  */
 public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
-    private static final Logger LOG = LoggerFactory.getLogger(BenchOnlineUpdateMaterialTask.class);
-
     public static final String TASK_NAME = "update-material";
 
-    private final TgTmSetting settingMain;
+    private TgTmSetting settingMain;
 
     public BenchOnlineUpdateMaterialTask() {
         super(TASK_NAME);
-        this.settingMain = getSetting(() -> TgTxOption.ofLTX(ItemConstructionMasterDao.TABLE_NAME));
+    }
+
+    @Override
+    public void initializeSetting(OnlineConfig config) {
+        this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemConstructionMasterDao.TABLE_NAME));
     }
 
     @Override

@@ -4,9 +4,6 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
@@ -15,6 +12,7 @@ import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData04ItemManufacturingMaster;
+import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -22,17 +20,19 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
  * 生産数の変更
  */
 public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
-    private static final Logger LOG = LoggerFactory.getLogger(BenchOnlineUpdateManufacturingTask.class);
-
     public static final String TASK_NAME = "update-manufacturing";
 
-    private final TgTmSetting settingPre;
-    private final TgTmSetting settingMain;
+    private TgTmSetting settingPre;
+    private TgTmSetting settingMain;
 
     public BenchOnlineUpdateManufacturingTask() {
         super(TASK_NAME);
-        this.settingPre = getSetting(() -> TgTxOption.ofRTX());
-        this.settingMain = getSetting(() -> TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
+    }
+
+    @Override
+    public void initializeSetting(OnlineConfig config) {
+        this.settingPre = config.getSetting(LOG, this, () -> TgTxOption.ofRTX());
+        this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
     }
 
     @Override

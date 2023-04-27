@@ -10,6 +10,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.FactoryMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ResultTable;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
+import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -19,11 +20,15 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 public class BenchOnlineShowCostTask extends BenchOnlineTask {
     public static final String TASK_NAME = "show-cost";
 
-    private final TgTmSetting settingMain;
+    private TgTmSetting settingMain;
 
     public BenchOnlineShowCostTask() {
         super(TASK_NAME);
-        this.settingMain = getSetting(() -> TgTxOption.ofRTX());
+    }
+
+    @Override
+    public void initializeSetting(OnlineConfig config) {
+        this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofRTX());
     }
 
     @Override
