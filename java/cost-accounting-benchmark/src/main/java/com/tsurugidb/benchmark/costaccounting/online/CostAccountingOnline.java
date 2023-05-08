@@ -323,7 +323,7 @@ public class CostAccountingOnline {
             terminateOnlineApp();
             for (var future : futureList) {
                 try {
-                    future.get(1, TimeUnit.MINUTES);
+                    future.get(2, TimeUnit.HOURS);
                 } catch (Exception e) {
                     exceptionList.add(e);
                     LOG.warn("future error", e);
