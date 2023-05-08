@@ -294,10 +294,16 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
     @Override
     public void close() {
         try (session; sqlClient) {
+            // close only
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } catch (ServerException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void closeConnection() {
+        // do nothing
     }
 }

@@ -35,8 +35,8 @@ public abstract class BenchOnlineTask extends BenchTask {
 
     protected final BenchRandom random = new BenchRandom();
 
-    public BenchOnlineTask(String title) {
-        super(title);
+    public BenchOnlineTask(String title, int taskId) {
+        super(title, taskId);
     }
 
     public void initializeForRandom(int threadId, BufferedWriter writer) {

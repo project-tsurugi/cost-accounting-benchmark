@@ -23,8 +23,8 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
 
     private TgTmSetting settingMain;
 
-    public BenchOnlineShowWeightTask() {
-        super(TASK_NAME);
+    public BenchOnlineShowWeightTask(int taskId) {
+        super(TASK_NAME, taskId);
     }
 
     @Override
@@ -73,7 +73,7 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
 
     // for test
     public static void main(String[] args) {
-        BenchOnlineShowWeightTask task = new BenchOnlineShowWeightTask();
+        BenchOnlineShowWeightTask task = new BenchOnlineShowWeightTask(0);
 
         try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
             task.setDao(manager);

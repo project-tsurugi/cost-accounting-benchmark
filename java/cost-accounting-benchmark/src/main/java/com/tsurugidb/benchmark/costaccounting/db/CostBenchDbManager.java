@@ -189,7 +189,11 @@ public abstract class CostBenchDbManager implements Closeable {
     public abstract void rollback(Runnable listener);
 
     @Override
-    public abstract void close();
+    public void close() {
+        closeConnection();
+    }
+
+    public abstract void closeConnection();
 
     public static void initCounter() {
         counter.reset();

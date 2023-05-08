@@ -335,7 +335,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     }
 
     @Override
-    public void close() {
+    public void closeConnection() {
         RuntimeException re = null;
         for (var session : sessionList) {
             LOG.debug("close session {}", session);
@@ -359,5 +359,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
         if (re != null) {
             throw re;
         }
+
+        sessionList.clear();
     }
 }

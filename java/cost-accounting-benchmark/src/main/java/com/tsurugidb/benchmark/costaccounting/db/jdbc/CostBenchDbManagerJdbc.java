@@ -300,7 +300,7 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
     }
 
     @Override
-    public void close() {
+    public void closeConnection() {
         var list = new ArrayList<SQLException>();
         for (var map : psMap.values()) {
             for (var ps : map.values()) {
@@ -339,5 +339,8 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
             }
             throw exception;
         }
+
+        psMap.clear();
+        connectionList.clear();
     }
 }

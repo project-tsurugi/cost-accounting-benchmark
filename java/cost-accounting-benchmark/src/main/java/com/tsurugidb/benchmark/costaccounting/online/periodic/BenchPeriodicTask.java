@@ -14,8 +14,8 @@ public abstract class BenchPeriodicTask extends BenchTask {
     protected List<Integer> factoryList;
     protected LocalDate date;
 
-    public BenchPeriodicTask(String tableName) {
-        super(tableName);
+    public BenchPeriodicTask(String tableName, int taskId) {
+        super(tableName, taskId);
     }
 
     public void initialize(List<Integer> factoryList, LocalDate date) {

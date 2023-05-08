@@ -25,8 +25,8 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
     private TgTmSetting settingPre;
     private TgTmSetting settingMain;
 
-    public BenchOnlineUpdateManufacturingTask() {
-        super(TASK_NAME);
+    public BenchOnlineUpdateManufacturingTask(int taskId) {
+        super(TASK_NAME, taskId);
     }
 
     @Override
@@ -121,7 +121,7 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
 
     // for test
     public static void main(String[] args) {
-        BenchOnlineUpdateManufacturingTask task = new BenchOnlineUpdateManufacturingTask();
+        BenchOnlineUpdateManufacturingTask task = new BenchOnlineUpdateManufacturingTask(0);
 
         try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
             task.setDao(manager);

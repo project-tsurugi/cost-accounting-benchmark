@@ -35,8 +35,8 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
     private TgTmSetting settingMain;
     private final int threadSize;
 
-    public BenchPeriodicUpdateStockTask() {
-        super(TASK_NAME);
+    public BenchPeriodicUpdateStockTask(int taskId) {
+        super(TASK_NAME, taskId);
         this.threadSize = BenchConst.periodicSplitSize(TASK_NAME);
         LOG.info("split.size={}", threadSize);
     }
@@ -166,7 +166,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
 
     // for test
     public static void main(String... args) {
-        var task = new BenchPeriodicUpdateStockTask();
+        var task = new BenchPeriodicUpdateStockTask(0);
 
         try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
             task.setDao(manager);

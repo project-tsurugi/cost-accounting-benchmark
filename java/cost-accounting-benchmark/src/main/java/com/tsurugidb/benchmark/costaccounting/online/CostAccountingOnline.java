@@ -6,12 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
+import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -165,7 +167,7 @@ public class CostAccountingOnline {
     private List<Runnable> createOnlineAppSchedule(OnlineConfig config) {
         var factoryList = getAllFactory();
 
-        var taskList = new ArrayList<Supplier<BenchTask>>();
+        var taskList = new ArrayList<IntFunction<BenchTask>>();
         taskList.add(BenchOnlineNewItemTask::new);
         taskList.add(BenchOnlineUpdateManufacturingTask::new);
         taskList.add(BenchOnlineUpdateMaterialTask::new);
@@ -177,30 +179,50 @@ public class CostAccountingOnline {
         taskList.add(BenchPeriodicUpdateStockTask::new);
 
         var appList = new ArrayList<Runnable>();
-        for (var taskSupplier : taskList) {
-            var task = taskSupplier.get();
-            task.initializeSetting(config);
 
-            String taskName = task.getTitle();
-            int size = config.getThreadSize(taskName);
-            LOG.info("create schedule app. {}={}", taskName, size);
+        var prepareService = Executors.newCachedThreadPool();
+        try {
+            var prepareList = new ArrayList<Future<?>>();
 
-            for (int i = 0; i < size; i++, task = null) {
-                if (task == null) {
-                    task = taskSupplier.get();
+            for (var taskSupplier : taskList) {
+                var task = taskSupplier.apply(0);
+                task.initializeSetting(config);
+
+                String taskName = task.getTitle();
+                int size = config.getThreadSize(taskName);
+                LOG.info("create schedule app. {}={}", taskName, size);
+
+                for (int i = 0; i < size; i++, task = null) {
+                    if (task == null) {
+                        task = taskSupplier.apply(i);
+                    }
+                    task.setDao(dbManager);
+
+                    var finalTask = task;
+                    prepareList.add(prepareService.submit(() -> finalTask.executePrepare(config)));
+
+                    Runnable app;
+                    if (task instanceof BenchOnlineTask) {
+                        var onlineTask = (BenchOnlineTask) task;
+                        app = new CostAccountingOnlineAppSchedule(onlineTask, i, factoryList, config.getBatchDate(), terminationRequested);
+                    } else {
+                        var periodicTask = (BenchPeriodicTask) task;
+                        app = new CostAccountingPeriodicAppSchedule(periodicTask, i, factoryList, config.getBatchDate(), terminationRequested);
+                    }
+                    appList.add(app);
                 }
-                task.setDao(dbManager);
-
-                Runnable app;
-                if (task instanceof BenchOnlineTask) {
-                    var onlineTask = (BenchOnlineTask) task;
-                    app = new CostAccountingOnlineAppSchedule(onlineTask, i, factoryList, config.getBatchDate(), terminationRequested);
-                } else {
-                    var periodicTask = (BenchPeriodicTask) task;
-                    app = new CostAccountingPeriodicAppSchedule(periodicTask, i, factoryList, config.getBatchDate(), terminationRequested);
-                }
-                appList.add(app);
             }
+
+            for (var future : prepareList) {
+                try {
+                    future.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            dbManager.closeConnection();
+        } finally {
+            prepareService.shutdownNow();
         }
 
         return appList;

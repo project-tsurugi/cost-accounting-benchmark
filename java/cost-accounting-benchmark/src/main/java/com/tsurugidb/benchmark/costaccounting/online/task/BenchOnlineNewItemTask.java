@@ -29,8 +29,8 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
     private TgTmSetting settingPre;
     private TgTmSetting settingMain;
 
-    public BenchOnlineNewItemTask() {
-        super(TASK_NAME);
+    public BenchOnlineNewItemTask(int taskId) {
+        super(TASK_NAME, taskId);
     }
 
     @Override
@@ -140,7 +140,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 
     // for test
     public static void main(String[] args) {
-        BenchOnlineNewItemTask task = new BenchOnlineNewItemTask();
+        BenchOnlineNewItemTask task = new BenchOnlineNewItemTask(0);
 
         try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
             task.setDao(manager);

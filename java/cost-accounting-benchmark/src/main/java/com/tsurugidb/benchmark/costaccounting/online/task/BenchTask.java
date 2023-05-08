@@ -13,11 +13,13 @@ public abstract class BenchTask {
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     protected final String title;
+    protected final int taskId;
 
     protected CostBenchDbManager dbManager;
 
-    public BenchTask(String title) {
+    public BenchTask(String title, int taskId) {
         this.title = title;
+        this.taskId = taskId;
     }
 
     public String getTitle() {
@@ -28,6 +30,10 @@ public abstract class BenchTask {
 
     public void setDao(CostBenchDbManager dbManager) {
         this.dbManager = dbManager;
+    }
+
+    public void executePrepare(OnlineConfig config) {
+        // do override
     }
 
     protected final void incrementStartCounter() {

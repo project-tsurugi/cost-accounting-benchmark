@@ -34,7 +34,6 @@ public class CostAccountingOnlineAppRandom implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(CostAccountingOnlineAppRandom.class);
 
     private final int threadId;
-    private final CostBenchDbManager dbManager;
     private final List<Integer> factoryList;
     private final LocalDate date;
     private final AtomicBoolean terminationRequested;
@@ -47,23 +46,25 @@ public class CostAccountingOnlineAppRandom implements Runnable {
 
     public CostAccountingOnlineAppRandom(OnlineConfig config, int id, CostBenchDbManager dbManager, List<Integer> factoryList, AtomicBoolean terminationRequested) {
         this.threadId = id;
-        this.dbManager = dbManager;
         this.factoryList = factoryList;
         this.date = config.getBatchDate();
         this.terminationRequested = terminationRequested;
 
-        taskList.add(new BenchOnlineNewItemTask());
-        taskList.add(new BenchOnlineUpdateManufacturingTask());
-        taskList.add(new BenchOnlineUpdateMaterialTask());
-        taskList.add(new BenchOnlineUpdateCostAddTask());
-        taskList.add(new BenchOnlineUpdateCostSubTask());
+        taskList.add(new BenchOnlineNewItemTask(0));
+        taskList.add(new BenchOnlineUpdateManufacturingTask(0));
+        taskList.add(new BenchOnlineUpdateMaterialTask(0));
+        taskList.add(new BenchOnlineUpdateCostAddTask(0));
+        taskList.add(new BenchOnlineUpdateCostSubTask(0));
 
-        taskList.add(new BenchOnlineShowWeightTask());
-        taskList.add(new BenchOnlineShowQuantityTask());
-        taskList.add(new BenchOnlineShowCostTask());
+        taskList.add(new BenchOnlineShowWeightTask(0));
+        taskList.add(new BenchOnlineShowQuantityTask(0));
+        taskList.add(new BenchOnlineShowCostTask(0));
 
         for (var task : taskList) {
             task.initializeSetting(config);
+
+            task.setDao(dbManager);
+            task.executePrepare(config);
         }
 
         this.taskRatioMax = initializeTaskRatio(taskList);
@@ -84,10 +85,6 @@ public class CostAccountingOnlineAppRandom implements Runnable {
 
     @Override
     public void run() {
-        for (BenchOnlineTask task : taskList) {
-            task.setDao(dbManager);
-        }
-
         Path path = BenchConst.onlineLogFilePath(threadId);
         try (BufferedWriter writer = Files.newBufferedWriter(path)) {
             for (;;) {

@@ -22,8 +22,8 @@ public class BenchOnlineShowCostTask extends BenchOnlineTask {
 
     private TgTmSetting settingMain;
 
-    public BenchOnlineShowCostTask() {
-        super(TASK_NAME);
+    public BenchOnlineShowCostTask(int taskId) {
+        super(TASK_NAME, taskId);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class BenchOnlineShowCostTask extends BenchOnlineTask {
 
     // for test
     public static void main(String[] args) {
-        BenchOnlineShowCostTask task = new BenchOnlineShowCostTask();
+        BenchOnlineShowCostTask task = new BenchOnlineShowCostTask(0);
 
         try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
             task.setDao(manager);
