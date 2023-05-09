@@ -98,7 +98,9 @@ public class CostAccountingBatch {
             LOG.info("batchDate={}", config.getBatchDate());
             LOG.info("factory={}", StringUtil.toString(config.getFactoryList()));
             LOG.info("commitRatio={}", config.getCommitRatio());
-            LOG.info("isolation={}", config.getIsolationLevel());
+            if (!dbManager.isTsurugi()) {
+                LOG.info("isolation={}", config.getIsolationLevel());
+            }
 
             String type = config.getExecuteType();
             LOG.info("batch.execute.type={}", type);

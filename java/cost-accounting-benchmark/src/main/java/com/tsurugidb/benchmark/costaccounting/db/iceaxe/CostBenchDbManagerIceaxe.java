@@ -75,6 +75,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
         super("ICEAXE", true);
         var endpoint = BenchConst.tsurugiEndpoint();
         LOG.info("endpoint={}", endpoint);
+        LOG.info("isMultiSession={}", isMultiSession);
         var credential = new UsernamePasswordCredential(BenchConst.tsurugiUser(), BenchConst.tsurugiPassword());
         this.connector = TsurugiConnector.of(endpoint, credential);
         try {
@@ -91,6 +92,10 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private boolean isMultiSession() {
+        return singleTransactionManager == null;
     }
 
     public TsurugiSession getSession() {
@@ -335,7 +340,18 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     }
 
     @Override
+    public void close() {
+        closeConnection0();
+    }
+
+    @Override
     public void closeConnection() {
+        if (isMultiSession()) {
+            closeConnection0();
+        }
+    }
+
+    private void closeConnection0() {
         RuntimeException re = null;
         for (var session : sessionList) {
             LOG.debug("close session {}", session);

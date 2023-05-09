@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -213,13 +212,22 @@ public class CostAccountingOnline {
                 }
             }
 
+            var exceptionList = new ArrayList<Exception>();
             for (var future : prepareList) {
                 try {
                     future.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new RuntimeException(e);
+                } catch (Exception e) {
+                    exceptionList.add(e);
                 }
             }
+            if (!exceptionList.isEmpty()) {
+                var re = new RuntimeException("createOnlineAppSchedule future.get() error");
+                for (var e : exceptionList) {
+                    re.addSuppressed(e);
+                }
+                throw re;
+            }
+
             dbManager.closeConnection();
         } finally {
             prepareService.shutdownNow();
@@ -348,7 +356,7 @@ public class CostAccountingOnline {
                     future.get(2, TimeUnit.HOURS);
                 } catch (Exception e) {
                     exceptionList.add(e);
-                    LOG.warn("future error", e);
+                    LOG.warn("terminate future.get() error", e);
                 }
             }
             terminateService();

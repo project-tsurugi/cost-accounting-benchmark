@@ -1,5 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.online.periodic;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -111,22 +113,39 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
             service.shutdownNow();
         }
 
-        RuntimeException re = null;
+        var exceptionList = new ArrayList<Exception>();
         for (var future : resultList) {
             try {
                 future.get();
             } catch (Exception e) {
-                if (re == null) {
-                    re = new RuntimeException("update-stock future error");
-                }
-                re.addSuppressed(e);
+                exceptionList.add(e);
             }
         }
-        if (re != null) {
+        if (!exceptionList.isEmpty()) {
+            RuntimeException re;
+            String message = "update-stock future.get() error";
+            boolean isIoException = exceptionList.stream().anyMatch(e -> findIOException(e) != null);
+            if (isIoException) {
+                re = new UncheckedIOException(message, new IOException(message));
+            } else {
+                re = new RuntimeException(message);
+            }
+            for (var e : exceptionList) {
+                re.addSuppressed(e);
+            }
             throw re;
         }
 
         return true;
+    }
+
+    private static IOException findIOException(Exception e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (t instanceof IOException) {
+                return (IOException) t;
+            }
+        }
+        return null;
     }
 
     private class FactoryTask implements Callable<Void> {
