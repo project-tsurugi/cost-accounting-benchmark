@@ -203,6 +203,10 @@ public abstract class CostBenchDbManager implements Closeable {
         counter.increment(label, counterName);
     }
 
+    public void addTaskTime(String label, CounterName counterName, long nanoTime) {
+        counter.addTime(label, counterName, nanoTime);
+    }
+
     /**
      * カウンターのレポートを作成する
      *

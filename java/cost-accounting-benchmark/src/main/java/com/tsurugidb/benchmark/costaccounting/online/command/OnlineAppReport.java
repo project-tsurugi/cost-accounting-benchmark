@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -19,12 +20,12 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 public class OnlineAppReport {
     private static final Logger LOG = LoggerFactory.getLogger(OnlineAppReport.class);
 
-    private final StringBuilder onlineAppReport = new StringBuilder("# Online Application Report \n\n");
+    private final StringBuilder onlineAppReport = new StringBuilder("# Online Application Report \n");
 
-    public void writeOnlineAppReport(OnlineConfig config, String title, Path outputPath) {
+    public void writeOnlineAppReport(OnlineConfig config, String title, Path outputPath, long dedicatedTime) {
         LOG.debug("Creating an online application report for {}", title);
 
-        String newReport = createOnlineAppReport(config, title);
+        String newReport = createOnlineAppReport(config, title, dedicatedTime);
         LOG.debug("Online application report: {}", newReport);
         this.onlineAppReport.append(newReport);
 
@@ -62,36 +63,51 @@ public class OnlineAppReport {
         }
     }
 
-    private String createOnlineAppReport(OnlineConfig config, String title) {
+    private String createOnlineAppReport(OnlineConfig config, String title, long dedicatedTime) {
         var sb = new StringBuilder(2048);
+        sb.append("\n");
 
         // タイトル
         sb.append("## ");
         sb.append(title);
         sb.append("\n\n");
 
-        // ヘッダ
-        sb.append(OnlineRecord.header1());
-        sb.append("\n");
-        sb.append(OnlineRecord.header2());
-        sb.append("\n");
-
+        // counter
+        appendHeader(sb, OnlineCounberRecord.HEADER_LIST);
         for (String taskName : BenchOnlineTask.TASK_NAME_LIST) {
-            createOnlineAppReport(config, sb, taskName);
+            createOnlineCounterReport(config, sb, taskName);
         }
         for (String taskName : BenchPeriodicTask.TASK_NAME_LIST) {
-            createOnlineAppReport(config, sb, taskName);
+            createOnlineCounterReport(config, sb, taskName);
+        }
+
+        sb.append("\n");
+
+        // time
+        appendHeader(sb, OnlineTimeRecord.HEADER_LIST);
+        for (String taskName : BenchOnlineTask.TASK_NAME_LIST) {
+            cerateOnlineTimeReport(config, sb, taskName, dedicatedTime);
+        }
+        for (String taskName : BenchPeriodicTask.TASK_NAME_LIST) {
+            cerateOnlineTimeReport(config, sb, taskName, dedicatedTime);
         }
 
         return sb.toString();
     }
 
-    private void createOnlineAppReport(OnlineConfig config, StringBuilder sb, String taskName) {
+    private void appendHeader(StringBuilder sb, List<String> list) {
+        for (String header : list) {
+            sb.append(header);
+            sb.append("\n");
+        }
+    }
+
+    private void createOnlineCounterReport(OnlineConfig config, StringBuilder sb, String taskName) {
         int threads = config.getThreadSize(taskName);
         var tpm = getTpm(taskName);
         var counter = CostBenchDbManager.getCounter();
 
-        var record = new OnlineRecord(taskName, threads, tpm, counter);
+        var record = new OnlineCounberRecord(taskName, threads, tpm, counter);
         sb.append(record);
         sb.append("\n");
     }
@@ -105,5 +121,13 @@ public class OnlineAppReport {
             int tpm = BenchConst.onlineExecutePerMinute(taskName);
             return Integer.toString(tpm);
         }
+    }
+
+    private void cerateOnlineTimeReport(OnlineConfig config, StringBuilder sb, String taskName, long dedicatedTime) {
+        var counter = CostBenchDbManager.getCounter();
+
+        var record = new OnlineTimeRecord(taskName, dedicatedTime, counter);
+        sb.append(record);
+        sb.append("\n");
     }
 }

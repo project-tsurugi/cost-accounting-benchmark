@@ -39,6 +39,46 @@ public class BenchDbCounter extends TgTmLabelCounter {
         private AtomicInteger taskNothing = new AtomicInteger(0);
         private AtomicInteger taskSuccess = new AtomicInteger(0);
         private AtomicInteger taskFail = new AtomicInteger(0);
+
+        private final OnlineTime taskNothingTime = new OnlineTime();
+        private final OnlineTime taskSuccessTime = new OnlineTime();
+        private final OnlineTime taskFailTime = new OnlineTime();
+    }
+
+    public static class OnlineTime {
+        private int count = 0;
+        private long timeSum = 0;
+        private long timeMin = Long.MAX_VALUE;
+        private long timeMax = Long.MIN_VALUE;
+
+        public synchronized void addTime(long nanoTime) {
+            this.count++;
+            this.timeSum += nanoTime;
+            this.timeMin = Math.min(timeMin, nanoTime);
+            this.timeMax = Math.max(timeMax, nanoTime);
+        }
+
+        public synchronized int getCount() {
+            return this.count;
+        }
+
+        public synchronized double getAvgTimeMillis() {
+            return (double) timeSum / count / 1000_000;
+        }
+
+        public synchronized String getMinTimeMillisText() {
+            if (this.timeMin == Long.MAX_VALUE) {
+                return "-";
+            }
+            return Long.toString(timeMin / 1000_000);
+        }
+
+        public synchronized String getMaxTimeMillisText() {
+            if (this.timeMax == Long.MIN_VALUE) {
+                return "-";
+            }
+            return Long.toString(timeMax / 1000_000);
+        }
     }
 
     private final Map<String, OnlineCounter> onlineCounterMap = new ConcurrentHashMap<>();
@@ -174,6 +214,23 @@ public class BenchDbCounter extends TgTmLabelCounter {
         }
     }
 
+    public void addTime(String label, CounterName name, long nanoTime) {
+        var count = getOnlineCounter(label);
+        switch (name) {
+        case TASK_NOTHING:
+            count.taskNothingTime.addTime(nanoTime);
+            break;
+        case TASK_SUCCESS:
+            count.taskSuccessTime.addTime(nanoTime);
+            break;
+        case TASK_FAIL:
+            count.taskFailTime.addTime(nanoTime);
+            break;
+        default:
+            throw new AssertionError(name);
+        }
+    }
+
     // result
 
     public int getCount(String label, CounterName name) {
@@ -228,6 +285,20 @@ public class BenchDbCounter extends TgTmLabelCounter {
             return 0;
         }
         return task.apply(counter);
+    }
+
+    public OnlineTime getTime(String label, CounterName name) {
+        var count = getOnlineCounter(label);
+        switch (name) {
+        case TASK_NOTHING:
+            return count.taskNothingTime;
+        case TASK_SUCCESS:
+            return count.taskSuccessTime;
+        case TASK_FAIL:
+            return count.taskFailTime;
+        default:
+            throw new AssertionError(name);
+        }
     }
 
     @Override

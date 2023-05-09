@@ -1,24 +1,22 @@
 package com.tsurugidb.benchmark.costaccounting.online.command;
 
+import java.util.List;
+
 import com.tsurugidb.benchmark.costaccounting.db.BenchDbCounter;
 import com.tsurugidb.benchmark.costaccounting.db.BenchDbCounter.CounterName;
 
-public class OnlineRecord {
+public class OnlineCounberRecord {
 
-    public static String header1() {
-        return "| title | threads | tpm/thread | success | occ-try | occ-abort | occ-success | occ<br>abandoned<br>retry | ltx-try | ltx-abort | ltx-success | ltx<br>abandoned<br>retry | fail | task start | target nothing | task success | task fail |";
-    }
-
-    public static String header2() {
-        return "|-------|--------:|-----------:|--------:|--------:|----------:|------------:|--------------------------:|--------:|----------:|------------:|--------------------------:|-----:|-----------:|---------------:|-------------:|----------:|";
-    }
+    public static final List<String> HEADER_LIST = List.of( //
+            "| title | threads | tpm/thread | success | occ-try | occ-abort | occ-success | occ<br>abandoned<br>retry | ltx-try | ltx-abort | ltx-success | ltx<br>abandoned<br>retry | fail | task start | target nothing | task success | task fail |", //
+            "|-------|--------:|-----------:|--------:|--------:|----------:|------------:|--------------------------:|--------:|----------:|------------:|--------------------------:|-----:|-----------:|---------------:|-------------:|----------:|");
 
     private final String title;
     private final int threads;
     private final String tpm;
     private final BenchDbCounter counter;
 
-    public OnlineRecord(String title, int threads, String tpm, BenchDbCounter counter) {
+    public OnlineCounberRecord(String title, int threads, String tpm, BenchDbCounter counter) {
         this.title = title;
         this.threads = threads;
         this.tpm = tpm;

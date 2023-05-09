@@ -17,6 +17,8 @@ public abstract class BenchTask {
 
     protected CostBenchDbManager dbManager;
 
+    private long startTime;
+
     public BenchTask(String title, int taskId) {
         this.title = title;
         this.taskId = taskId;
@@ -37,19 +39,26 @@ public abstract class BenchTask {
     }
 
     protected final void incrementStartCounter() {
+        this.startTime = System.nanoTime();
         dbManager.incrementTaskCounter(title, CounterName.TASK_START);
     }
 
     protected final void incrementNothingCounter() {
+        long endTime = System.nanoTime();
         dbManager.incrementTaskCounter(title, CounterName.TASK_NOTHING);
+        dbManager.addTaskTime(title, CounterName.TASK_NOTHING, endTime - startTime);
     }
 
     protected final void incrementSuccessCounter() {
+        long endTime = System.nanoTime();
         dbManager.incrementTaskCounter(title, CounterName.TASK_SUCCESS);
+        dbManager.addTaskTime(title, CounterName.TASK_SUCCESS, endTime - startTime);
     }
 
     protected final void incrementFailCounter() {
+        long endTime = System.nanoTime();
         dbManager.incrementTaskCounter(title, CounterName.TASK_FAIL);
+        dbManager.addTaskTime(title, CounterName.TASK_FAIL, endTime - startTime);
     }
 
     protected static final CostBenchDbManager createCostBenchDbManagerForTest() {

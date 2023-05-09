@@ -37,6 +37,7 @@ public class BatchCommand implements ExecutableCommand {
 
     private Path baseResultFile;
     private final OnlineAppReport onlineAppReport = new OnlineAppReport();
+    private long dedicatedTime;
 
     @Override
     public String getDescription() {
@@ -144,8 +145,12 @@ public class BatchCommand implements ExecutableCommand {
             if (online != null) {
                 online.start(onlineConfig);
             }
+
             record.start();
             exitCode = batch.main(config);
+            record.finish(batch.getItemCount(), batch.getTryCount(), batch.getAbortCount());
+            this.dedicatedTime = record.elapsedMillis();
+
             if (online != null) {
                 if (online.terminate() != 0) {
                     if (exitCode == 0) {
@@ -154,7 +159,6 @@ public class BatchCommand implements ExecutableCommand {
                 }
                 online = null;
             }
-            record.finish(batch.getItemCount(), batch.getTryCount(), batch.getAbortCount());
 
             return exitCode;
         } finally {
@@ -240,6 +244,6 @@ public class BatchCommand implements ExecutableCommand {
 
     private void writeOnlineAppReport(OnlineConfig onlineConfig, BatchRecord record, Path outputPath) {
         String title = record.dbmsType().name() + " " + record.factory() + " " + record.scope() + " " + record.option();
-        onlineAppReport.writeOnlineAppReport(onlineConfig, title, outputPath);
+        onlineAppReport.writeOnlineAppReport(onlineConfig, title, outputPath, dedicatedTime);
     }
 }

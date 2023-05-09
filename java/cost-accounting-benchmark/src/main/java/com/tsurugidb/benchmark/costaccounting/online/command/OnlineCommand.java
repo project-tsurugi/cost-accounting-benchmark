@@ -30,6 +30,7 @@ public class OnlineCommand implements ExecutableCommand {
     private static final Logger LOG = LoggerFactory.getLogger(OnlineCommand.class);
 
     private final OnlineAppReport onlineAppReport = new OnlineAppReport();
+    private long dedicatedTime;
 
     @Override
     public String getDescription() {
@@ -142,7 +143,9 @@ public class OnlineCommand implements ExecutableCommand {
             online.start(config);
 
             LOG.info("sleep start");
+            long startTime = System.currentTimeMillis();
             TimeUnit.SECONDS.sleep(config.getExecuteTime());
+            this.dedicatedTime = System.currentTimeMillis() - startTime;
             LOG.info("sleep end");
 
             if (online.terminate() != 0) {
@@ -185,6 +188,6 @@ public class OnlineCommand implements ExecutableCommand {
 
     private void writeOnlineAppReport(OnlineConfig config, OnlineResult record, Path outputPath) {
         String title = record.dbmsType().name() + " " + config.getLabel() + " " + record.option("online") + ":" + record.option("periodic");
-        onlineAppReport.writeOnlineAppReport(config, title, outputPath);
+        onlineAppReport.writeOnlineAppReport(config, title, outputPath, dedicatedTime);
     }
 }
