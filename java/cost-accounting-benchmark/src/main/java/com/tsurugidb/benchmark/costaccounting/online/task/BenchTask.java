@@ -13,6 +13,7 @@ public abstract class BenchTask {
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     public static void clearPrepareDataAll() {
+        BenchOnlineNewItemTask.clearPrepareData();
         BenchOnlineUpdateManufacturingTask.clearPrepareData();
         BenchOnlineUpdateMaterialTask.clearPrepareData();
     }

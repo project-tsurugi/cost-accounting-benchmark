@@ -1,9 +1,12 @@
 package com.tsurugidb.benchmark.costaccounting.online.task;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
@@ -26,6 +29,12 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 public class BenchOnlineNewItemTask extends BenchOnlineTask {
     public static final String TASK_NAME = "new-item";
 
+    private static List<Integer> itemMasterWorkKeylist;
+
+    public static void clearPrepareData() {
+        itemMasterWorkKeylist = null;
+    }
+
     private TgTmSetting settingPre;
     private TgTmSetting settingMain;
 
@@ -37,6 +46,14 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
     public void initializeSetting(OnlineConfig config) {
         this.settingPre = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemMasterDao.TABLE_NAME, ItemConstructionMasterDao.TABLE_NAME));
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
+    }
+
+    @Override
+    public void executePrepare(OnlineConfig config) {
+        var setting = TgTmSetting.of(TgTxOption.ofRTX().label(TASK_NAME + ".prepare"));
+        var date = config.getBatchDate();
+
+        cacheItemMasterWorkKeyList(dbManager, setting, date);
     }
 
     @Override
@@ -89,8 +106,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 
         logTarget("product=%s", item.getIName());
 
-        ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
-        List<Integer> workList = itemMasterDao.selectIdByType(date, ItemType.WORK_IN_PROCESS);
+        List<Integer> workList = new ArrayList<>(itemMasterWorkKeylist);
         int s = random.random(1, InitialData03ItemMaster.PRODUCT_TREE_SIZE);
         Set<Integer> workSet = new HashSet<>(s);
         for (int i = 0; i < s; i++) {
@@ -128,6 +144,18 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
         }
 
         return entity;
+    }
+
+    private static synchronized void cacheItemMasterWorkKeyList(CostBenchDbManager dbManager, TgTmSetting setting, LocalDate date) {
+        if (itemMasterWorkKeylist == null) {
+            var log = LoggerFactory.getLogger(BenchOnlineNewItemTask.class);
+            dbManager.execute(setting, () -> {
+                log.info("ItemMasterDao.selectIdByType(WORK_IN_PROCESS) start");
+                var dao = dbManager.getItemMasterDao();
+                itemMasterWorkKeylist = dao.selectIdByType(date, ItemType.WORK_IN_PROCESS);
+                log.info("ItemMasterDao.selectIdByType(WORK_IN_PROCESS) end. size={}", itemMasterWorkKeylist.size());
+            });
+        }
     }
 
     protected void executeMain(ItemMaster item) {
