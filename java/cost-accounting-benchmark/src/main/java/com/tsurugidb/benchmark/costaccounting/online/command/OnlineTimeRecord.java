@@ -8,8 +8,8 @@ import com.tsurugidb.benchmark.costaccounting.db.BenchDbCounter.CounterName;
 public class OnlineTimeRecord {
 
     public static final List<String> HEADER_LIST = List.of( //
-            "| title | dedicated time[ms] | numbers of txs | latency<br>avg[ms] | latency<br>min[ms] | latency<br>max[ms] | committed tx through put |", //
-            "|-------|-------------------:|---------------:|-------------------:|-------------------:|-------------------:|-------------------------:|");
+            "| title | tx option | dedicated time[ms] | numbers of txs | latency<br>avg[ms] | latency<br>min[ms] | latency<br>max[ms] | committed tx through put |", //
+            "|-------|-----------|-------------------:|---------------:|-------------------:|-------------------:|-------------------:|-------------------------:|");
 
     private final String title;
     private final long dedicatedTime;
@@ -26,6 +26,8 @@ public class OnlineTimeRecord {
         var sb = new StringBuilder(64);
         sb.append("|");
         sb.append(title);
+        sb.append("|");
+        sb.append(counter.getTxOptionDescription(title));
         sb.append("|");
 
         // dedicated time

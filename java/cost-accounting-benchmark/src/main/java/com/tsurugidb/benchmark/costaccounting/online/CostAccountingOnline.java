@@ -186,7 +186,6 @@ public class CostAccountingOnline {
 
             for (var taskSupplier : taskList) {
                 var task = taskSupplier.apply(0);
-                task.initializeSetting(config);
 
                 String taskName = task.getTitle();
                 int size = config.getThreadSize(taskName);
@@ -197,6 +196,7 @@ public class CostAccountingOnline {
                         task = taskSupplier.apply(i);
                     }
                     task.setDao(dbManager);
+                    task.initializeSetting(config);
 
                     var finalTask = task;
                     prepareList.add(prepareService.submit(() -> finalTask.executePrepare(config)));

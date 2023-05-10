@@ -8,8 +8,8 @@ import com.tsurugidb.benchmark.costaccounting.db.BenchDbCounter.CounterName;
 public class OnlineCounberRecord {
 
     public static final List<String> HEADER_LIST = List.of( //
-            "| title | threads | tpm/thread | success | occ-try | occ-abort | occ-success | occ<br>abandoned<br>retry | ltx-try | ltx-abort | ltx-success | ltx<br>abandoned<br>retry | fail | task start | target nothing | task success | task fail |", //
-            "|-------|--------:|-----------:|--------:|--------:|----------:|------------:|--------------------------:|--------:|----------:|------------:|--------------------------:|-----:|-----------:|---------------:|-------------:|----------:|");
+            "| title | tx option | threads | tpm/thread | success | occ-try | occ-abort | occ-success | occ<br>abandoned<br>retry | ltx-try | ltx-abort | ltx-success | ltx<br>abandoned<br>retry | fail | task start | target nothing | task success | task fail |", //
+            "|-------|-----------|--------:|-----------:|--------:|--------:|----------:|------------:|--------------------------:|--------:|----------:|------------:|--------------------------:|-----:|-----------:|---------------:|-------------:|----------:|");
 
     private final String title;
     private final int threads;
@@ -28,6 +28,8 @@ public class OnlineCounberRecord {
         var sb = new StringBuilder(64);
         sb.append("|");
         sb.append(title);
+        sb.append("|");
+        sb.append(counter.getTxOptionDescription(title));
         sb.append("|");
         sb.append(threads);
         sb.append("|");

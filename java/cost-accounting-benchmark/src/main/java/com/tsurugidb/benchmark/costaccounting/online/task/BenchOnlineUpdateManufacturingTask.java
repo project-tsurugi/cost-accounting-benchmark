@@ -38,6 +38,7 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
     @Override
     public void initializeSetting(OnlineConfig config) {
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
+        setTxOptionDescription(settingMain);
     }
 
     @Override

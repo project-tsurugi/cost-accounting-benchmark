@@ -63,9 +63,8 @@ public class CostAccountingOnlineAppRandom implements Runnable {
 
         BenchTask.clearPrepareDataAll();
         for (var task : taskList) {
-            task.initializeSetting(config);
-
             task.setDao(dbManager);
+            task.initializeSetting(config);
             task.executePrepare(config);
         }
 

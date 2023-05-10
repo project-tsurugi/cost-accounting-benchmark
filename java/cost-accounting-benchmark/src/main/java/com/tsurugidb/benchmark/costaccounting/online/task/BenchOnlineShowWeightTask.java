@@ -30,6 +30,7 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
     @Override
     public void initializeSetting(OnlineConfig config) {
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofRTX());
+        setTxOptionDescription(settingMain);
     }
 
     @Override

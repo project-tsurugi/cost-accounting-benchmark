@@ -46,6 +46,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
     @Override
     public void initializeSetting(OnlineConfig config) {
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(StockHistoryDao.TABLE_NAME));
+        setTxOptionDescription(settingMain);
     }
 
     @Override

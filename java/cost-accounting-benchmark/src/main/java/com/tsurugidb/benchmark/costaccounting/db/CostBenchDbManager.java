@@ -195,8 +195,14 @@ public abstract class CostBenchDbManager implements Closeable {
 
     public abstract void closeConnection();
 
+    // counter
+
     public static void initCounter() {
         counter.reset();
+    }
+
+    public boolean setTxOptionDescription(String label, String description) {
+        return counter.setTxOptionDescription(label, description);
     }
 
     public void incrementTaskCounter(String label, CounterName counterName) {

@@ -85,18 +85,25 @@ public class OnlineConfig {
     }
 
     private TgTmSetting createSetting(Logger log, BenchTask task, Supplier<TgTxOption> ltxSupplier) {
+        TgTmSetting setting;
+        String description;
+
         String option = getTxOption(task);
         String head = option.substring(0, 3).toUpperCase();
         switch (head) {
         case "OCC":
         default:
-            onceLog(task, () -> log.info("txOption: OCC"), "OCC");
-            return TgTmSetting.ofAlways(TgTxOption.ofOCC());
+            description = "OCC";
+            onceLog(task, () -> log.info("txOption: {}", description), "OCC");
+            setting = TgTmSetting.ofAlways(TgTxOption.ofOCC());
+            break;
         case "LTX":
         case "RTX":
             var txOption = ltxSupplier.get();
-            onceLog(task, () -> log.info("txOption: {}", txOption.typeName()), txOption.typeName());
-            return TgTmSetting.ofAlways(txOption);
+            description = txOption.typeName();
+            onceLog(task, () -> log.info("txOption: {}", description), txOption.typeName());
+            setting = TgTmSetting.ofAlways(txOption);
+            break;
         case "MIX":
             int size1 = 3, size2 = 2;
             String rest = option.substring(3);
@@ -114,10 +121,14 @@ public class OnlineConfig {
                 }
             }
             var txOption2 = ltxSupplier.get();
-            int finalSize1 = size1, finalSize2 = size2;
-            onceLog(task, () -> log.info("txOptionSupplier: OCC*{}, {}*{}", finalSize1, txOption2.typeName(), finalSize2), txOption2.typeName());
-            return TgTmSetting.of(TgTxOption.ofOCC(), size1, txOption2, size2);
+            description = String.format("OCC*%d, %s*%d", size1, txOption2.typeName(), size2);
+            onceLog(task, () -> log.info("txOptionSupplier: {}", description), txOption2.typeName());
+            setting = TgTmSetting.of(TgTxOption.ofOCC(), size1, txOption2, size2);
+            break;
         }
+
+        setting.getTransactionOptionSupplier().setDescription(description);
+        return setting;
     }
 
     private final Map<String, Boolean> onceLogMap = new ConcurrentHashMap<>();

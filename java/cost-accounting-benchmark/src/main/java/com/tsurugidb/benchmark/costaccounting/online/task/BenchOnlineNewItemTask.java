@@ -46,6 +46,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
     public void initializeSetting(OnlineConfig config) {
         this.settingPre = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemMasterDao.TABLE_NAME, ItemConstructionMasterDao.TABLE_NAME));
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
+        setTxOptionDescription(settingMain);
     }
 
     @Override

@@ -8,6 +8,7 @@ import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline;
 import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
+import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 public abstract class BenchTask {
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
@@ -34,10 +35,15 @@ public abstract class BenchTask {
         return title;
     }
 
-    public abstract void initializeSetting(OnlineConfig config);
-
     public void setDao(CostBenchDbManager dbManager) {
         this.dbManager = dbManager;
+    }
+
+    public abstract void initializeSetting(OnlineConfig config);
+
+    protected final void setTxOptionDescription(TgTmSetting setting) {
+        String description = setting.getTransactionOptionSupplier().getDescription();
+        dbManager.setTxOptionDescription(title, description);
     }
 
     public void executePrepare(OnlineConfig config) {

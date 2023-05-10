@@ -27,6 +27,8 @@ public class BenchDbCounter extends TgTmLabelCounter {
     }
 
     private static class OnlineCounter {
+        private String txOptionDescription;
+
         private AtomicInteger occTry = new AtomicInteger(0);
         private AtomicInteger occAbort = new AtomicInteger(0);
         private AtomicInteger occSuccess = new AtomicInteger(0);
@@ -194,6 +196,15 @@ public class BenchDbCounter extends TgTmLabelCounter {
     }
 
     // for task
+    public boolean setTxOptionDescription(String label, String description) {
+        var count = getOnlineCounter(label);
+        synchronized (count) {
+            boolean result = (count.txOptionDescription == null);
+            count.txOptionDescription = description;
+            return result;
+        }
+    }
+
     public void increment(String label, CounterName name) {
         var count = getOnlineCounter(label);
         switch (name) {
@@ -285,6 +296,11 @@ public class BenchDbCounter extends TgTmLabelCounter {
             return 0;
         }
         return task.apply(counter);
+    }
+
+    public String getTxOptionDescription(String label) {
+        var count = getOnlineCounter(label);
+        return count.txOptionDescription;
     }
 
     public OnlineTime getTime(String label, CounterName name) {

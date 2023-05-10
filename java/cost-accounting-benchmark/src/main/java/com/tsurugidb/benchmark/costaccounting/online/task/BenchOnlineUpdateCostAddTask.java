@@ -31,6 +31,7 @@ public class BenchOnlineUpdateCostAddTask extends BenchOnlineTask {
     public void initializeSetting(OnlineConfig config) {
         this.settingPre = TgTmSetting.ofAlways(TgTxOption.ofRTX().label(TASK_NAME + ".pre"));
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(CostMasterDao.TABLE_NAME));
+        setTxOptionDescription(settingMain);
     }
 
     @Override
