@@ -12,6 +12,11 @@ import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 public abstract class BenchTask {
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
+    public static void clearPrepareDataAll() {
+        BenchOnlineUpdateManufacturingTask.clearPrepareData();
+        BenchOnlineUpdateMaterialTask.clearPrepareData();
+    }
+
     protected final String title;
     protected final int taskId;
 

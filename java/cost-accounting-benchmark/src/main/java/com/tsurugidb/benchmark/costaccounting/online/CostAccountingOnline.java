@@ -176,6 +176,7 @@ public class CostAccountingOnline {
         taskList.add(BenchOnlineShowQuantityTask::new);
         taskList.add(BenchOnlineShowCostTask::new);
         taskList.add(BenchPeriodicUpdateStockTask::new);
+        BenchTask.clearPrepareDataAll();
 
         var appList = new ArrayList<Runnable>();
 

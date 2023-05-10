@@ -25,8 +25,15 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
  * 原材料の変更
  */
 public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
-
     public static final String TASK_NAME = "update-material";
+
+    private static List<ItemConstructionMasterKey> itemConstructionMasterKeyListForAdd;
+    private static List<ItemConstructionMasterKey> itemConstructionMasterKeyListForRemove;
+
+    public static void clearPrepareData() {
+        itemConstructionMasterKeyListForAdd = null;
+        itemConstructionMasterKeyListForRemove = null;
+    }
 
     private TgTmSetting settingMain;
 
@@ -108,9 +115,6 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
         return true;
     }
 
-    private static final boolean itemConstructionMasterKeyListDebug = false;
-    private static List<ItemConstructionMasterKey> itemConstructionMasterKeyListForAdd;
-
     private ItemConstructionMaster selectRandomAddItem() {
         ItemConstructionMasterDao itemCostructionMasterDao = dbManager.getItemConstructionMasterDao();
 
@@ -130,6 +134,7 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
         return entity;
     }
 
+    private static final boolean itemConstructionMasterKeyListDebug = false;
     private static final Object lockItemConstructionMasterKeyListForAdd = new Object();
 
     private static void cacheItemConstructionMasterKeyListForAdd(CostBenchDbManager dbManager, TgTmSetting setting, LocalDate date) {
@@ -203,8 +208,6 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 
         return true;
     }
-
-    private static List<ItemConstructionMasterKey> itemConstructionMasterKeyListForRemove = null;
 
     private ItemConstructionMasterKey selectRandomRemoveItem() {
         ItemConstructionMasterKey key;

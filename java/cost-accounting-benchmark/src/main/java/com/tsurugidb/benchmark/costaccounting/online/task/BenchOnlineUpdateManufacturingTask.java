@@ -4,10 +4,11 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.slf4j.LoggerFactory;
+
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
-import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
@@ -22,7 +23,12 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
     public static final String TASK_NAME = "update-manufacturing";
 
-    private TgTmSetting settingPre;
+    private static List<Integer> itemMasterProductKeylist;
+
+    public static void clearPrepareData() {
+        itemMasterProductKeylist = null;
+    }
+
     private TgTmSetting settingMain;
 
     public BenchOnlineUpdateManufacturingTask(int taskId) {
@@ -31,13 +37,20 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
 
     @Override
     public void initializeSetting(OnlineConfig config) {
-        this.settingPre = config.getSetting(LOG, this, () -> TgTxOption.ofRTX());
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
     }
 
     @Override
+    public void executePrepare(OnlineConfig config) {
+        var setting = TgTmSetting.of(TgTxOption.ofRTX().label(TASK_NAME + ".prepare"));
+        var date = config.getBatchDate();
+
+        cacheItemMasterProductKeyList(dbManager, setting, date);
+    }
+
+    @Override
     protected boolean execute1() {
-        int productId = dbManager.execute(settingPre, this::selectRandomItemId);
+        int productId = selectRandomItemId();
         if (productId < 0) {
             return false;
         }
@@ -110,13 +123,24 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
     }
 
     protected int selectRandomItemId() {
-        ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
-        List<Integer> list = itemMasterDao.selectIdByType(date, ItemType.PRODUCT);
+        List<Integer> list = itemMasterProductKeylist;
         if (list.isEmpty()) {
             return -1;
         }
         int i = random.nextInt(list.size());
         return list.get(i);
+    }
+
+    private static synchronized void cacheItemMasterProductKeyList(CostBenchDbManager dbManager, TgTmSetting setting, LocalDate date) {
+        if (itemMasterProductKeylist == null) {
+            var log = LoggerFactory.getLogger(BenchOnlineUpdateManufacturingTask.class);
+            dbManager.execute(setting, () -> {
+                log.info("ItemMasterDao.selectIdByType(PRODUCT) start");
+                var dao = dbManager.getItemMasterDao();
+                itemMasterProductKeylist = dao.selectIdByType(date, ItemType.PRODUCT);
+                log.info("ItemMasterDao.selectIdByType(PRODUCT) end. size={}", itemMasterProductKeylist.size());
+            });
+        }
     }
 
     // for test

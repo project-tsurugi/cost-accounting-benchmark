@@ -27,6 +27,7 @@ import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateCostA
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateCostSubTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateManufacturingTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateMaterialTask;
+import com.tsurugidb.benchmark.costaccounting.online.task.BenchTask;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 
@@ -60,6 +61,7 @@ public class CostAccountingOnlineAppRandom implements Runnable {
         taskList.add(new BenchOnlineShowQuantityTask(0));
         taskList.add(new BenchOnlineShowCostTask(0));
 
+        BenchTask.clearPrepareDataAll();
         for (var task : taskList) {
             task.initializeSetting(config);
 
