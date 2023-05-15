@@ -352,12 +352,14 @@ public class CostAccountingOnline {
     public int terminate() {
         try (var c = dbManager) {
             terminateOnlineApp();
-            for (var future : futureList) {
-                try {
-                    future.get(2, TimeUnit.HOURS);
-                } catch (Exception e) {
-                    exceptionList.add(e);
-                    LOG.warn("terminate future.get() error", e);
+            if (futureList != null) {
+                for (var future : futureList) {
+                    try {
+                        future.get(2, TimeUnit.HOURS);
+                    } catch (Exception e) {
+                        exceptionList.add(e);
+                        LOG.warn("terminate future.get() error", e);
+                    }
                 }
             }
             terminateService();

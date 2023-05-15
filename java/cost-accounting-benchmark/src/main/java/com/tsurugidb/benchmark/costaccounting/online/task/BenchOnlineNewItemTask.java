@@ -54,7 +54,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
         var setting = TgTmSetting.of(TgTxOption.ofRTX().label(TASK_NAME + ".prepare"));
         var date = config.getBatchDate();
 
-        cacheItemMasterWorkKeyList(dbManager, setting, date);
+        cacheItemMasterWorkKeyList(setting, date);
     }
 
     @Override
@@ -107,7 +107,13 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 
         logTarget("product=%s", item.getIName());
 
-        List<Integer> workList = new ArrayList<>(itemMasterWorkKeylist);
+        List<Integer> list;
+        if (itemMasterWorkKeylist != null) {
+            list = itemMasterWorkKeylist;
+        } else {
+            list = selectItemMasterWorkKeyList(date);
+        }
+        List<Integer> workList = new ArrayList<>(list);
         int s = random.random(1, InitialData03ItemMaster.PRODUCT_TREE_SIZE);
         Set<Integer> workSet = new HashSet<>(s);
         for (int i = 0; i < s; i++) {
@@ -147,16 +153,22 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
         return entity;
     }
 
-    private static synchronized void cacheItemMasterWorkKeyList(CostBenchDbManager dbManager, TgTmSetting setting, LocalDate date) {
-        if (itemMasterWorkKeylist == null) {
-            var log = LoggerFactory.getLogger(BenchOnlineNewItemTask.class);
-            dbManager.execute(setting, () -> {
-                log.info("ItemMasterDao.selectIdByType(WORK_IN_PROCESS) start");
-                var dao = dbManager.getItemMasterDao();
-                itemMasterWorkKeylist = dao.selectIdByType(date, ItemType.WORK_IN_PROCESS);
-                log.info("ItemMasterDao.selectIdByType(WORK_IN_PROCESS) end. size={}", itemMasterWorkKeylist.size());
-            });
+    private void cacheItemMasterWorkKeyList(TgTmSetting setting, LocalDate date) {
+        synchronized (BenchOnlineNewItemTask.class) {
+            if (itemMasterWorkKeylist == null) {
+                var log = LoggerFactory.getLogger(BenchOnlineNewItemTask.class);
+                dbManager.execute(setting, () -> {
+                    log.info("itemMasterDao.selectIdByType(WORK_IN_PROCESS) start");
+                    itemMasterWorkKeylist = selectItemMasterWorkKeyList(date);
+                    log.info("itemMasterDao.selectIdByType(WORK_IN_PROCESS) end. size={}", itemMasterWorkKeylist.size());
+                });
+            }
         }
+    }
+
+    private List<Integer> selectItemMasterWorkKeyList(LocalDate date) {
+        var dao = dbManager.getItemMasterDao();
+        return dao.selectIdByType(date, ItemType.WORK_IN_PROCESS);
     }
 
     protected void executeMain(ItemMaster item) {

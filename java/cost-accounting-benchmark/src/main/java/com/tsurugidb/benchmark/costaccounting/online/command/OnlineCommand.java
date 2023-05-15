@@ -159,6 +159,7 @@ public class OnlineCommand implements ExecutableCommand {
             return exitCode;
         } catch (Throwable e) {
             occurred = e;
+            LOG.error("execute1Main() error", e);
             throw e;
         } finally {
             if (online != null) {

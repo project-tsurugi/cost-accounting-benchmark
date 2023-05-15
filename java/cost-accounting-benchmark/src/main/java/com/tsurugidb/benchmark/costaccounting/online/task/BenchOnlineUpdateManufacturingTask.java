@@ -46,7 +46,7 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
         var setting = TgTmSetting.of(TgTxOption.ofRTX().label(TASK_NAME + ".prepare"));
         var date = config.getBatchDate();
 
-        cacheItemMasterProductKeyList(dbManager, setting, date);
+        cacheItemMasterProductKeyList(setting, date);
     }
 
     @Override
@@ -124,7 +124,12 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
     }
 
     protected int selectRandomItemId() {
-        List<Integer> list = itemMasterProductKeylist;
+        List<Integer> list;
+        if (itemMasterProductKeylist != null) {
+            list = itemMasterProductKeylist;
+        } else {
+            list = selectItemMasterProductKeyList(date);
+        }
         if (list.isEmpty()) {
             return -1;
         }
@@ -132,16 +137,22 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
         return list.get(i);
     }
 
-    private static synchronized void cacheItemMasterProductKeyList(CostBenchDbManager dbManager, TgTmSetting setting, LocalDate date) {
-        if (itemMasterProductKeylist == null) {
-            var log = LoggerFactory.getLogger(BenchOnlineUpdateManufacturingTask.class);
-            dbManager.execute(setting, () -> {
-                log.info("ItemMasterDao.selectIdByType(PRODUCT) start");
-                var dao = dbManager.getItemMasterDao();
-                itemMasterProductKeylist = dao.selectIdByType(date, ItemType.PRODUCT);
-                log.info("ItemMasterDao.selectIdByType(PRODUCT) end. size={}", itemMasterProductKeylist.size());
-            });
+    private void cacheItemMasterProductKeyList(TgTmSetting setting, LocalDate date) {
+        synchronized (BenchOnlineUpdateManufacturingTask.class) {
+            if (itemMasterProductKeylist == null) {
+                var log = LoggerFactory.getLogger(BenchOnlineUpdateManufacturingTask.class);
+                dbManager.execute(setting, () -> {
+                    log.info("itemMasterDao.selectIdByType(PRODUCT) start");
+                    itemMasterProductKeylist = selectItemMasterProductKeyList(date);
+                    log.info("itemMasterDao.selectIdByType(PRODUCT) end. size={}", itemMasterProductKeylist.size());
+                });
+            }
         }
+    }
+
+    private List<Integer> selectItemMasterProductKeyList(LocalDate date) {
+        var dao = dbManager.getItemMasterDao();
+        return dao.selectIdByType(date, ItemType.PRODUCT);
     }
 
     // for test

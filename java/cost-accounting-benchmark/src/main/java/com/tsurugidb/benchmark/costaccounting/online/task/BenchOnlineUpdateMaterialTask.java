@@ -29,10 +29,12 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 
     private static List<ItemConstructionMasterKey> itemConstructionMasterKeyListForAdd;
     private static List<ItemConstructionMasterKey> itemConstructionMasterKeyListForRemove;
+    private static List<Integer> itemMasterMaterialKeyList;
 
     public static void clearPrepareData() {
         itemConstructionMasterKeyListForAdd = null;
         itemConstructionMasterKeyListForRemove = null;
+        itemMasterMaterialKeyList = null;
     }
 
     private TgTmSetting settingMain;
@@ -53,12 +55,23 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
         var date = config.getBatchDate();
 
         // 複数スレッドで実行する場合はaddとremoveのキャッシュ作成を同時に実行する
-        if (taskId % 2 == 0) {
-            cacheItemConstructionMasterKeyListForAdd(dbManager, setting, date);
-            cachetItemConstructionMasterKeyListForRemove(dbManager, setting, date);
-        } else {
-            cachetItemConstructionMasterKeyListForRemove(dbManager, setting, date);
-            cacheItemConstructionMasterKeyListForAdd(dbManager, setting, date);
+        switch (taskId % 3) {
+        case 0:
+        default:
+            cacheItemConstructionMasterKeyListForAdd(setting, date);
+            cacheItemConstructionMasterKeyListForRemove(setting, date);
+            cacheItemMasterMaterialKeyList(setting, date);
+            break;
+        case 1:
+            cacheItemConstructionMasterKeyListForRemove(setting, date);
+            cacheItemConstructionMasterKeyListForAdd(setting, date);
+            cacheItemMasterMaterialKeyList(setting, date);
+            break;
+        case 2:
+            cacheItemMasterMaterialKeyList(setting, date);
+            cacheItemConstructionMasterKeyListForRemove(setting, date);
+            cacheItemMasterMaterialKeyList(setting, date);
+            break;
         }
     }
 
@@ -85,7 +98,12 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
         // 追加する原材料の決定
         ItemMaster material;
         {
-            List<Integer> materialList = selectMaterial();
+            List<Integer> materialList;
+            if (itemMasterMaterialKeyList != null) {
+                materialList = itemMasterMaterialKeyList;
+            } else {
+                materialList = selectItemMasterMaterialKeyList(date);
+            }
             List<ItemConstructionMaster> childList = itemCostructionMasterDao.selectByParentId(item.getIcIId(), date);
             int materialId = -1;
             for (int j = 0; j < materialList.size(); j++) {
@@ -123,7 +141,12 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
         for (;;) {
             ItemConstructionMasterKey key;
             {
-                List<ItemConstructionMasterKey> list = itemConstructionMasterKeyListForAdd;
+                List<ItemConstructionMasterKey> list;
+                if (itemConstructionMasterKeyListForAdd != null) {
+                    list = itemConstructionMasterKeyListForAdd;
+                } else {
+                    list = selectItemConstructionMasterKeyListForAdd(dbManager, date);
+                }
                 int i = random.nextInt(list.size());
                 key = list.get(i);
             }
@@ -138,7 +161,7 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
     private static final boolean itemConstructionMasterKeyListDebug = false;
     private static final Object lockItemConstructionMasterKeyListForAdd = new Object();
 
-    private static void cacheItemConstructionMasterKeyListForAdd(CostBenchDbManager dbManager, TgTmSetting setting, LocalDate date) {
+    private void cacheItemConstructionMasterKeyListForAdd(TgTmSetting setting, LocalDate date) {
         synchronized (lockItemConstructionMasterKeyListForAdd) {
             if (itemConstructionMasterKeyListForAdd == null) {
                 var log = LoggerFactory.getLogger(BenchOnlineUpdateMaterialTask.class);
@@ -155,26 +178,38 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
                             log.info("(add)ItemMasterDao.selectAll() end. size={}", list.size());
                         }
                     }
-                    List<ItemType> typeList = Arrays.stream(ItemType.values()).filter(t -> t != ItemType.RAW_MATERIAL).collect(Collectors.toList());
-                    log.info("(add)itemCostructionMasterDao.selectByItemType() start {}", typeList);
-                    var dao = dbManager.getItemConstructionMasterDao();
-                    itemConstructionMasterKeyListForAdd = dao.selectByItemType(date, typeList);
+                    log.info("(add)itemCostructionMasterDao.selectByItemType() start");
+                    itemConstructionMasterKeyListForAdd = selectItemConstructionMasterKeyListForAdd(dbManager, date);
                     log.info("(add)itemCostructionMasterDao.selectByItemType() end. size={}", itemConstructionMasterKeyListForAdd.size());
                 });
             }
         }
     }
 
-    private static List<Integer> itemMasterMaterialKeyList;
+    private static List<ItemConstructionMasterKey> selectItemConstructionMasterKeyListForAdd(CostBenchDbManager dbManager, LocalDate date) {
+        List<ItemType> typeList = Arrays.stream(ItemType.values()).filter(t -> t != ItemType.RAW_MATERIAL).collect(Collectors.toList());
+        var dao = dbManager.getItemConstructionMasterDao();
+        return dao.selectByItemType(date, typeList);
+    }
 
-    private List<Integer> selectMaterial() {
-        synchronized (BenchOnlineUpdateMaterialTask.class) {
+    private static final Object lockItemMasterMaterialKeyList = new Object();
+
+    private void cacheItemMasterMaterialKeyList(TgTmSetting setting, LocalDate date) {
+        synchronized (lockItemMasterMaterialKeyList) {
             if (itemMasterMaterialKeyList == null) {
-                ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
-                itemMasterMaterialKeyList = itemMasterDao.selectIdByType(date, ItemType.RAW_MATERIAL);
+                var log = LoggerFactory.getLogger(BenchOnlineUpdateMaterialTask.class);
+                dbManager.execute(setting, () -> {
+                    log.info("itemMasterDao.selectIdByType(RAW_MATERIAL) start");
+                    itemMasterMaterialKeyList = selectItemMasterMaterialKeyList(date);
+                    log.info("itemMasterDao.selectIdByType(RAW_MATERIAL) end. size={}", itemMasterMaterialKeyList.size());
+                });
             }
         }
-        return itemMasterMaterialKeyList;
+    }
+
+    private List<Integer> selectItemMasterMaterialKeyList(LocalDate date) {
+        ItemMasterDao dao = dbManager.getItemMasterDao();
+        return dao.selectIdByType(date, ItemType.RAW_MATERIAL);
     }
 
     private static final BigDecimal MQ_START = new BigDecimal("0.1");
@@ -213,7 +248,12 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
     private ItemConstructionMasterKey selectRandomRemoveItem() {
         ItemConstructionMasterKey key;
         {
-            List<ItemConstructionMasterKey> list = itemConstructionMasterKeyListForRemove;
+            List<ItemConstructionMasterKey> list;
+            if (itemConstructionMasterKeyListForRemove != null) {
+                list = itemConstructionMasterKeyListForRemove;
+            } else {
+                list = selectItemConstructionMasterKeyListForRemove(date);
+            }
             if (list.isEmpty()) {
                 return null;
             }
@@ -225,7 +265,7 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 
     private static final Object lockItemConstructionMasterKeyListForRemove = new Object();
 
-    private static void cachetItemConstructionMasterKeyListForRemove(CostBenchDbManager dbManager, TgTmSetting setting, LocalDate date) {
+    private void cacheItemConstructionMasterKeyListForRemove(TgTmSetting setting, LocalDate date) {
         synchronized (lockItemConstructionMasterKeyListForRemove) {
             if (itemConstructionMasterKeyListForRemove == null) {
                 var log = LoggerFactory.getLogger(BenchOnlineUpdateMaterialTask.class);
@@ -242,14 +282,18 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
                             log.info("(remove)ItemMasterDao.selectAll() end. size={}", list.size());
                         }
                     }
-                    List<ItemType> typeList = Arrays.asList(ItemType.RAW_MATERIAL);
-                    log.info("(remove)itemCostructionMasterDao.selectByItemType() start {}", typeList);
-                    var dao = dbManager.getItemConstructionMasterDao();
-                    itemConstructionMasterKeyListForRemove = dao.selectByItemType(date, typeList);
+                    log.info("(remove)itemCostructionMasterDao.selectByItemType() start");
+                    itemConstructionMasterKeyListForRemove = selectItemConstructionMasterKeyListForRemove(date);
                     log.info("(remove)itemCostructionMasterDao.selectByItemType() end. size={}", itemConstructionMasterKeyListForRemove.size());
                 });
             }
         }
+    }
+
+    private List<ItemConstructionMasterKey> selectItemConstructionMasterKeyListForRemove(LocalDate date) {
+        List<ItemType> typeList = Arrays.asList(ItemType.RAW_MATERIAL);
+        var dao = dbManager.getItemConstructionMasterDao();
+        return dao.selectByItemType(date, typeList);
     }
 
     // for test
