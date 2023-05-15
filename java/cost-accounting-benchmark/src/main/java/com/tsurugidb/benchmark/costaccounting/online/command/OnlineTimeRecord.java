@@ -8,8 +8,8 @@ import com.tsurugidb.benchmark.costaccounting.db.BenchDbCounter.CounterName;
 public class OnlineTimeRecord {
 
     public static final List<String> HEADER_LIST = List.of( //
-            "| title | tx option | dedicated time[ms] | numbers of txs | latency<br>avg[ms] | latency<br>min[ms] | latency<br>max[ms] | committed tx through put |", //
-            "|-------|-----------|-------------------:|---------------:|-------------------:|-------------------:|-------------------:|-------------------------:|");
+            "| title | tx option | dedicated time[ms] | numbers of txs | latency<br>avg[ms] | latency<br>min[ms] | latency<br>max[ms] | committed tx through put[task/s] |", //
+            "|-------|-----------|-------------------:|---------------:|-------------------:|-------------------:|-------------------:|---------------------------------:|");
 
     private final String title;
     private final long dedicatedTime;
@@ -34,13 +34,14 @@ public class OnlineTimeRecord {
         sb.append(dedicatedTime);
         sb.append("|");
 
-        // numbers of txs
-        sb.append(counter.getCount(title, CounterName.TASK_START));
-        sb.append("|");
-
         {
-            // latency
             var time = counter.getTime(title, CounterName.TASK_SUCCESS);
+
+            // numbers of txs
+            sb.append(time.getCount());
+            sb.append("|");
+
+            // latency
             sb.append(String.format("%.3f", time.getAvgTimeMillis()));
             sb.append("|");
             sb.append(time.getMinTimeMillisText());
@@ -49,7 +50,7 @@ public class OnlineTimeRecord {
             sb.append("|");
 
             // committed tx through put
-            sb.append(time.getCount());
+            sb.append((double) time.getCount() / dedicatedTime * 1000);
             sb.append("|");
         }
 
