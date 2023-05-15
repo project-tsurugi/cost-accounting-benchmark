@@ -63,6 +63,9 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                 tm.addEventListener(counter);
                 return tm;
             } catch (IOException e) {
+                if (e.getMessage().equals("the server has declined the connection request")) {
+                    LOG.info("sessionList.size={}", sessionList.size());
+                }
                 throw new UncheckedIOException(e.getMessage(), e);
             }
         }
@@ -90,7 +93,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                 this.singleTransactionManager = null;
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e.getMessage(), e);
         }
     }
 
@@ -341,17 +344,18 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
 
     @Override
     public void close() {
-        closeConnection0();
+        closeConnectionAll();
     }
 
     @Override
     public void closeConnection() {
         if (isMultiSession()) {
-            closeConnection0();
+            closeConnectionAll();
         }
     }
 
-    private void closeConnection0() {
+    private void closeConnectionAll() {
+        LOG.info("all session close start. sessionList.size={}", sessionList.size());
         RuntimeException re = null;
         for (var session : sessionList) {
             LOG.debug("close session {}", session);
@@ -377,5 +381,6 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
         }
 
         sessionList.clear();
+        LOG.info("all session close end. sessionList.size={}", sessionList.size());
     }
 }
