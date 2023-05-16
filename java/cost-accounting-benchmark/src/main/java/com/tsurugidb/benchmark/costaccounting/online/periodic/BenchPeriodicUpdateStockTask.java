@@ -36,11 +36,17 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
 
     private TgTmSetting settingMain;
     private final int threadSize;
+    private final ExecutorService service;
 
     public BenchPeriodicUpdateStockTask(int taskId) {
         super(TASK_NAME, taskId);
         this.threadSize = BenchConst.periodicSplitSize(TASK_NAME);
         LOG.info("split.size={}", threadSize);
+        if (threadSize <= 1) {
+            this.service = null;
+        } else {
+            this.service = Executors.newFixedThreadPool(threadSize);
+        }
     }
 
     @Override
@@ -104,14 +110,11 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
             taskList.add(task);
         }
 
-        ExecutorService service = Executors.newFixedThreadPool(threadSize);
         List<Future<Void>> resultList = Collections.emptyList();
         try {
             resultList = service.invokeAll(taskList);
         } catch (InterruptedException e) {
             LOG.debug("InterruptedException", e);
-        } finally {
-            service.shutdownNow();
         }
 
         var exceptionList = new ArrayList<Exception>();
@@ -184,11 +187,17 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
         }
     }
 
+    @Override
+    public void close() {
+        if (this.service != null) {
+            service.shutdownNow();
+        }
+    }
+
     // for test
     public static void main(String... args) {
-        var task = new BenchPeriodicUpdateStockTask(0);
-
-        try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
+        try (var task = new BenchPeriodicUpdateStockTask(0); //
+                CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
             task.setDao(manager);
 
             List<Integer> factoryList = List.of();

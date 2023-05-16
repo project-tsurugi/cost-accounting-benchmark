@@ -1,11 +1,12 @@
 package com.tsurugidb.benchmark.costaccounting.online.periodic;
 
+import java.io.Closeable;
 import java.time.LocalDate;
 import java.util.List;
 
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchTask;
 
-public abstract class BenchPeriodicTask extends BenchTask {
+public abstract class BenchPeriodicTask extends BenchTask implements Closeable {
 
     public static final List<String> TASK_NAME_LIST = List.of( //
             BenchPeriodicUpdateStockTask.TASK_NAME //
@@ -42,4 +43,7 @@ public abstract class BenchPeriodicTask extends BenchTask {
     }
 
     protected abstract boolean execute1();
+
+    @Override
+    public abstract void close();
 }

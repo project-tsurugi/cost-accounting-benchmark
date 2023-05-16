@@ -38,7 +38,7 @@ public class CostAccountingPeriodicAppSchedule implements Runnable {
 
     @Override
     public void run() {
-        try {
+        try (periodicTask) {
             Thread.currentThread().setName(name);
 
             LOG.info("{} started.", name);
