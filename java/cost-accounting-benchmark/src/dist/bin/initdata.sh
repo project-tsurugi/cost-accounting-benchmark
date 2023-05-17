@@ -13,6 +13,7 @@ fi
 function call_java() {
   echo $1
   xTXLOG_OPTS="
+    -Dbench.tx.log.target=INIT_DATA
     -Diceaxe.tx.log.dir=/tmp/iceaxe-tx-log
     -Diceaxe.tx.log.auto_flush=true
     -Diceaxe.tx.log.explain=0

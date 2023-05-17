@@ -22,6 +22,7 @@ import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchFactoryTask;
 import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchItemTask;
 import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchTxOption;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
+import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
 import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
@@ -55,7 +56,7 @@ public class CostAccountingBatch {
         }
 
         String executeType = BenchConst.batchExecuteType();
-        var config = new BatchConfig(executeType, batchDate, factoryList, commitRatio);
+        var config = new BatchConfig(DbManagerPurpose.BATCH, executeType, batchDate, factoryList, commitRatio);
         config.setIsolationLevel(BenchConst.batchJdbcIsolationLevel());
         config.setTxOptions(BenchConst.batchTsurugiTxOption());
 
@@ -138,8 +139,9 @@ public class CostAccountingBatch {
 
     private CostBenchDbManager createDbManager(BatchConfig config) {
         var type = BenchConst.batchDbManagerType();
+        var purpose = config.getDbManagerPurpose();
         boolean isMultiSession = config.getExecuteType().equals(BenchConst.PARALLEL_FACTORY_SESSION);
-        return CostBenchDbManager.createInstance(type, config.getIsolationLevel(), isMultiSession);
+        return CostBenchDbManager.createInstance(type, purpose, config.getIsolationLevel(), isMultiSession);
     }
 
     private LocalDateTime startTime;

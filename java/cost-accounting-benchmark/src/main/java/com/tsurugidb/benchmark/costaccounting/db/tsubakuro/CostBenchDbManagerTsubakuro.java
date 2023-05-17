@@ -47,8 +47,8 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
     private Transaction singleTransaction;
     private final ThreadLocal<Transaction> transactionThreadLocal = new ThreadLocal<>();
 
-    public CostBenchDbManagerTsubakuro() {
-        super("TSUBAKURO", true);
+    public CostBenchDbManagerTsubakuro(DbManagerPurpose purpose) {
+        super("TSUBAKURO", true, purpose);
         var endpoint = BenchConst.tsurugiEndpoint();
         try {
             var credential = new UsernamePasswordCredential(BenchConst.tsurugiUser(), BenchConst.tsurugiPassword());

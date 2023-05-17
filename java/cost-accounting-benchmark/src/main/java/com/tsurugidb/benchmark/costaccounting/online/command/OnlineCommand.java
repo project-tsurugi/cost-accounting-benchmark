@@ -16,6 +16,7 @@ import com.tsurugidb.benchmark.costaccounting.batch.BatchConfig;
 import com.tsurugidb.benchmark.costaccounting.batch.CostAccountingBatch;
 import com.tsurugidb.benchmark.costaccounting.batch.StringUtil;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
+import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline;
@@ -99,7 +100,7 @@ public class OnlineCommand implements ExecutableCommand {
         }
         if (BenchConst.onlineCommandPreBatch()) {
             LOG.info("pre-batch start");
-            var preConfig = new BatchConfig(BenchConst.PARALLEL_FACTORY_SESSION, config.getBatchDate(), null, 100);
+            var preConfig = new BatchConfig(DbManagerPurpose.PRE_BATCH, BenchConst.PARALLEL_FACTORY_SESSION, config.getBatchDate(), null, 100);
             preConfig.setIsolationLevel(IsolationLevel.READ_COMMITTED);
             preConfig.setDefaultTxOption(TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
 

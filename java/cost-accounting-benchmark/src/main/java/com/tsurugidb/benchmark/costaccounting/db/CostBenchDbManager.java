@@ -32,10 +32,15 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 public abstract class CostBenchDbManager implements Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManager.class);
 
+    public enum DbManagerPurpose {
+        INIT_DATA, BATCH, PRE_BATCH, ONLINE, TIME, DEBUG, TEST
+    }
+
     protected final static BenchDbCounter counter = new BenchDbCounter();
 
     private final String name;
     private final boolean isTsurugi;
+    protected final DbManagerPurpose purpose;
     private MeasurementMasterDao measurementMasterDao;
     private FactoryMasterDao factoryMasterDao;
     private ItemMasterDao itemMasterDao;
@@ -47,18 +52,18 @@ public abstract class CostBenchDbManager implements Closeable {
 
     private boolean isSingleTransaction = false;
 
-    public static CostBenchDbManager createInstance(DbManagerType type, IsolationLevel isolationLevel, boolean isMultiSession) {
+    public static CostBenchDbManager createInstance(DbManagerType type, DbManagerPurpose purpose, IsolationLevel isolationLevel, boolean isMultiSession) {
         CostBenchDbManager manager;
         {
             switch (type) {
             case JDBC:
-                manager = new CostBenchDbManagerJdbc(isolationLevel);
+                manager = new CostBenchDbManagerJdbc(purpose, isolationLevel);
                 break;
             case ICEAXE:
-                manager = new CostBenchDbManagerIceaxe(isMultiSession);
+                manager = new CostBenchDbManagerIceaxe(purpose, isMultiSession);
                 break;
             case TSUBAKURO:
-                manager = new CostBenchDbManagerTsubakuro();
+                manager = new CostBenchDbManagerTsubakuro(purpose);
                 break;
             default:
                 throw new AssertionError(type);
@@ -71,9 +76,10 @@ public abstract class CostBenchDbManager implements Closeable {
         return manager;
     }
 
-    public CostBenchDbManager(String name, boolean isTsurugi) {
+    public CostBenchDbManager(String name, boolean isTsurugi, DbManagerPurpose purpose) {
         this.name = name;
         this.isTsurugi = isTsurugi;
+        this.purpose = purpose;
     }
 
     public String getName() {

@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 public class BatchConfig {
 
+    private final DbManagerPurpose purpose;
     private final String executeType;
     private final LocalDate batchDate;
     private List<Integer> factoryList;
@@ -19,11 +21,16 @@ public class BatchConfig {
     private TgTxOption defaultTxOption;
     private Map<Integer, TgTxOption> txOptionMap;
 
-    public BatchConfig(String executeType, LocalDate batchDate, List<Integer> factoryList, int commitRatio) {
+    public BatchConfig(DbManagerPurpose purpose, String executeType, LocalDate batchDate, List<Integer> factoryList, int commitRatio) {
+        this.purpose = purpose;
         this.executeType = executeType;
         this.batchDate = batchDate;
         this.factoryList = factoryList;
         this.commitRatio = commitRatio;
+    }
+
+    public DbManagerPurpose getDbManagerPurpose() {
+        return this.purpose;
     }
 
     public String getExecuteType() {

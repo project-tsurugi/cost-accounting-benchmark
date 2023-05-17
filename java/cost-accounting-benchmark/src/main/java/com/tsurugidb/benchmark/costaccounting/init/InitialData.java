@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
+import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
 import com.tsurugidb.benchmark.costaccounting.db.entity.HasDateRange;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao.TsubakuroDao;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
@@ -60,7 +61,7 @@ public class InitialData {
     static CostBenchDbManager createDbManager() {
         var type = BenchConst.initDbManagerType();
         boolean isMultiSession = BenchConst.initDbManagerMultiSession();
-        return CostBenchDbManager.createInstance(type, IsolationLevel.READ_COMMITTED, isMultiSession);
+        return CostBenchDbManager.createInstance(type, DbManagerPurpose.INIT_DATA, IsolationLevel.READ_COMMITTED, isMultiSession);
     }
 
     protected void logStart() {

@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
+import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemConstructionMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
@@ -602,7 +603,7 @@ public class BenchBatchItemTask {
     }
 
     static void test1() {
-        CostBenchDbManager manager = new CostBenchDbManagerJdbc(IsolationLevel.READ_COMMITTED);
+        CostBenchDbManager manager = new CostBenchDbManagerJdbc(DbManagerPurpose.TEST, IsolationLevel.READ_COMMITTED);
         BenchBatchItemTask task = new BenchBatchItemTask(manager, InitialData.DEFAULT_BATCH_DATE);
 
         var setting = TgTmSetting.of(TgTxOption.ofRTX());
@@ -632,7 +633,7 @@ public class BenchBatchItemTask {
         int itemId = 11649;
         LocalDate date = InitialData.DEFAULT_BATCH_DATE;
 
-        CostBenchDbManager manager = new CostBenchDbManagerJdbc(IsolationLevel.READ_COMMITTED);
+        CostBenchDbManager manager = new CostBenchDbManagerJdbc(DbManagerPurpose.TEST, IsolationLevel.READ_COMMITTED);
         BenchBatchItemTask task = new BenchBatchItemTask(manager, date);
 
         var setting = TgTmSetting.of(TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));

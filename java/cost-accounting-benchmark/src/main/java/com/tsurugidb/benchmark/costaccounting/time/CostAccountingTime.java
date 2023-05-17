@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
+import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
 import com.tsurugidb.benchmark.costaccounting.time.table.ItemMasterTime;
 import com.tsurugidb.benchmark.costaccounting.time.table.ResultTableTime;
 import com.tsurugidb.benchmark.costaccounting.time.table.TableTime;
@@ -38,6 +39,6 @@ public class CostAccountingTime {
 
     private CostBenchDbManager createDbManager() {
         var type = BenchConst.timeCommandDbManagerType();
-        return CostBenchDbManager.createInstance(type, isolation, false);
+        return CostBenchDbManager.createInstance(type, DbManagerPurpose.TIME, isolation, false);
     }
 }

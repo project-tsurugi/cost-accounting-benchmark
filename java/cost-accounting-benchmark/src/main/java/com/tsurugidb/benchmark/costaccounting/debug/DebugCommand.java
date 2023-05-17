@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.ExecutableCommand;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
+import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
@@ -422,6 +423,6 @@ public class DebugCommand implements ExecutableCommand {
         var isolationLevel = BenchConst.batchJdbcIsolationLevel();
         boolean isMultiSession = BenchConst.batchExecuteType().equals(BenchConst.PARALLEL_FACTORY_SESSION);
         LOG.info("isMultiSession={}", isMultiSession);
-        return CostBenchDbManager.createInstance(type, isolationLevel, isMultiSession);
+        return CostBenchDbManager.createInstance(type, DbManagerPurpose.DEBUG, isolationLevel, isMultiSession);
     }
 }

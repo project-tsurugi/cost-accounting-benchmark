@@ -2,6 +2,7 @@ package com.tsurugidb.benchmark.costaccounting.db.iceaxe;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
@@ -33,6 +34,7 @@ import com.tsurugidb.iceaxe.TsurugiConnector;
 import com.tsurugidb.iceaxe.exception.TsurugiDiagnosticCodeProvider;
 import com.tsurugidb.iceaxe.session.TgSessionOption;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
+import com.tsurugidb.iceaxe.session.event.logging.file.TsurugiSessionTxFileLogConfig;
 import com.tsurugidb.iceaxe.transaction.TgCommitType;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.event.TsurugiTransactionEventListener;
@@ -74,8 +76,8 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     private TsurugiTransaction singleTransaction;
     private final ThreadLocal<TsurugiTransaction> transactionThreadLocal = new ThreadLocal<>();
 
-    public CostBenchDbManagerIceaxe(boolean isMultiSession) {
-        super("ICEAXE", true);
+    public CostBenchDbManagerIceaxe(DbManagerPurpose purpose, boolean isMultiSession) {
+        super("ICEAXE", true, purpose);
         var endpoint = BenchConst.tsurugiEndpoint();
         LOG.info("endpoint={}", endpoint);
         LOG.info("isMultiSession={}", isMultiSession);
@@ -94,6 +96,16 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
+        }
+
+        String target = System.getProperty("bench.tx.log.target");
+        if (target != null) {
+            var stream = Arrays.stream(target.split(",")).map(String::trim);
+            if (stream.anyMatch(s -> s.equalsIgnoreCase(purpose.name()))) {
+                connector.setTxFileLogConfig(TsurugiSessionTxFileLogConfig.DEFAULT);
+            } else {
+                connector.setTxFileLogConfig(null);
+            }
         }
     }
 
@@ -355,7 +367,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     }
 
     private void closeConnectionAll() {
-        LOG.info("all session close start. sessionList.size={}", sessionList.size());
+        LOG.info("{} all session close start. sessionList.size={}", purpose, sessionList.size());
         RuntimeException re = null;
         for (var session : sessionList) {
             LOG.debug("close session {}", session);
@@ -381,6 +393,6 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
         }
 
         sessionList.clear();
-        LOG.info("all session close end. sessionList.size={}", sessionList.size());
+        LOG.info("{} all session close end.   sessionList.size={}", purpose, sessionList.size());
     }
 }

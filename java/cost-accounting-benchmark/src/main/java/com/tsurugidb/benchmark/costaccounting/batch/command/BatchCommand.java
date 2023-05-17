@@ -20,6 +20,7 @@ import com.tsurugidb.benchmark.costaccounting.batch.BatchConfig;
 import com.tsurugidb.benchmark.costaccounting.batch.CostAccountingBatch;
 import com.tsurugidb.benchmark.costaccounting.batch.StringUtil;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
+import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.init.DumpCsv;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
@@ -68,7 +69,7 @@ public class BatchCommand implements ExecutableCommand {
             for (var isolationLevel : isolationList) {
                 for (var txOption : txList) {
                     for (int i = 0; i < times; i++) {
-                        var config = new BatchConfig(executeType, batchDate, factoryList, 100);
+                        var config = new BatchConfig(DbManagerPurpose.BATCH, executeType, batchDate, factoryList, 100);
                         config.setIsolationLevel(isolationLevel);
                         config.setDefaultTxOption(getOption(txOption));
 
@@ -97,7 +98,7 @@ public class BatchCommand implements ExecutableCommand {
         }
         if (BenchConst.batchCommandPreBatch()) {
             LOG.info("pre-batch start");
-            var preConfig = new BatchConfig(BenchConst.PARALLEL_FACTORY_SESSION, config.getBatchDate(), config.getFactoryList(), 100);
+            var preConfig = new BatchConfig(DbManagerPurpose.PRE_BATCH, BenchConst.PARALLEL_FACTORY_SESSION, config.getBatchDate(), config.getFactoryList(), 100);
             preConfig.setIsolationLevel(IsolationLevel.READ_COMMITTED);
             preConfig.setDefaultTxOption(getOption("LTX"));
 

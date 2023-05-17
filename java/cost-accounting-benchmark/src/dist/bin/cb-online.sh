@@ -11,7 +11,14 @@ then
 fi
 
 function call_java() {
-  java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $RUN_JAVA_OPTS $@
+  xTXLOG_OPTS="
+    -Dbench.tx.log.target=ONLINE
+    -Diceaxe.tx.log.dir=/tmp/iceaxe-tx-log
+    -Diceaxe.tx.log.auto_flush=true
+    -Diceaxe.tx.log.explain=0
+    -Diceaxe.tx.log.read_progress=100000
+    "
+  java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $TXLOG_OPTS $RUN_JAVA_OPTS $@
 }
 
 # online-command

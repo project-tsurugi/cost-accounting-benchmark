@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
+import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
 import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
 import com.tsurugidb.benchmark.costaccounting.online.periodic.BenchPeriodicTask;
@@ -134,7 +135,7 @@ public class CostAccountingOnline {
         if (BenchConst.dbmsType() != DbmsType.TSURUGI) {
             LOG.info("online.jdbc.isolation.level={}", isolationLevel);
         }
-        return CostBenchDbManager.createInstance(type, isolationLevel, isMultiSession);
+        return CostBenchDbManager.createInstance(type, DbManagerPurpose.ONLINE, isolationLevel, isMultiSession);
     }
 
     private List<? extends Runnable> createOnlineApp(OnlineConfig config) {
