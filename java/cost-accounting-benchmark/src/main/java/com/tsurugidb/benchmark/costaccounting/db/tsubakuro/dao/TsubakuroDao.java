@@ -171,6 +171,10 @@ public abstract class TsubakuroDao<E> {
             parameters.add(parameter);
         }
 
+        return executeAndGetCount(ps, parameters);
+    }
+
+    protected int executeAndGetCount(PreparedStatement ps, List<Parameter> parameters) {
         var transaction = getTransaction();
         try {
             transaction.executeStatement(ps, parameters).await();

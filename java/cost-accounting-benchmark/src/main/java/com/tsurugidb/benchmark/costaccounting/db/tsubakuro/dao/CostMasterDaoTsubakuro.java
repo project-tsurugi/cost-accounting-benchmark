@@ -10,6 +10,9 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.CostBenchDbManagerTsubakuro;
 import com.tsurugidb.sql.proto.SqlCommon.AtomType;
+import com.tsurugidb.tsubakuro.sql.Parameters;
+import com.tsurugidb.tsubakuro.sql.Placeholders;
+import com.tsurugidb.tsubakuro.sql.PreparedStatement;
 
 public class CostMasterDaoTsubakuro extends TsubakuroDao<CostMaster> implements CostMasterDao {
 
@@ -57,7 +60,27 @@ public class CostMasterDaoTsubakuro extends TsubakuroDao<CostMaster> implements 
 
     @Override
     public List<Integer> selectIdByFactory(int fId) {
-        throw new UnsupportedOperationException("not yet impl");
+        var ps = getSelectIdByFactoryPs();
+        var parameters = List.of(Parameters.of("fId", fId));
+        explain(selectIdByFactorySql, ps, parameters);
+        return executeAndGetList(ps, parameters, rs -> {
+            if (rs.nextColumn()) {
+                return rs.fetchInt4Value();
+            }
+            throw new AssertionError();
+        });
+    }
+
+    private String selectIdByFactorySql;
+    private PreparedStatement selectIdByFactoryPs;
+
+    private synchronized PreparedStatement getSelectIdByFactoryPs() {
+        if (this.selectIdByFactoryPs == null) {
+            this.selectIdByFactorySql = "select c_i_id from " + TABLE_NAME + " where c_f_id = :fId order by c_i_id";
+            var placeholders = List.of(Placeholders.of("fId", AtomType.INT4));
+            this.selectIdByFactoryPs = createPreparedStatement(selectIdByFactorySql, placeholders);
+        }
+        return this.selectIdByFactoryPs;
     }
 
     @Override

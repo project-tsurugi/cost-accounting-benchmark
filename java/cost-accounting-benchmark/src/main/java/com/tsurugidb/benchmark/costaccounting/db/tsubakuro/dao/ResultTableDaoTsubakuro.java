@@ -11,6 +11,9 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ResultTable;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.CostBenchDbManagerTsubakuro;
 import com.tsurugidb.sql.proto.SqlCommon.AtomType;
+import com.tsurugidb.tsubakuro.sql.Parameters;
+import com.tsurugidb.tsubakuro.sql.Placeholders;
+import com.tsurugidb.tsubakuro.sql.PreparedStatement;
 
 public class ResultTableDaoTsubakuro extends TsubakuroDao<ResultTable> implements ResultTableDao {
 
@@ -64,7 +67,26 @@ public class ResultTableDaoTsubakuro extends TsubakuroDao<ResultTable> implement
 
     @Override
     public int deleteByFactory(int factoryId, LocalDate date) {
-        throw new UnsupportedOperationException("not yet impl");
+        var ps = getSelectIdByTypePs();
+        var parameters = List.of( //
+                Parameters.of("factoryId", factoryId), //
+                Parameters.of(vDate.name(), date));
+        explain(deleteByFactorySql, ps, parameters);
+        return executeAndGetCount(ps, parameters);
+    }
+
+    private String deleteByFactorySql;
+    private PreparedStatement deleteByFactoryPs;
+
+    private synchronized PreparedStatement getSelectIdByTypePs() {
+        if (this.deleteByFactoryPs == null) {
+            this.deleteByFactorySql = "delete from " + TABLE_NAME + " where r_f_id = :factoryId and " + TG_COND_DATE;
+            var placeholders = List.of( //
+                    Placeholders.of("factoryId", AtomType.INT4), //
+                    Placeholders.of(vDate.name(), AtomType.DATE));
+            this.deleteByFactoryPs = createPreparedStatement(deleteByFactorySql, placeholders);
+        }
+        return this.deleteByFactoryPs;
     }
 
     @Override

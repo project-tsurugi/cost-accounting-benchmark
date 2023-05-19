@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
+import com.tsurugidb.benchmark.costaccounting.time.table.CostMasterTime;
 import com.tsurugidb.benchmark.costaccounting.time.table.ItemMasterTime;
 import com.tsurugidb.benchmark.costaccounting.time.table.ResultTableTime;
 import com.tsurugidb.benchmark.costaccounting.time.table.TableTime;
@@ -24,6 +25,7 @@ public class CostAccountingTime {
     public int main(List<TimeRecord> records) throws IOException {
         TableTime[] list = { //
                 new ItemMasterTime(), //
+                new CostMasterTime(), //
                 new ResultTableTime(), //
         };
 
