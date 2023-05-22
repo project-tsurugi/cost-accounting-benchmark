@@ -40,6 +40,7 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 public class CostBenchDbManagerJdbc extends CostBenchDbManager {
     private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManagerJdbc.class);
 
+    private final String jdbcUrl;
     private final IsolationLevel isolationLevel;
 
     private final List<Connection> connectionList = new CopyOnWriteArrayList<>();
@@ -55,15 +56,17 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
 
     public CostBenchDbManagerJdbc(DbManagerPurpose purpose, IsolationLevel isolationLevel) {
         super("JDBC", false, purpose);
+        this.jdbcUrl = BenchConst.jdbcUrl();
         this.isolationLevel = isolationLevel;
+        LOG.info("jdbcUrl={}", jdbcUrl);
+        LOG.info("isolationLevel={}", isolationLevel);
     }
 
     private Connection createConnection() {
-        String url = BenchConst.jdbcUrl();
         String user = BenchConst.jdbcUser();
         String password = BenchConst.jdbcPassword();
         try {
-            Connection c = DriverManager.getConnection(url, user, password);
+            Connection c = DriverManager.getConnection(jdbcUrl, user, password);
             c.setAutoCommit(false);
             switch (isolationLevel) {
             case READ_COMMITTED:

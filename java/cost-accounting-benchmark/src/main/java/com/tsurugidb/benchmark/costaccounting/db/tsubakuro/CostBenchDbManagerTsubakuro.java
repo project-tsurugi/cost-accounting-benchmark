@@ -50,6 +50,7 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
     public CostBenchDbManagerTsubakuro(DbManagerPurpose purpose) {
         super("TSUBAKURO", true, purpose);
         var endpoint = BenchConst.tsurugiEndpoint();
+        LOG.info("endpoint={}", endpoint);
         try {
             var credential = new UsernamePasswordCredential(BenchConst.tsurugiUser(), BenchConst.tsurugiPassword());
             this.session = SessionBuilder.connect(endpoint).withCredential(credential).create();

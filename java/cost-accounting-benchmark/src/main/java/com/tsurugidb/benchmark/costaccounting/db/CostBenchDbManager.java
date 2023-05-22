@@ -9,9 +9,6 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.tsurugidb.benchmark.costaccounting.db.BenchDbCounter.CounterName;
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
@@ -30,7 +27,6 @@ import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 public abstract class CostBenchDbManager implements Closeable {
-    private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManager.class);
 
     public enum DbManagerPurpose {
         INIT_DATA, BATCH, PRE_BATCH, ONLINE, TIME, DEBUG, TEST
@@ -69,7 +65,6 @@ public abstract class CostBenchDbManager implements Closeable {
                 throw new AssertionError(type);
             }
         }
-        LOG.info("using {}", manager.getClass().getSimpleName());
 
         MeasurementUtil.initialize(manager.getMeasurementMasterDao());
 
