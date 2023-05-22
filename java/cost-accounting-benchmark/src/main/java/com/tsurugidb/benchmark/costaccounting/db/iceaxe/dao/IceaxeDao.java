@@ -3,6 +3,8 @@ package com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +39,7 @@ import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 import com.tsurugidb.iceaxe.sql.parameter.TgParameterMapping;
 import com.tsurugidb.iceaxe.sql.parameter.mapping.TgEntityParameterMapping;
 import com.tsurugidb.iceaxe.sql.result.TgResultMapping;
+import com.tsurugidb.iceaxe.sql.result.TsurugiStatementResult;
 import com.tsurugidb.iceaxe.sql.result.mapping.TgEntityResultMapping;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
@@ -104,6 +107,17 @@ public abstract class IceaxeDao<E> {
     }
 
     protected final int[] doInsert(Collection<E> entityList) {
+        // TODO batch insertに切り替え
+        switch (1) {
+        default:
+        case 0:
+            return doInsertWait(entityList);
+        case 1:
+            return doInsertNoWait(entityList);
+        }
+    }
+
+    private int[] doInsertWait(Collection<E> entityList) {
         var ps = insertCache.get();
         var result = new int[entityList.size()];
         int i = 0;
@@ -111,6 +125,11 @@ public abstract class IceaxeDao<E> {
             result[i++] = executeAndGetCount(ps, entity);
         }
         return result;
+    }
+
+    private int[] doInsertNoWait(Collection<E> entityList) {
+        var ps = insertCache.get();
+        return executeAndGetCount(ps, entityList);
     }
 
     private final CachePreparedStatement<E> insertCache = new CachePreparedStatement<>() {
@@ -284,6 +303,76 @@ public abstract class IceaxeDao<E> {
             }
             throw r;
         }
+    }
+
+    private final <P> int[] executeAndGetCount(TsurugiSqlPreparedStatement<P> ps, Collection<P> parameterList) {
+        RuntimeException re = null;
+        var rcList = new ArrayList<TsurugiStatementResult>(parameterList.size());
+        try {
+            var transaction = getTransaction();
+            for (var parameter : parameterList) {
+                debugExplain(ps, () -> ps.explain(parameter));
+                try {
+                    var rc = transaction.executeStatement(ps, parameter);
+                    rcList.add(rc);
+                } catch (IOException e) {
+                    re = new UncheckedIOException(e.getMessage(), e);
+                    throw re;
+                } catch (InterruptedException e) {
+                    re = new RuntimeException(e);
+                    throw re;
+                } catch (TsurugiTransactionException e) {
+                    if (isUniqueConstraint(e)) {
+                        re = new UniqueConstraintException(e);
+                        throw re;
+                    }
+                    re = new TsurugiTransactionRuntimeException(e);
+                    if (!dbManager.isRetriable(e)) {
+                        String message = MessageFormat.format("sql={0}, parameter={1}", ps.getSql(), parameter);
+                        re.addSuppressed(new ExceptionInfo(message));
+                    }
+                    throw re;
+                }
+            }
+        } finally {
+            for (var rc : rcList) {
+                try {
+                    rc.close();
+                } catch (IOException e) {
+                    if (re != null) {
+                        re.addSuppressed(e);
+                    } else {
+                        re = new UncheckedIOException(e.getMessage(), e);
+                    }
+                } catch (TsurugiTransactionException e) {
+                    if (re != null) {
+                        re.addSuppressed(e);
+                    } else {
+                        re = new TsurugiTransactionRuntimeException(e);
+                    }
+                } catch (RuntimeException e) {
+                    if (re != null) {
+                        re.addSuppressed(e);
+                    } else {
+                        re = e;
+                    }
+                } catch (Exception e) {
+                    if (re != null) {
+                        re.addSuppressed(e);
+                    } else {
+                        re = new RuntimeException(e);
+                    }
+                }
+            }
+            if (re != null) {
+                throw re;
+            }
+        }
+
+        // TODO batch result
+        var result = new int[parameterList.size()];
+        Arrays.fill(result, -1);
+        return result;
     }
 
     private boolean isUniqueConstraint(TsurugiTransactionException e) {

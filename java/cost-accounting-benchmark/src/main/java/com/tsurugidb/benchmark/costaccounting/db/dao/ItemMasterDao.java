@@ -1,6 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.db.dao;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -41,6 +42,8 @@ public interface ItemMasterDao {
      * </pre>
      */
     int insert(ItemMaster entity);
+
+    int[] insertBatch(Collection<ItemMaster> entityList);
 
     /**
      * <pre>

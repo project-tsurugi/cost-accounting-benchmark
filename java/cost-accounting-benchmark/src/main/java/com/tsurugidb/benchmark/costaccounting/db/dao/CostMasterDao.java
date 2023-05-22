@@ -1,6 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.db.dao;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -32,6 +33,8 @@ public interface CostMasterDao {
      * </pre>
      */
     int insert(CostMaster entity);
+
+    int[] insertBatch(Collection<CostMaster> entityList);
 
     /**
      * <pre>

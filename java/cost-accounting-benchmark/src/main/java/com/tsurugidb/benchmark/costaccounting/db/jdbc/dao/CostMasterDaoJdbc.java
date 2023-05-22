@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -45,6 +46,11 @@ public class CostMasterDaoJdbc extends JdbcDao<CostMaster> implements CostMaster
     @Override
     public int insert(CostMaster entity) {
         return doInsert(entity);
+    }
+
+    @Override
+    public int[] insertBatch(Collection<CostMaster> entityList) {
+        return doInsert(entityList);
     }
 
     @Override

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -60,6 +61,11 @@ public class ItemMasterDaoTsubakuro extends TsubakuroDao<ItemMaster> implements 
     @Override
     public int insert(ItemMaster entity) {
         return doInsert(entity);
+    }
+
+    @Override
+    public int[] insertBatch(Collection<ItemMaster> entityList) {
+        return doInsert(entityList);
     }
 
     @Override

@@ -111,6 +111,7 @@ public class InitialData05CostMaster extends InitialData {
             factorySet.add(factoryId);
         }
 
+        var list = new ArrayList<CostMaster>(factorySet.size());
         for (Integer factoryId : factorySet) {
             CostMaster entity = new CostMaster();
             entity.setCFId(factoryId);
@@ -140,7 +141,8 @@ public class InitialData05CostMaster extends InitialData {
             }
             entity.setCStockAmount(amount);
 
-            dao.insert(entity);
+            list.add(entity);
         }
+        dao.insertBatch(list);
     }
 }

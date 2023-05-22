@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -48,6 +49,11 @@ public class ItemManufacturingMasterDaoJdbc extends JdbcDao<ItemManufacturingMas
     @Override
     public int insert(ItemManufacturingMaster entity) {
         return doInsert(entity);
+    }
+
+    @Override
+    public int[] insertBatch(Collection<ItemManufacturingMaster> entityList) {
+        return doInsert(entityList);
     }
 
     @Override

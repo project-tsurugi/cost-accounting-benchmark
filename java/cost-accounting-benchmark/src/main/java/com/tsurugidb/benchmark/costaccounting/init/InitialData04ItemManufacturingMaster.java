@@ -206,9 +206,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 
     private void insertItemManufacturingMaster(ItemManufacturingMasterDao dao, ItemManufacturingMaster entity) {
         Collection<ItemManufacturingMaster> list = AMPLIFICATION_ITEM_MANUFACTURING.amplify(entity);
-        list.forEach(ent -> {
-            dao.insert(ent);
-        });
+        dao.insertBatch(list);
     }
 
     public static void initializeItemManufacturingMasterRandom(BenchReproducibleRandom random, ItemManufacturingMaster entity) {

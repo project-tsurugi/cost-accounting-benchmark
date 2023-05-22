@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -54,6 +55,11 @@ public class ItemConstructionMasterDaoJdbc extends JdbcDao<ItemConstructionMaste
     @Override
     public int insert(ItemConstructionMaster entity) {
         return doInsert(entity);
+    }
+
+    @Override
+    public int[] insertBatch(Collection<ItemConstructionMaster> entityList) {
+        return doInsert(entityList);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -44,6 +45,11 @@ public class ItemManufacturingMasterDaoTsubakuro extends TsubakuroDao<ItemManufa
     @Override
     public int insert(ItemManufacturingMaster entity) {
         return doInsert(entity);
+    }
+
+    @Override
+    public int[] insertBatch(Collection<ItemManufacturingMaster> entityList) {
+        return doInsert(entityList);
     }
 
     @Override

@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -53,6 +54,11 @@ public class ItemMasterDaoJdbc extends JdbcDao<ItemMaster> implements ItemMaster
     @Override
     public int insert(ItemMaster entity) {
         return doInsert(entity);
+    }
+
+    @Override
+    public int[] insertBatch(Collection<ItemMaster> entityList) {
+        return doInsert(entityList);
     }
 
     @Override

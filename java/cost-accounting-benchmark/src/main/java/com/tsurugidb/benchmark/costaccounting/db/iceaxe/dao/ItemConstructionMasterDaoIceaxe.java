@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -59,6 +60,11 @@ public class ItemConstructionMasterDaoIceaxe extends IceaxeDao<ItemConstructionM
     @Override
     public int insert(ItemConstructionMaster entity) {
         return doInsert(entity);
+    }
+
+    @Override
+    public int[] insertBatch(Collection<ItemConstructionMaster> entityList) {
+        return doInsert(entityList);
     }
 
     @Override

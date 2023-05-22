@@ -2,6 +2,7 @@ package com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -50,6 +51,11 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
     @Override
     public int insert(CostMaster entity) {
         return doInsert(entity);
+    }
+
+    @Override
+    public int[] insertBatch(Collection<CostMaster> entityList) {
+        return doInsert(entityList);
     }
 
     @Override

@@ -10,6 +10,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -88,7 +89,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
 
     private void streamInsert(Stream<CostMaster> stream, LocalTime time) {
         var dao = dbManager.getStockHistoryDao();
-        stream.map(cost -> {
+        var list = stream.map(cost -> {
             var entity = new StockHistory();
             entity.setSDate(date);
             entity.setSFId(cost.getCFId());
@@ -98,7 +99,8 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
             entity.setSStockQuantity(cost.getCStockQuantity());
             entity.setSStockAmount(cost.getCStockAmount());
             return entity;
-        }).forEach(dao::insert);
+        }).collect(Collectors.toList());
+        dao.insertBatch(list);
     }
 
     private boolean executeFactory(int threadSize) {

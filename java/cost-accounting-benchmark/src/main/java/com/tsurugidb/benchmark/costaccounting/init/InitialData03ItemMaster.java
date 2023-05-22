@@ -603,8 +603,8 @@ public class InitialData03ItemMaster extends InitialData {
             if (initializer != null) {
                 initializer.accept(ent);
             }
-            dao.insert(ent);
         });
+        dao.insertBatch(list);
     }
 
     // 1.25倍に増幅する
@@ -633,9 +633,7 @@ public class InitialData03ItemMaster extends InitialData {
 
     private void insertItemConstructionMaster(ItemConstructionMasterDao icDao, ItemConstructionMaster entity) {
         Collection<ItemConstructionMaster> list = AMPLIFICATION_ITEM_CONSTRUCTION.amplify(entity);
-        list.forEach(ent -> {
-            icDao.insert(ent);
-        });
+        icDao.insertBatch(list);
     }
 
     public static void initializeItemConstructionMasterRandom(BenchReproducibleRandom random, ItemConstructionMaster entity) {
