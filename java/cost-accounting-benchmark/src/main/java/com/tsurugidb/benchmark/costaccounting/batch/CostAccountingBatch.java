@@ -39,19 +39,26 @@ public class CostAccountingBatch {
     private static final TgTmSetting TX_BATCH = TgTmSetting.of( //
             TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
 
-    public static void main(String[] args) {
+    public static void main(String... args) {
+        int exitCode = main0(args);
+        if (exitCode != 0) {
+            System.exit(exitCode);
+        }
+    }
+
+    public static int main0(String... args) {
         LocalDate batchDate = InitialData.DEFAULT_BATCH_DATE;
-        if (args.length >= 1) {
+        if (args.length > 0) {
             batchDate = LocalDate.parse(args[0]);
         }
 
         List<Integer> factoryList = null;
-        if (args.length >= 2) {
+        if (args.length > 1) {
             factoryList = StringUtil.toIntegerList(args[1]);
         }
 
         int commitRatio = 100;
-        if (args.length >= 3) {
+        if (args.length > 2) {
             commitRatio = Integer.parseInt(args[2].trim());
         }
 
@@ -60,14 +67,10 @@ public class CostAccountingBatch {
         config.setIsolationLevel(BenchConst.batchJdbcIsolationLevel());
         config.setTxOptions(BenchConst.batchTsurugiTxOption());
 
-        int exitCode;
         try {
-            exitCode = new CostAccountingBatch().main(config);
+            return new CostAccountingBatch().main(config);
         } finally {
             LOG.info("Counter infos: \n---\n{}---", CostBenchDbManager.createCounterReport());
-        }
-        if (exitCode != 0) {
-            System.exit(exitCode);
         }
     }
 

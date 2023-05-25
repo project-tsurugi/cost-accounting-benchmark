@@ -23,4 +23,4 @@ if [[ "$PROPERTY" != *"online_"* ]]; then
 fi
 
 # batch-command
-call_java com.tsurugidb.benchmark.costaccounting.Main executeBatch
+call_java com.tsurugidb.benchmark.costaccounting.Main executeBatchCB

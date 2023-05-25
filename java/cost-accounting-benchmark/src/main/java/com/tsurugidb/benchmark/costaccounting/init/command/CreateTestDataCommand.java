@@ -6,6 +6,7 @@ import com.tsurugidb.benchmark.costaccounting.init.InitialData02FactoryMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData03ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData04ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData05CostMaster;
+import com.tsurugidb.benchmark.costaccounting.init.InitialData06StockHistory;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData07ResultTable;
 
 public class CreateTestDataCommand implements ExecutableCommand {
@@ -22,6 +23,7 @@ public class CreateTestDataCommand implements ExecutableCommand {
         InitialData03ItemMaster.main();
         InitialData04ItemManufacturingMaster.main();
         InitialData05CostMaster.main();
+        InitialData06StockHistory.main();
         InitialData07ResultTable.main();
         return 0;
     }

@@ -22,4 +22,4 @@ function call_java() {
 }
 
 # online-command
-call_java com.tsurugidb.benchmark.costaccounting.Main executeOnline
+call_java com.tsurugidb.benchmark.costaccounting.Main executeOnlineCB

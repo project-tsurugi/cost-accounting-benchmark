@@ -48,7 +48,14 @@ import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 public class CostAccountingOnline {
     private static final Logger LOG = LoggerFactory.getLogger(CostAccountingOnline.class);
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
+        int exitCode = main0(args);
+        if (exitCode != 0) {
+            System.exit(exitCode);
+        }
+    }
+
+    public static int main0(String... args) throws Exception {
         LocalDate batchDate;
         if (args.length > 0) {
             try {
@@ -60,10 +67,7 @@ public class CostAccountingOnline {
             batchDate = BenchConst.initBatchDate();
         }
 
-        int exitCode = new CostAccountingOnline().main(batchDate);
-        if (exitCode != 0) {
-            System.exit(exitCode);
-        }
+        return new CostAccountingOnline().main(batchDate);
     }
 
     private CostBenchDbManager dbManager;

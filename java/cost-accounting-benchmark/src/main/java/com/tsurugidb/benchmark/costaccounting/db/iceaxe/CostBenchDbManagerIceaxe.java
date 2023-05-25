@@ -65,9 +65,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                 tm.addEventListener(counter);
                 return tm;
             } catch (IOException e) {
-                if (e.getMessage().equals("the server has declined the connection request")) {
-                    LOG.info("sessionList.size={}", sessionList.size());
-                }
+                LOG.info("sessionList.size={}", sessionList.size());
                 throw new UncheckedIOException(e.getMessage(), e);
             }
         }

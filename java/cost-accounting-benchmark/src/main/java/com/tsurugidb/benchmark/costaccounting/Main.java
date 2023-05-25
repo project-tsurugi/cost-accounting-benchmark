@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import com.tsurugidb.benchmark.costaccounting.batch.command.BatchCbCommand;
 import com.tsurugidb.benchmark.costaccounting.batch.command.BatchCommand;
 import com.tsurugidb.benchmark.costaccounting.debug.DebugCommand;
 import com.tsurugidb.benchmark.costaccounting.debug.TestCommand;
@@ -12,6 +13,7 @@ import com.tsurugidb.benchmark.costaccounting.init.command.CheckConstraintComman
 import com.tsurugidb.benchmark.costaccounting.init.command.CreateTableCommand;
 import com.tsurugidb.benchmark.costaccounting.init.command.CreateTestDataCommand;
 import com.tsurugidb.benchmark.costaccounting.init.command.DumpCsvCommand;
+import com.tsurugidb.benchmark.costaccounting.online.command.OnlineCbCommand;
 import com.tsurugidb.benchmark.costaccounting.online.command.OnlineCommand;
 import com.tsurugidb.benchmark.costaccounting.time.TimeCommand;
 
@@ -22,11 +24,13 @@ public class Main {
         addCommand("generateDdl", DdlCommand::new);
         addCommand("createTable", CreateTableCommand::new);
         addCommand("createTestData", CreateTestDataCommand::new);
-        addCommand("checkConstraint", CheckConstraintCommand::new);
-        addCommand("dumpCsv", DumpCsvCommand::new);
-        addCommand("time", TimeCommand::new);
         addCommand("executeBatch", BatchCommand::new);
         addCommand("executeOnline", OnlineCommand::new);
+        addCommand("checkConstraint", CheckConstraintCommand::new);
+        addCommand("dumpCsv", DumpCsvCommand::new);
+        addCommand("executeBatchCB", BatchCbCommand::new);
+        addCommand("executeOnlineCB", OnlineCbCommand::new);
+        addCommand("time", TimeCommand::new);
         addCommand("debug", DebugCommand::new);
         addCommand("test", TestCommand::new);
     }
