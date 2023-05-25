@@ -11,7 +11,7 @@ then
 fi
 
 function call_java() {
-  java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $RUN_JAVA_OPTS $@
+  java -cp "$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $RUN_JAVA_OPTS $@
 }
 
 if [[ "$PROPERTY" != *"online_"* ]]; then

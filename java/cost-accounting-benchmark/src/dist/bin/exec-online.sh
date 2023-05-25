@@ -19,7 +19,7 @@ function call_java() {
     -Diceaxe.tx.log.explain=0
     -Diceaxe.tx.log.read_progress=100000
     "
-  java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $TXLOG_OPTS $@
+  java -cp "$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $TXLOG_OPTS $@
 }
 
 call_java com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline 2020-09-15

@@ -18,7 +18,7 @@ function call_java() {
     -Diceaxe.tx.log.explain=0
     -Diceaxe.tx.log.read_progress=100000
     "
-  java -cp "$BASEDIR/*:$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $TXLOG_OPTS $RUN_JAVA_OPTS $@
+  java -cp "$BASEDIR/lib/*" $JAVA_OPTS -Dproperty="$PROPERTY" $TXLOG_OPTS $RUN_JAVA_OPTS $@
 }
 
 # online-command
