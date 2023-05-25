@@ -7,6 +7,10 @@ public class BenchRandom {
 
     private Random random = new Random();
 
+    public Random getRawRandom() {
+        return this.random;
+    }
+
     public int nextInt(int size) {
         return random.nextInt(size);
     }

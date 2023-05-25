@@ -50,6 +50,8 @@ public class BatchCbCommand implements ExecutableCommand {
         this.baseResultFile = null;
         var outputPath = Path.of(BenchConst.batchCommandResultFile());
 
+        boolean withOnline = BenchConst.batchCommandOnline();
+
         var executeList = Arrays.stream(BenchConst.batchCommandExecuteType().split(",")).map(String::trim).collect(Collectors.toList());
         LOG.info("executeList={}", executeList);
         var isolationList = BenchConst.batchCommandIsolationLevel();
@@ -60,6 +62,13 @@ public class BatchCbCommand implements ExecutableCommand {
         LOG.info("batchDate={}", batchDate);
         var factoryList = StringUtil.toIntegerList(BenchConst.batchCommandFactoryList());
         LOG.info("factoryList={}", StringUtil.toString(factoryList));
+        List<Integer> coverRateList;
+        if (withOnline) {
+            coverRateList = BenchConst.batchCommandOnlineCoverRate();
+            LOG.info("coverRateList={}", coverRateList);
+        } else {
+            coverRateList = List.of(100);
+        }
         int times = BenchConst.batchCommandExecuteTimes();
         LOG.info("times={}", times);
 
@@ -68,20 +77,23 @@ public class BatchCbCommand implements ExecutableCommand {
         for (var executeType : executeList) {
             for (var isolationLevel : isolationList) {
                 for (var txOption : txList) {
-                    for (int i = 0; i < times; i++) {
-                        var config = new BatchConfig(DbManagerPurpose.BATCH, executeType, batchDate, factoryList, 100);
-                        config.setIsolationLevel(isolationLevel);
-                        config.setDefaultTxOption(getOption(txOption));
+                    for (int coverRate : coverRateList) {
+                        for (int i = 0; i < times; i++) {
+                            var config = new BatchConfig(DbManagerPurpose.BATCH, executeType, batchDate, factoryList, 100);
+                            config.setIsolationLevel(isolationLevel);
+                            config.setDefaultTxOption(getOption(txOption));
 
-                        OnlineConfig onlineConfig = null;
-                        if (BenchConst.batchCommandOnline()) {
-                            onlineConfig = CostAccountingOnline.createDefaultConfig(batchDate);
-                        }
-                        exitCode |= execute1(config, onlineConfig, i, records);
+                            OnlineConfig onlineConfig = null;
+                            if (withOnline) {
+                                onlineConfig = CostAccountingOnline.createDefaultConfig(batchDate);
+                                onlineConfig.setCoverRate(coverRate);
+                            }
+                            exitCode |= execute1(config, onlineConfig, i, records);
 
-                        writeResult(outputPath, records);
-                        if (BenchConst.batchCommandOnline()) {
-                            writeOnlineAppReport(onlineConfig, records.get(records.size() - 1), outputPath);
+                            writeResult(outputPath, records);
+                            if (BenchConst.batchCommandOnline()) {
+                                writeOnlineAppReport(onlineConfig, records.get(records.size() - 1), outputPath);
+                            }
                         }
                     }
                 }
@@ -140,7 +152,11 @@ public class BatchCbCommand implements ExecutableCommand {
         try {
             var record = new BatchRecord(config, attempt);
             records.add(record);
-            LOG.info("Executing with {}.", record.getParamString());
+            if (onlineConfig != null) {
+                LOG.info("Executing with {}. online.coverRate={}", record.getParamString(), onlineConfig.getCoverRate());
+            } else {
+                LOG.info("Executing with {}.", record.getParamString());
+            }
 
             var batch = new CostAccountingBatch();
             if (online != null) {
@@ -244,7 +260,7 @@ public class BatchCbCommand implements ExecutableCommand {
     }
 
     private void writeOnlineAppReport(OnlineConfig onlineConfig, BatchRecord record, Path outputPath) {
-        String title = record.dbmsType().name() + " " + record.factory() + " " + record.scope() + " " + record.option();
+        String title = record.dbmsType().name() + " " + record.factory() + " " + record.scope() + " " + record.option() + " coverRate=" + onlineConfig.getCoverRate();
         onlineAppReport.writeOnlineAppReport(onlineConfig, title, outputPath, dedicatedTime);
     }
 }

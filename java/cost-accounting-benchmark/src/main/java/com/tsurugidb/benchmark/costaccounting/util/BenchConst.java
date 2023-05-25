@@ -201,6 +201,11 @@ public class BenchConst {
         }
     }
 
+    public static List<Integer> batchCommandOnlineCoverRate() {
+        String s = getProperty("batch-command.online.cover.rate", "100");
+        return Arrays.stream(s.split(",")).map(String::trim).map(Integer::valueOf).collect(Collectors.toList());
+    }
+
     public static int batchCommandExecuteTimes() {
         return getPropertyInt("batch-command.execute.times", 1);
     }
@@ -257,6 +262,10 @@ public class BenchConst {
             s = getProperty("online.tsurugi.tx.option", "OCC");
         }
         return s;
+    }
+
+    public static int onlineCoverRate() {
+        return getPropertyInt("online.cover.rate", 100);
     }
 
     /** スレッド毎にランダムにタスクを実行する */
@@ -343,6 +352,11 @@ public class BenchConst {
 
     public static String onlineCommandFactoryList() {
         return getProperty("online-command.factory.list", "all");
+    }
+
+    public static List<Integer> onlineCommandCoverRate() {
+        String s = getProperty("online-command.cover.rate", "100");
+        return Arrays.stream(s.split(",")).map(String::trim).map(Integer::valueOf).collect(Collectors.toList());
     }
 
     public static int onlineCommandExecuteTimes() {

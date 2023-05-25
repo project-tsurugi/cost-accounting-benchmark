@@ -27,17 +27,18 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
     public static final String TASK_NAME = "update-material";
 
-    private static List<ItemConstructionMasterKey> itemConstructionMasterKeyListForAdd;
-    private static List<ItemConstructionMasterKey> itemConstructionMasterKeyListForRemove;
-    private static List<Integer> itemMasterMaterialKeyList;
+    private static RandomKeySelector<ItemConstructionMasterKey> itemConstructionMasterKeySelectorForAdd;
+    private static RandomKeySelector<ItemConstructionMasterKey> itemConstructionMasterKeySelectorForRemove;
+    private static RandomKeySelector<Integer> itemMasterMaterialKeySelector;
 
     public static void clearPrepareData() {
-        itemConstructionMasterKeyListForAdd = null;
-        itemConstructionMasterKeyListForRemove = null;
-        itemMasterMaterialKeyList = null;
+        itemConstructionMasterKeySelectorForAdd = null;
+        itemConstructionMasterKeySelectorForRemove = null;
+        itemMasterMaterialKeySelector = null;
     }
 
     private TgTmSetting settingMain;
+    private double coverRate;
 
     public BenchOnlineUpdateMaterialTask(int taskId) {
         super(TASK_NAME, taskId);
@@ -47,6 +48,7 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
     public void initializeSetting(OnlineConfig config) {
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemConstructionMasterDao.TABLE_NAME));
         setTxOptionDescription(settingMain);
+        this.coverRate = config.getCoverRateForTask(title);
     }
 
     @Override
@@ -98,20 +100,17 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
         // 追加する原材料の決定
         ItemMaster material;
         {
-            List<Integer> materialList;
-            if (itemMasterMaterialKeyList != null) {
-                materialList = itemMasterMaterialKeyList;
+            RandomKeySelector<Integer> selector;
+            if (itemMasterMaterialKeySelector != null) {
+                selector = itemMasterMaterialKeySelector;
             } else {
-                materialList = selectItemMasterMaterialKeyList(date);
+                var list = selectItemMasterMaterialKeyList(date);
+                selector = new RandomKeySelector<>(list, random.getRawRandom(), 0, coverRate);
             }
             List<ItemConstructionMaster> childList = itemCostructionMasterDao.selectByParentId(item.getIcIId(), date);
             int materialId = -1;
-            for (int j = 0; j < materialList.size(); j++) {
-                int mid;
-                {
-                    int i = random.nextInt(materialList.size());
-                    mid = materialList.get(i);
-                }
+            for (int j = 0; j < selector.size(); j++) {
+                int mid = selector.get();
                 if (childList.stream().anyMatch(child -> child.getIcIId().intValue() == mid)) {
                     continue;
                 }
@@ -137,19 +136,17 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
     private ItemConstructionMaster selectRandomAddItem() {
         ItemConstructionMasterDao itemCostructionMasterDao = dbManager.getItemConstructionMasterDao();
 
+        RandomKeySelector<ItemConstructionMasterKey> selector;
+        if (itemConstructionMasterKeySelectorForAdd != null) {
+            selector = itemConstructionMasterKeySelectorForAdd;
+        } else {
+            var list = selectItemConstructionMasterKeyListForAdd(dbManager, date);
+            selector = new RandomKeySelector<>(list, random.getRawRandom(), 0, coverRate);
+        }
+
         ItemConstructionMaster entity;
         for (;;) {
-            ItemConstructionMasterKey key;
-            {
-                List<ItemConstructionMasterKey> list;
-                if (itemConstructionMasterKeyListForAdd != null) {
-                    list = itemConstructionMasterKeyListForAdd;
-                } else {
-                    list = selectItemConstructionMasterKeyListForAdd(dbManager, date);
-                }
-                int i = random.nextInt(list.size());
-                key = list.get(i);
-            }
+            ItemConstructionMasterKey key = selector.get();
             entity = itemCostructionMasterDao.selectById(key.getIcParentIId(), key.getIcIId(), key.getIcEffectiveDate());
             if (entity != null) {
                 break;
@@ -163,7 +160,7 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 
     private void cacheItemConstructionMasterKeyListForAdd(TgTmSetting setting, LocalDate date) {
         synchronized (lockItemConstructionMasterKeyListForAdd) {
-            if (itemConstructionMasterKeyListForAdd == null) {
+            if (itemConstructionMasterKeySelectorForAdd == null) {
                 var log = LoggerFactory.getLogger(BenchOnlineUpdateMaterialTask.class);
                 dbManager.execute(setting, () -> {
                     if (itemConstructionMasterKeyListDebug) {
@@ -179,8 +176,9 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
                         }
                     }
                     log.info("(add)itemCostructionMasterDao.selectByItemType() start");
-                    itemConstructionMasterKeyListForAdd = selectItemConstructionMasterKeyListForAdd(dbManager, date);
-                    log.info("(add)itemCostructionMasterDao.selectByItemType() end. size={}", itemConstructionMasterKeyListForAdd.size());
+                    var list = selectItemConstructionMasterKeyListForAdd(dbManager, date);
+                    log.info("(add)itemCostructionMasterDao.selectByItemType() end. size={}", list.size());
+                    itemConstructionMasterKeySelectorForAdd = new RandomKeySelector<>(list, random.getRawRandom(), 0, coverRate);
                 });
             }
         }
@@ -196,12 +194,13 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 
     private void cacheItemMasterMaterialKeyList(TgTmSetting setting, LocalDate date) {
         synchronized (lockItemMasterMaterialKeyList) {
-            if (itemMasterMaterialKeyList == null) {
+            if (itemMasterMaterialKeySelector == null) {
                 var log = LoggerFactory.getLogger(BenchOnlineUpdateMaterialTask.class);
                 dbManager.execute(setting, () -> {
                     log.info("itemMasterDao.selectIdByType(RAW_MATERIAL) start");
-                    itemMasterMaterialKeyList = selectItemMasterMaterialKeyList(date);
-                    log.info("itemMasterDao.selectIdByType(RAW_MATERIAL) end. size={}", itemMasterMaterialKeyList.size());
+                    var list = selectItemMasterMaterialKeyList(date);
+                    log.info("itemMasterDao.selectIdByType(RAW_MATERIAL) end. size={}", list.size());
+                    itemMasterMaterialKeySelector = new RandomKeySelector<>(list, random.getRawRandom(), 0, coverRate);
                 });
             }
         }
@@ -246,20 +245,15 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
     }
 
     private ItemConstructionMasterKey selectRandomRemoveItem() {
-        ItemConstructionMasterKey key;
-        {
-            List<ItemConstructionMasterKey> list;
-            if (itemConstructionMasterKeyListForRemove != null) {
-                list = itemConstructionMasterKeyListForRemove;
-            } else {
-                list = selectItemConstructionMasterKeyListForRemove(date);
-            }
-            if (list.isEmpty()) {
-                return null;
-            }
-            int i = random.nextInt(list.size());
-            key = list.remove(i);
+        RandomKeySelector<ItemConstructionMasterKey> selector;
+        if (itemConstructionMasterKeySelectorForRemove != null) {
+            selector = itemConstructionMasterKeySelectorForRemove;
+        } else {
+            var list = selectItemConstructionMasterKeyListForRemove(date);
+            selector = new RandomKeySelector<>(list, random.getRawRandom(), 0, coverRate);
         }
+
+        ItemConstructionMasterKey key = selector.get();
         return key;
     }
 
@@ -267,7 +261,7 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 
     private void cacheItemConstructionMasterKeyListForRemove(TgTmSetting setting, LocalDate date) {
         synchronized (lockItemConstructionMasterKeyListForRemove) {
-            if (itemConstructionMasterKeyListForRemove == null) {
+            if (itemConstructionMasterKeySelectorForRemove == null) {
                 var log = LoggerFactory.getLogger(BenchOnlineUpdateMaterialTask.class);
                 dbManager.execute(setting, () -> {
                     if (itemConstructionMasterKeyListDebug) {
@@ -283,8 +277,9 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
                         }
                     }
                     log.info("(remove)itemCostructionMasterDao.selectByItemType() start");
-                    itemConstructionMasterKeyListForRemove = selectItemConstructionMasterKeyListForRemove(date);
-                    log.info("(remove)itemCostructionMasterDao.selectByItemType() end. size={}", itemConstructionMasterKeyListForRemove.size());
+                    var list = selectItemConstructionMasterKeyListForRemove(date);
+                    log.info("(remove)itemCostructionMasterDao.selectByItemType() end. size={}", list.size());
+                    itemConstructionMasterKeySelectorForRemove = new RandomKeySelector<>(list, random.getRawRandom(), 0, coverRate);
                 });
             }
         }

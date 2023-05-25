@@ -22,6 +22,7 @@ public class BenchOnlineUpdateCostAddTask extends BenchOnlineTask {
 
     private TgTmSetting settingPre;
     private TgTmSetting settingMain;
+    private double coverRate;
 
     public BenchOnlineUpdateCostAddTask(int taskId) {
         super(TASK_NAME, taskId);
@@ -32,6 +33,7 @@ public class BenchOnlineUpdateCostAddTask extends BenchOnlineTask {
         this.settingPre = TgTmSetting.ofAlways(TgTxOption.ofRTX().label(TASK_NAME + ".pre"));
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(CostMasterDao.TABLE_NAME));
         setTxOptionDescription(settingMain);
+        this.coverRate = config.getCoverRateForTask(title);
     }
 
     @Override
@@ -55,8 +57,8 @@ public class BenchOnlineUpdateCostAddTask extends BenchOnlineTask {
         if (list.isEmpty()) {
             return null;
         }
-        int i = random.nextInt(list.size());
-        return list.get(i);
+        var selector = new RandomKeySelector<Integer>(list, random.getRawRandom(), 0, coverRate);
+        return selector.get();
     }
 
     private static final BigDecimal Q_START = new BigDecimal("1.0");

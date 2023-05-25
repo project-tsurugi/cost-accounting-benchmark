@@ -4,18 +4,21 @@ import java.util.List;
 
 import com.tsurugidb.benchmark.costaccounting.db.BenchDbCounter;
 import com.tsurugidb.benchmark.costaccounting.db.BenchDbCounter.CounterName;
+import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 
 public class OnlineTimeRecord {
 
     public static final List<String> HEADER_LIST = List.of( //
-            "| title | tx option | dedicated time[ms] | numbers of txs | latency<br>avg[ms] | latency<br>min[ms] | latency<br>max[ms] | committed tx through put[task/s] |", //
-            "|-------|-----------|-------------------:|---------------:|-------------------:|-------------------:|-------------------:|---------------------------------:|");
+            "| title | tx option | cover rate | dedicated time[ms] | numbers of txs | latency<br>avg[ms] | latency<br>min[ms] | latency<br>max[ms] | committed tx through put[task/s] |", //
+            "|-------|-----------|-----------:|-------------------:|---------------:|-------------------:|-------------------:|-------------------:|---------------------------------:|");
 
+    private final OnlineConfig config;
     private final String title;
     private final long dedicatedTime;
     private final BenchDbCounter counter;
 
-    public OnlineTimeRecord(String title, long dedicatedTime, BenchDbCounter counter) {
+    public OnlineTimeRecord(OnlineConfig config, String title, long dedicatedTime, BenchDbCounter counter) {
+        this.config = config;
         this.title = title;
         this.dedicatedTime = dedicatedTime;
         this.counter = counter;
@@ -28,6 +31,8 @@ public class OnlineTimeRecord {
         sb.append(title);
         sb.append("|");
         sb.append(counter.getTxOptionDescription(title));
+        sb.append("|");
+        sb.append(config.getCoverRateForReport(title));
         sb.append("|");
 
         // dedicated time

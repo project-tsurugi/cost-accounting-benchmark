@@ -198,6 +198,8 @@
       - 照会タスクの場合はRTXとして扱う
     - `MIX`
       - OCCで開始し、リトライ時はLTX
+- online.cover.rate
+  - オンライン処理でランダムにIDを決定する元となる一覧のカバー率（デフォルトは100）
 - online.type
   - オンライン処理の実行形式
     - `random`
@@ -282,6 +284,8 @@
   - バッチ処理の実行と同時にオンライン処理を実行するかどうか
   - デフォルトはfalse（オンライン処理を実行しない）
   - 同時に実行するオンライン処理のパラメーターは、通常のオンライン処理のものと同じ
+- batch-command.online.cover.rate
+  - オンライン処理でランダムにIDを決定する元となる一覧のカバー率（カンマ区切りで複数指定）
 
 #### バッチ一括実行用プロパティーの例
 
@@ -294,8 +298,9 @@ batch-command.tx.option=OCC, LTX
 batch-command.execute.times=1
 batch-command.diff.dir=/tmp/cost-accounting-benchmark/diff
 batch-command.result.file=/tmp/cost-accounting-benchmark/batch-command/batch.tsurugi.csv
-batch-command.with.initdata=false
-batch-command.with.online=false
+batch-command.with.initdata=true
+batch-command.with.online=true
+batch-command.online.cover.rate=100,75,50,25
 ```
 
 
@@ -326,6 +331,8 @@ batch-command.with.online=false
       - OCCで3回実行した後、LTXで1回実行する
     - `MIX3-1:LTX`
       - オンライン処理はOCCで3回実行した後、LTXで1回実行する。定期実行バッチは常にLTX
+- online-command.cover.rate
+  - オンライン処理でランダムにIDを決定する元となる一覧のカバー率（カンマ区切りで複数指定）
 - online-command.execute.times
   - 上記の組み合わせのそれぞれを実行する回数。デフォルトは1
 - online-command.with.initdata
@@ -346,6 +353,7 @@ batch-command.with.online=false
 ## online-command
 online-command.label=medium
 online-command.tx.option=OCC,OCC:LTX,LTX,MIX3-1,MIX3-1:LTX
+online-command.cover.rate=100,75,50,25
 online-command.execute.times=1
 online-command.with.initdata=true
 online-command.with.prebatch=true

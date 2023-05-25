@@ -22,6 +22,7 @@ public class OnlineConfig {
     private final LocalDate batchDate;
     private IsolationLevel isolationLevel;
     private boolean isMultiSession = true;
+    private int coverRate = 100;
     private final Map<String, String> optionMap = new HashMap<>();
     private final Map<String, Integer> threadSizeMap = new HashMap<>();
     private int executeTime;
@@ -56,6 +57,29 @@ public class OnlineConfig {
 
     public boolean isMultiSession() {
         return this.isMultiSession;
+    }
+
+    public void setCoverRate(int rate) {
+        this.coverRate = rate;
+    }
+
+    public int getCoverRate() {
+        return this.coverRate;
+    }
+
+    private final Map<String, Integer> coverRateMap = new HashMap<>();
+
+    public double getCoverRateForTask(String taskName) {
+        coverRateMap.put(taskName, coverRate);
+        return coverRate / 100d;
+    }
+
+    public String getCoverRateForReport(String taskName) {
+        Integer rate = coverRateMap.get(taskName);
+        if (rate != null) {
+            return rate.toString();
+        }
+        return "-";
     }
 
     public void setTxOption(String taskName, String option) {

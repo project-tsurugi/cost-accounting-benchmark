@@ -50,6 +50,8 @@ public class OnlineCbCommand implements ExecutableCommand {
         LOG.info("batchDate={}", batchDate);
         var factoryList = StringUtil.toIntegerList(BenchConst.onlineCommandFactoryList());
         LOG.info("factoryList={}", StringUtil.toString(factoryList));
+        var coverRateList = BenchConst.onlineCommandCoverRate();
+        LOG.info("coverRateList={}", coverRateList);
         int times = BenchConst.onlineCommandExecuteTimes();
         LOG.info("times={}", times);
         int executeTime = BenchConst.onlineCommandExecuteTime();
@@ -59,17 +61,20 @@ public class OnlineCbCommand implements ExecutableCommand {
         var records = new ArrayList<OnlineResult>();
         for (var isolationLevel : isolationList) {
             for (var txOption : txList) {
-                for (int i = 0; i < times; i++) {
-                    var config = CostAccountingOnline.createDefaultConfig(batchDate, false);
-                    config.setLabel(BenchConst.onlineCommandLabel());
-                    config.setIsolationLevel(isolationLevel);
-                    setTxOption(config, txOption);
-                    config.setExecuteTime(executeTime);
+                for (int coverRate : coverRateList) {
+                    for (int i = 0; i < times; i++) {
+                        var config = CostAccountingOnline.createDefaultConfig(batchDate, false);
+                        config.setLabel(BenchConst.onlineCommandLabel());
+                        config.setIsolationLevel(isolationLevel);
+                        config.setCoverRate(coverRate);
+                        setTxOption(config, txOption);
+                        config.setExecuteTime(executeTime);
 
-                    exitCode |= execute1(config, i, records);
+                        exitCode |= execute1(config, i, records);
 
-                    writeResult(outputPath, records);
-                    writeOnlineAppReport(config, records.get(records.size() - 1), outputPath);
+                        writeResult(outputPath, records);
+                        writeOnlineAppReport(config, records.get(records.size() - 1), outputPath);
+                    }
                 }
             }
         }
@@ -138,7 +143,7 @@ public class OnlineCbCommand implements ExecutableCommand {
         try {
             var record = new OnlineResult(config, attempt);
             records.add(record);
-            LOG.info("Executing with {}.", record.getParamString());
+            LOG.info("Executing with {}. coverRate={}", record.getParamString(), config.getCoverRate());
 
             record.start();
             online.start(config);
@@ -189,7 +194,7 @@ public class OnlineCbCommand implements ExecutableCommand {
     }
 
     private void writeOnlineAppReport(OnlineConfig config, OnlineResult record, Path outputPath) {
-        String title = record.dbmsType().name() + " " + config.getLabel() + " " + record.option("online") + ":" + record.option("periodic");
+        String title = record.dbmsType().name() + " " + config.getLabel() + " " + record.option("online") + ":" + record.option("periodic") + " coverRate=" + config.getCoverRate();
         onlineAppReport.writeOnlineAppReport(config, title, outputPath, dedicatedTime);
     }
 }

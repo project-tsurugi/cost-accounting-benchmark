@@ -100,6 +100,7 @@ public class CostAccountingOnline {
         var config = new OnlineConfig(batchDate);
         config.setIsolationLevel(BenchConst.onlineJdbcIsolationLevel());
         config.setMultiSession(BenchConst.onlineDbManagerMultiSession());
+        config.setCoverRate(BenchConst.onlineCoverRate());
 
         for (String taskName : BenchOnlineTask.TASK_NAME_LIST) {
             if (txOption) {

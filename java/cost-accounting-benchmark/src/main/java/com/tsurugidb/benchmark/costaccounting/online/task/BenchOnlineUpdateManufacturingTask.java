@@ -23,13 +23,14 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
     public static final String TASK_NAME = "update-manufacturing";
 
-    private static List<Integer> itemMasterProductKeylist;
+    private static RandomKeySelector<Integer> itemMasterProductKeySelector;
 
     public static void clearPrepareData() {
-        itemMasterProductKeylist = null;
+        itemMasterProductKeySelector = null;
     }
 
     private TgTmSetting settingMain;
+    private double coverRate;
 
     public BenchOnlineUpdateManufacturingTask(int taskId) {
         super(TASK_NAME, taskId);
@@ -39,6 +40,7 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
     public void initializeSetting(OnlineConfig config) {
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
         setTxOptionDescription(settingMain);
+        this.coverRate = config.getCoverRateForTask(title);
     }
 
     @Override
@@ -124,27 +126,28 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
     }
 
     protected int selectRandomItemId() {
-        List<Integer> list;
-        if (itemMasterProductKeylist != null) {
-            list = itemMasterProductKeylist;
+        RandomKeySelector<Integer> selector;
+        if (itemMasterProductKeySelector != null) {
+            selector = itemMasterProductKeySelector;
         } else {
-            list = selectItemMasterProductKeyList(date);
+            var list = selectItemMasterProductKeyList(date);
+            if (list.isEmpty()) {
+                return -1;
+            }
+            selector = new RandomKeySelector<>(list, random.getRawRandom(), 0, coverRate);
         }
-        if (list.isEmpty()) {
-            return -1;
-        }
-        int i = random.nextInt(list.size());
-        return list.get(i);
+        return selector.get();
     }
 
     private void cacheItemMasterProductKeyList(TgTmSetting setting, LocalDate date) {
         synchronized (BenchOnlineUpdateManufacturingTask.class) {
-            if (itemMasterProductKeylist == null) {
+            if (itemMasterProductKeySelector == null) {
                 var log = LoggerFactory.getLogger(BenchOnlineUpdateManufacturingTask.class);
                 dbManager.execute(setting, () -> {
                     log.info("itemMasterDao.selectIdByType(PRODUCT) start");
-                    itemMasterProductKeylist = selectItemMasterProductKeyList(date);
-                    log.info("itemMasterDao.selectIdByType(PRODUCT) end. size={}", itemMasterProductKeylist.size());
+                    var list = selectItemMasterProductKeyList(date);
+                    log.info("itemMasterDao.selectIdByType(PRODUCT) end. size={}", list.size());
+                    itemMasterProductKeySelector = new RandomKeySelector<>(list, random.getRawRandom(), 0, coverRate);
                 });
             }
         }

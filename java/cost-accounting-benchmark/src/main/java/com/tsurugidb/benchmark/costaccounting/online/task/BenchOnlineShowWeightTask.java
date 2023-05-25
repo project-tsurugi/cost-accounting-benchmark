@@ -22,6 +22,7 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
     public static final String TASK_NAME = "show-weight";
 
     private TgTmSetting settingMain;
+    private double coverRate;
 
     public BenchOnlineShowWeightTask(int taskId) {
         super(TASK_NAME, taskId);
@@ -31,6 +32,7 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
     public void initializeSetting(OnlineConfig config) {
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofRTX());
         setTxOptionDescription(settingMain);
+        this.coverRate = config.getCoverRateForTask(title);
     }
 
     @Override
@@ -52,8 +54,8 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
         if (list.isEmpty()) {
             return -1;
         }
-        int i = random.nextInt(list.size());
-        return list.get(i);
+        var selector = new RandomKeySelector<Integer>(list, random.getRawRandom(), 0, coverRate);
+        return selector.get();
     }
 
     protected void executeMain(int productId) {

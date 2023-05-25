@@ -73,7 +73,7 @@ public class OnlineAppReport {
         sb.append("\n\n");
 
         // counter
-        appendHeader(sb, OnlineCounberRecord.HEADER_LIST);
+        appendHeader(sb, OnlineCounterRecord.HEADER_LIST);
         for (String taskName : BenchOnlineTask.TASK_NAME_LIST) {
             createOnlineCounterReport(config, sb, taskName);
         }
@@ -103,11 +103,10 @@ public class OnlineAppReport {
     }
 
     private void createOnlineCounterReport(OnlineConfig config, StringBuilder sb, String taskName) {
-        int threads = config.getThreadSize(taskName);
         var tpm = getTpm(taskName);
         var counter = CostBenchDbManager.getCounter();
 
-        var record = new OnlineCounberRecord(taskName, threads, tpm, counter);
+        var record = new OnlineCounterRecord(config, taskName, tpm, counter);
         sb.append(record);
         sb.append("\n");
     }
@@ -126,7 +125,7 @@ public class OnlineAppReport {
     private void cerateOnlineTimeReport(OnlineConfig config, StringBuilder sb, String taskName, long dedicatedTime) {
         var counter = CostBenchDbManager.getCounter();
 
-        var record = new OnlineTimeRecord(taskName, dedicatedTime, counter);
+        var record = new OnlineTimeRecord(config, taskName, dedicatedTime, counter);
         sb.append(record);
         sb.append("\n");
     }
