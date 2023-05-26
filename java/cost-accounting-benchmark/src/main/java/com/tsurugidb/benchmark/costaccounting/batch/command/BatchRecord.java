@@ -3,18 +3,22 @@ package com.tsurugidb.benchmark.costaccounting.batch.command;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import javax.annotation.Nullable;
+
 import com.tsurugidb.benchmark.costaccounting.batch.BatchConfig;
 import com.tsurugidb.benchmark.costaccounting.batch.StringUtil;
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
+import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 public class BatchRecord {
 
     public static String header() {
-        return "dbmsType, option, scope, label, elapsed[s], tryCount, abortCount, difference, vsz[GB], rss[GB]";
+        return "dbmsType, option, cover rate, scope, label, elapsed[s], tryCount, abortCount, difference, vsz[GB], rss[GB]";
     }
 
     private final BatchConfig config;
+    private final OnlineConfig onlineConfig;
     private final int attempt;
     private final DbmsType dbmsType;
     private long start;
@@ -26,8 +30,9 @@ public class BatchRecord {
     private long vsz;
     private long rss;
 
-    public BatchRecord(BatchConfig config, int attempt) {
+    public BatchRecord(BatchConfig config, @Nullable OnlineConfig onlineConfig, int attempt) {
         this.config = config;
+        this.onlineConfig = onlineConfig;
         this.attempt = attempt;
         this.dbmsType = BenchConst.dbmsType();
     }
@@ -110,6 +115,13 @@ public class BatchRecord {
         return StringUtil.toString(config.getFactoryList(), "/");
     }
 
+    private String coverRate() {
+        if (this.onlineConfig == null) {
+            return "-";
+        }
+        return Integer.toString(onlineConfig.getCoverRate());
+    }
+
     public String numberOfDifference() {
         return this.diffCount;
     }
@@ -132,6 +144,10 @@ public class BatchRecord {
         sb.append(scope());
         sb.append(", factoryCount=");
         sb.append(factory());
+        if (this.onlineConfig != null) {
+            sb.append(", coverRate=");
+            sb.append(onlineConfig.getCoverRate());
+        }
         return sb.toString();
     }
 
@@ -141,6 +157,8 @@ public class BatchRecord {
         sb.append(dbmsType);
         sb.append(",");
         sb.append(option());
+        sb.append(",");
+        sb.append(coverRate());
         sb.append(",");
         sb.append(scope());
         sb.append(",");

@@ -36,18 +36,18 @@ public class OnlineTimeRecord {
         sb.append("|");
 
         // dedicated time
-        sb.append(dedicatedTime);
+        sb.append(String.format("%,d", dedicatedTime));
         sb.append("|");
 
         {
             var time = counter.getTime(title, CounterName.TASK_SUCCESS);
 
             // numbers of txs
-            sb.append(time.getCount());
+            sb.append(String.format("%,d", time.getCount()));
             sb.append("|");
 
             // latency
-            sb.append(String.format("%.3f", time.getAvgTimeMillis()));
+            sb.append(time.getAvgTimeMillisText());
             sb.append("|");
             sb.append(time.getMinTimeMillisText());
             sb.append("|");
@@ -55,7 +55,7 @@ public class OnlineTimeRecord {
             sb.append("|");
 
             // committed tx through put
-            sb.append((double) time.getCount() / dedicatedTime * 1000);
+            sb.append(String.format("%,.3f", (double) time.getCount() / dedicatedTime * 1000));
             sb.append("|");
         }
 

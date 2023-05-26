@@ -143,7 +143,7 @@ public class OnlineCbCommand implements ExecutableCommand {
         try {
             var record = new OnlineResult(config, attempt);
             records.add(record);
-            LOG.info("Executing with {}. coverRate={}", record.getParamString(), config.getCoverRate());
+            LOG.info("Executing with {}.", record.getParamString());
 
             record.start();
             online.start(config);

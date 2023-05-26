@@ -64,22 +64,25 @@ public class BenchDbCounter extends TgTmLabelCounter {
             return this.count;
         }
 
-        public synchronized double getAvgTimeMillis() {
-            return (double) timeSum / count / 1000_000;
+        public synchronized String getAvgTimeMillisText() {
+            if (this.count == 0) {
+                return "-";
+            }
+            return String.format("%,.3f", (double) timeSum / count / 1000_000);
         }
 
         public synchronized String getMinTimeMillisText() {
             if (this.timeMin == Long.MAX_VALUE) {
                 return "-";
             }
-            return Long.toString(timeMin / 1000_000);
+            return String.format("%,.3f", timeMin / 1000_000d);
         }
 
         public synchronized String getMaxTimeMillisText() {
             if (this.timeMax == Long.MIN_VALUE) {
                 return "-";
             }
-            return Long.toString(timeMax / 1000_000);
+            return String.format("%,.3f", timeMax / 1000_000d);
         }
     }
 

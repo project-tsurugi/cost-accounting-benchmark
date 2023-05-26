@@ -150,13 +150,9 @@ public class BatchCbCommand implements ExecutableCommand {
 
         int exitCode = 0;
         try {
-            var record = new BatchRecord(config, attempt);
+            var record = new BatchRecord(config, onlineConfig, attempt);
             records.add(record);
-            if (onlineConfig != null) {
-                LOG.info("Executing with {}. online.coverRate={}", record.getParamString(), onlineConfig.getCoverRate());
-            } else {
-                LOG.info("Executing with {}.", record.getParamString());
-            }
+            LOG.info("Executing with {}.", record.getParamString());
 
             var batch = new CostAccountingBatch();
             if (online != null) {

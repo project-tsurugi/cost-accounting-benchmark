@@ -10,7 +10,7 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 public class OnlineResult {
 
     public static String header() {
-        return "dbmsType, online tx, periodic tx, label, elapsed[s], vsz[GB], rss[GB]";
+        return "dbmsType, online tx, periodic tx, cover rate, label, elapsed[s], vsz[GB], rss[GB]";
     }
 
     private final OnlineConfig config;
@@ -72,6 +72,8 @@ public class OnlineResult {
         sb.append(option("online"));
         sb.append(", periodicTx=");
         sb.append(option("periodic"));
+        sb.append(", coverRate=");
+        sb.append(config.getCoverRate());
         return sb.toString();
     }
 
@@ -83,6 +85,8 @@ public class OnlineResult {
         sb.append(option("online"));
         sb.append(",");
         sb.append(option("periodic"));
+        sb.append(",");
+        sb.append(config.getCoverRate());
         sb.append(",");
         sb.append(config.getLabel());
         sb.append(",");
