@@ -66,13 +66,13 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
             break;
         case 1:
             cacheItemConstructionMasterKeyListForRemove(setting, date);
-            cacheItemConstructionMasterKeyListForAdd(setting, date);
             cacheItemMasterMaterialKeyList(setting, date);
+            cacheItemConstructionMasterKeyListForAdd(setting, date);
             break;
         case 2:
             cacheItemMasterMaterialKeyList(setting, date);
             cacheItemConstructionMasterKeyListForRemove(setting, date);
-            cacheItemMasterMaterialKeyList(setting, date);
+            cacheItemConstructionMasterKeyListForAdd(setting, date);
             break;
         }
     }
