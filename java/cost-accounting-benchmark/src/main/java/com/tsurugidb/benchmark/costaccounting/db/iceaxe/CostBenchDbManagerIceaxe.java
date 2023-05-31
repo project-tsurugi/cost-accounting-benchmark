@@ -39,10 +39,10 @@ import com.tsurugidb.iceaxe.transaction.TgCommitType;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.event.TsurugiTransactionEventListener;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
-import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionIOException;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionRuntimeException;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.manager.TsurugiTransactionManager;
+import com.tsurugidb.iceaxe.transaction.manager.exception.TsurugiTmIOException;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.tsubakuro.channel.common.connection.UsernamePasswordCredential;
 import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
@@ -265,7 +265,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                     LOG.debug("removeCurrentTransaction {}", transaction);
                 }
             });
-        } catch (TsurugiTransactionIOException e) {
+        } catch (TsurugiTmIOException e) {
             // FIXME コミット時の一意制約違反の判定方法
             var code = e.getDiagnosticCode();
             if (code == SqlServiceCode.ERR_ALREADY_EXISTS) {

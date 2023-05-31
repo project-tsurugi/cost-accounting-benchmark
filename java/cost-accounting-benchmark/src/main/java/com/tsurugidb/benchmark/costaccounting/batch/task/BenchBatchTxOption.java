@@ -7,6 +7,7 @@ import com.tsurugidb.benchmark.costaccounting.batch.BatchConfig;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 import com.tsurugidb.iceaxe.transaction.manager.option.TgTmTxOptionAlways;
+import com.tsurugidb.iceaxe.transaction.manager.retry.TgTmRetryInstruction;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
@@ -43,16 +44,13 @@ public class BenchBatchTxOption extends TgTmTxOptionAlways {
     }
 
     @Override
-    protected boolean isRetryable(TsurugiTransaction transaction, TsurugiTransactionException e) {
-        if (super.isRetryable(transaction, e)) {
-            return true;
-        }
-
+    protected TgTmRetryInstruction isRetryable(TsurugiTransaction transaction, TsurugiTransactionException e) {
         var code = e.getDiagnosticCode();
         if (code == SqlServiceCode.ERR_INACTIVE_TRANSACTION) {
-            return true;
+            return TgTmRetryInstruction.ofRetryable(code);
         }
-        return false;
+
+        return super.isRetryable(transaction, e);
     }
 
     @Override

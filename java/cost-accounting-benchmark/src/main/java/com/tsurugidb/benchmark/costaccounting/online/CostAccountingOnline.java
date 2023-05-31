@@ -41,7 +41,8 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.exception.TsurugiDiagnosticCodeProvider;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
-import com.tsurugidb.iceaxe.transaction.manager.option.TsurugiDefaultRetryPredicate;
+import com.tsurugidb.iceaxe.transaction.manager.retry.TgTmRetryInstruction;
+import com.tsurugidb.iceaxe.transaction.manager.retry.TsurugiDefaultRetryPredicate;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
@@ -121,16 +122,13 @@ public class CostAccountingOnline {
     public static CostBenchDbManager createDbManager(OnlineConfig config) {
         TsurugiDefaultRetryPredicate.setInstance(new TsurugiDefaultRetryPredicate() {
             @Override
-            protected boolean testOcc(TsurugiTransaction transaction, TsurugiDiagnosticCodeProvider e) {
-                if (super.testOcc(transaction, e)) {
-                    return true;
+            protected TgTmRetryInstruction testOcc(TsurugiTransaction transaction, TsurugiDiagnosticCodeProvider e) {
+                var code = e.getDiagnosticCode();
+                if (code == SqlServiceCode.ERR_ABORTED) {
+                    return TgTmRetryInstruction.ofRetryable(code);
                 }
 
-                var lowCode = e.getDiagnosticCode();
-                if (lowCode == SqlServiceCode.ERR_ABORTED) {
-                    return true;
-                }
-                return false;
+                return super.testOcc(transaction, e);
             }
         });
 

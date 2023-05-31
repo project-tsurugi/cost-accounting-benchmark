@@ -129,7 +129,7 @@ public class OnlineConfig {
             setting = TgTmSetting.ofAlways(txOption);
             break;
         case "MIX":
-            int size1 = 3, size2 = 2;
+            int size1 = 3, size2 = 1;
             String rest = option.substring(3);
             String[] ss = rest.split("-");
             try {
@@ -148,6 +148,27 @@ public class OnlineConfig {
             description = String.format("OCC*%d, %s*%d", size1, txOption2.typeName(), size2);
             onceLog(task, () -> log.info("txOptionSupplier: {}", description), txOption2.typeName());
             setting = TgTmSetting.of(TgTxOption.ofOCC(), size1, txOption2, size2);
+            break;
+        case "VAR":
+            int occSize = 3, ltxSize = 1;
+            String varRest = option.substring(3);
+            String[] varSs = varRest.split("-");
+            try {
+                occSize = Integer.parseInt(varSs[0].trim());
+            } catch (NumberFormatException e) {
+                log.warn("online.tsurugi.tx.option(VAR) error", e);
+            }
+            if (varSs.length > 1) {
+                try {
+                    ltxSize = Integer.parseInt(varSs[1].trim());
+                } catch (NumberFormatException e) {
+                    log.warn("online.tsurugi.tx.option(VAR) error", e);
+                }
+            }
+            var ltxOption = ltxSupplier.get();
+            description = String.format("OCC*var(%d), %s*%d", occSize, ltxOption.typeName(), ltxSize);
+            onceLog(task, () -> log.info("txOptionSupplier: {}", description), ltxOption.typeName());
+            setting = TgTmSetting.ofOccLtx(TgTxOption.ofOCC(), occSize, ltxOption, ltxSize);
             break;
         }
 

@@ -11,6 +11,7 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.manager.TsurugiTransactionManager;
 import com.tsurugidb.iceaxe.transaction.manager.event.counter.TgTmCount;
 import com.tsurugidb.iceaxe.transaction.manager.event.counter.TgTmLabelCounter;
+import com.tsurugidb.iceaxe.transaction.manager.option.TgTmTxOption;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 public class BenchDbCounter extends TgTmLabelCounter {
@@ -134,19 +135,19 @@ public class BenchDbCounter extends TgTmLabelCounter {
     }
 
     @Override
-    public void transactionRetry(TsurugiTransaction transaction, Exception cause, TgTxOption nextTxOption) {
-        super.transactionRetry(transaction, cause, nextTxOption);
+    public void transactionRetry(TsurugiTransaction transaction, Exception cause, TgTmTxOption nextTmOption) {
+        super.transactionRetry(transaction, cause, nextTmOption);
 
         var txOption = transaction.getTransactionOption();
-        if (txOption.isOCC() && !nextTxOption.isOCC()) {
+        if (txOption.isOCC() && !nextTmOption.getTransactionOption().isOCC()) {
             var counter = getOnlineCounter(txOption);
             counter.occAbandonedRetry.incrementAndGet();
         }
     }
 
     @Override
-    public void transactionRetryOver(TsurugiTransaction transaction, Exception cause) {
-        super.transactionRetryOver(transaction, cause);
+    public void transactionRetryOver(TsurugiTransaction transaction, Exception cause, TgTmTxOption nextTmOption) {
+        super.transactionRetryOver(transaction, cause, nextTmOption);
 
         var txOption = transaction.getTransactionOption();
         var counter = getOnlineCounter(txOption);
@@ -173,7 +174,8 @@ public class BenchDbCounter extends TgTmLabelCounter {
     // for JDBC
 
     public void increment(TgTmSetting setting, CounterName name) {
-        var option = setting.getFirstTransactionOption();
+        var info = setting.getTransactionOptionSupplier().createExecuteInfo(0);
+        var option = setting.getFirstTransactionOption(info);
         increment(option, name);
     }
 
