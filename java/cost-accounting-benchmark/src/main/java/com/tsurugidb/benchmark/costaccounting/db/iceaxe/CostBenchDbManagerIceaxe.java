@@ -267,16 +267,17 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
             });
         } catch (TsurugiTransactionIOException e) {
             // FIXME コミット時の一意制約違反の判定方法
-            var c = e.getCause();
-            if (c instanceof TsurugiTransactionException) {
-                var t = (TsurugiTransactionException) c;
-                if (t.getDiagnosticCode() == SqlServiceCode.ERR_ABORTED_RETRYABLE) {
-                    String message = t.getMessage();
-                    if (message.contains("Status=ERR_VALIDATION") && message.contains("reason=KVS_INSERT")) {
-                        throw new UniqueConstraintException(e);
-                    }
+            var code = e.getDiagnosticCode();
+            if (code == SqlServiceCode.ERR_ALREADY_EXISTS) {
+                throw new UniqueConstraintException(e);
+            }
+            if (code == SqlServiceCode.ERR_ABORTED_RETRYABLE) {
+                String message = e.getMessage();
+                if (message.contains("Status=ERR_VALIDATION") && message.contains("reason=KVS_INSERT")) {
+                    throw new UniqueConstraintException(e);
                 }
             }
+            var c = e.getCause();
             if (c instanceof UniqueConstraintException) {
                 throw (UniqueConstraintException) c;
             }
