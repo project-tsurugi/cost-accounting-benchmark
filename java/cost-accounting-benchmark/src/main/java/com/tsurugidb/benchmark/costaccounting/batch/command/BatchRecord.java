@@ -97,15 +97,15 @@ public class BatchRecord {
         String s = executeType();
         switch (s) {
         case BenchConst.SEQUENTIAL_SINGLE_TX:
-            return "sequential single-tx";
+            return "seq-1tx"; // sequential single-tx
         case BenchConst.SEQUENTIAL_FACTORY_TX:
-            return "sequential tx-per-factory";
+            return "seq-tx/F"; // sequential tx-per-factory
         case BenchConst.PARALLEL_SINGLE_TX:
-            return "parallel" + threadSize() + " single-tx";
+            return "p" + threadSize() + "-1tx"; // parallel single-tx
         case BenchConst.PARALLEL_FACTORY_TX:
-            return "parallel" + threadSize() + " tx-per-factory";
+            return "p" + threadSize() + "-tx/F"; // parallel tx-per-factory
         case BenchConst.PARALLEL_FACTORY_SESSION:
-            return "parallel" + threadSize() + " session-per-factory";
+            return "p" + threadSize() + "-S/F"; // parallel session-per-factory
         default:
             return s;
         }
