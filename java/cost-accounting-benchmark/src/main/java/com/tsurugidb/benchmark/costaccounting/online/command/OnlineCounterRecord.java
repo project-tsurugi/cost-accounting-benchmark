@@ -43,6 +43,9 @@ public class OnlineCounterRecord {
         sb.append(counter.getCount(title, CounterName.OCC_TRY));
         sb.append("|");
         sb.append(counter.getCount(title, CounterName.OCC_ABORT));
+        sb.append("(");
+        sb.append(counter.getCount(title, CounterName.CONFLIT_ON_WP));
+        sb.append(")");
         sb.append("|");
         sb.append(counter.getCount(title, CounterName.OCC_SUCCESS));
         sb.append("|");

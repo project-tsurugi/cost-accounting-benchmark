@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchTxOption;
+import com.tsurugidb.iceaxe.exception.TsurugiDiagnosticCodeProvider;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.manager.TsurugiTransactionManager;
@@ -13,6 +14,7 @@ import com.tsurugidb.iceaxe.transaction.manager.event.counter.TgTmCount;
 import com.tsurugidb.iceaxe.transaction.manager.event.counter.TgTmLabelCounter;
 import com.tsurugidb.iceaxe.transaction.manager.option.TgTmTxOption;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
+import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
 public class BenchDbCounter extends TgTmLabelCounter {
 
@@ -23,6 +25,7 @@ public class BenchDbCounter extends TgTmLabelCounter {
         // for online
         OCC_TRY, OCC_ABORT, OCC_SUCCESS, OCC_ABANDONED_RETRY, //
         LTX_TRY, LTX_ABORT, LTX_SUCCESS, LTX_ABANDONED_RETRY, //
+        CONFLIT_ON_WP, //
         FAIL, //
         TASK_START, TASK_NOTHING, TASK_SUCCESS, TASK_FAIL
     }
@@ -32,6 +35,7 @@ public class BenchDbCounter extends TgTmLabelCounter {
 
         private AtomicInteger occTry = new AtomicInteger(0);
         private AtomicInteger occAbort = new AtomicInteger(0);
+        private AtomicInteger conflictOnWp = new AtomicInteger();
         private AtomicInteger occSuccess = new AtomicInteger(0);
         private AtomicInteger occAbandonedRetry = new AtomicInteger(0);
         private AtomicInteger ltxTry = new AtomicInteger(0);
@@ -131,6 +135,13 @@ public class BenchDbCounter extends TgTmLabelCounter {
             counter.occAbort.incrementAndGet();
         } else {
             counter.ltxAbort.incrementAndGet();
+        }
+
+        if (e instanceof TsurugiDiagnosticCodeProvider) {
+            var code = ((TsurugiDiagnosticCodeProvider) e).getDiagnosticCode();
+            if (code == SqlServiceCode.ERR_CONFLICT_ON_WRITE_PRESERVE) {
+                counter.conflictOnWp.incrementAndGet();
+            }
         }
     }
 
@@ -265,6 +276,8 @@ public class BenchDbCounter extends TgTmLabelCounter {
             return getOnlineCount(label, counter -> counter.occSuccess.get());
         case OCC_ABORT:
             return getOnlineCount(label, counter -> counter.occAbort.get());
+        case CONFLIT_ON_WP:
+            return getOnlineCount(label, counter -> counter.conflictOnWp.get());
         case OCC_ABANDONED_RETRY:
             return getOnlineCount(label, counter -> counter.occAbandonedRetry.get());
         case LTX_TRY:
