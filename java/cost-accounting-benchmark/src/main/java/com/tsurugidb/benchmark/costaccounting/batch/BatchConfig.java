@@ -16,6 +16,7 @@ public class BatchConfig {
     private final String executeType;
     private final LocalDate batchDate;
     private List<Integer> factoryList;
+    private int threadSize;
     private final int commitRatio;
     private IsolationLevel isolationLevel;
     private TgTxOption defaultTxOption;
@@ -47,6 +48,17 @@ public class BatchConfig {
 
     public List<Integer> getFactoryList() {
         return this.factoryList;
+    }
+
+    public void setThreadSize(int threadSize) {
+        this.threadSize = threadSize;
+    }
+
+    public int getThreadSize() {
+        if (this.threadSize <= 0) {
+            return factoryList.size();
+        }
+        return this.threadSize;
     }
 
     public int getCommitRatio() {

@@ -162,6 +162,9 @@
     - parallel-single-tx: 工場毎に並列で実行する（全工場を1トランザクションで処理）
     - parallel-factory-tx: 工場毎に並列で実行する（工場毎にコミット）（工場全体で1セッション）
     - parallel-factory-session: 工場毎に並列で実行する（工場毎にコミット）（工場毎にセッション）
+- batch.thread.size
+  - 並列で実行する場合のスレッド数
+    - 省略時や0以下の場合、工場数
 - batch.jdbc.isolation.level
   - JDBCのトランザクション分離レベル
     - `READ_COMMITTED`
@@ -262,6 +265,9 @@
   - 処理対象工場
     - `1-8` … 工場IDが1～8
     - `all` … 全工場
+- batch-command.thread.size
+  - 並列で実行する場合のスレッド数（カンマ区切りで複数指定）
+    - 0以下の場合は工場数
 - batch-command.isolation.level
   - トランザクション分離レベル（カンマ区切りで複数指定）
     - `READ_COMMITTED`
@@ -293,6 +299,7 @@
 ## batch-command
 batch-command.execute.type=parallel-factory-tx, parallel-factory-session
 batch-command.factory.list=all
+batch-command.thread.size=-1
 batch-command.isolation.level=SERIALIZABLE
 batch-command.tx.option=OCC, LTX
 batch-command.execute.times=1

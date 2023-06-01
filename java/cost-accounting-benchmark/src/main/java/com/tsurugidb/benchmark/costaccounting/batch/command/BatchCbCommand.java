@@ -62,6 +62,8 @@ public class BatchCbCommand implements ExecutableCommand {
         LOG.info("batchDate={}", batchDate);
         var factoryList = StringUtil.toIntegerList(BenchConst.batchCommandFactoryList());
         LOG.info("factoryList={}", StringUtil.toString(factoryList));
+        var threadSizeList = BenchConst.batchCommandThreadSize();
+        LOG.info("threadSizeList={}", threadSizeList);
         List<Integer> coverRateList;
         if (withOnline) {
             coverRateList = BenchConst.batchCommandOnlineCoverRate();
@@ -74,25 +76,35 @@ public class BatchCbCommand implements ExecutableCommand {
 
         int exitCode = 0;
         var records = new ArrayList<BatchRecord>();
+        int id = 0;
         for (var executeType : executeList) {
             for (var isolationLevel : isolationList) {
                 for (var txOption : txList) {
-                    for (int coverRate : coverRateList) {
-                        for (int i = 0; i < times; i++) {
-                            var config = new BatchConfig(DbManagerPurpose.BATCH, executeType, batchDate, factoryList, 100);
-                            config.setIsolationLevel(isolationLevel);
-                            config.setDefaultTxOption(getOption(txOption));
+                    List<Integer> threadSizeList0;
+                    if (executeType.contains("parallel")) {
+                        threadSizeList0 = threadSizeList;
+                    } else {
+                        threadSizeList0 = List.of(-1);
+                    }
+                    for (int threadSize : threadSizeList0) {
+                        for (int coverRate : coverRateList) {
+                            for (int i = 0; i < times; i++) {
+                                var config = new BatchConfig(DbManagerPurpose.BATCH, executeType, batchDate, factoryList, 100);
+                                config.setIsolationLevel(isolationLevel);
+                                config.setDefaultTxOption(getOption(txOption));
+                                config.setThreadSize(threadSize);
 
-                            OnlineConfig onlineConfig = null;
-                            if (withOnline) {
-                                onlineConfig = CostAccountingOnline.createDefaultConfig(batchDate);
-                                onlineConfig.setCoverRate(coverRate);
-                            }
-                            exitCode |= execute1(config, onlineConfig, i, records);
+                                OnlineConfig onlineConfig = null;
+                                if (withOnline) {
+                                    onlineConfig = CostAccountingOnline.createDefaultConfig(batchDate);
+                                    onlineConfig.setCoverRate(coverRate);
+                                }
+                                exitCode |= execute1(id++, config, onlineConfig, i, records);
 
-                            writeResult(outputPath, records);
-                            if (BenchConst.batchCommandOnline()) {
-                                writeOnlineAppReport(onlineConfig, records.get(records.size() - 1), outputPath);
+                                writeResult(outputPath, records);
+                                if (BenchConst.batchCommandOnline()) {
+                                    writeOnlineAppReport(onlineConfig, records.get(records.size() - 1), outputPath);
+                                }
                             }
                         }
                     }
@@ -102,7 +114,7 @@ public class BatchCbCommand implements ExecutableCommand {
         return exitCode;
     }
 
-    private int execute1(BatchConfig config, OnlineConfig onlineConfig, int attempt, List<BatchRecord> records) throws Exception {
+    private int execute1(int id, BatchConfig config, OnlineConfig onlineConfig, int attempt, List<BatchRecord> records) throws Exception {
         if (BenchConst.batchCommandInitData()) {
             LOG.info("initdata start");
             InitialData.main();
@@ -137,7 +149,7 @@ public class BatchCbCommand implements ExecutableCommand {
         LOG.info("Finished. elapsed secs = {}.", record.elapsedMillis() / 1000.0);
         LOG.info("Counter infos: \n---\n{}---", CostBenchDbManager.createCounterReport());
 
-        diff(record);
+        diff(record, id);
 
         return exitCode;
     }
@@ -190,7 +202,7 @@ public class BatchCbCommand implements ExecutableCommand {
         }
     }
 
-    private void diff(BatchRecord record) {
+    private void diff(BatchRecord record, int id) {
         Path outputDir;
         try {
             String s = BenchConst.batchCommandDiffDir();
@@ -208,7 +220,7 @@ public class BatchCbCommand implements ExecutableCommand {
         LOG.info("diff start");
 
         LOG.debug("dump csv start");
-        Path outputFile = outputDir.resolve(ResultTableDao.TABLE_NAME + "." + record.dbmsType() + "." + record.executeType() + "." + record.option() + "." + record.attempt() + ".csv");
+        Path outputFile = outputDir.resolve(ResultTableDao.TABLE_NAME + "." + record.dbmsType() + "." + id + "." + record.executeType() + "." + record.option() + "." + record.attempt() + ".csv");
         try {
             new DumpCsv().dump(outputFile, ResultTableDao.TABLE_NAME);
         } catch (IOException e) {

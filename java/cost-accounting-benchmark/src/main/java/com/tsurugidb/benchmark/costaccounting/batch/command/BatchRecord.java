@@ -69,6 +69,10 @@ public class BatchRecord {
         return this.dbmsType;
     }
 
+    public int threadSize() {
+        return config.getThreadSize();
+    }
+
     public String option() {
         if (dbmsType != DbmsType.TSURUGI) {
             return config.getIsolationLevel().name();
@@ -97,11 +101,11 @@ public class BatchRecord {
         case BenchConst.SEQUENTIAL_FACTORY_TX:
             return "sequential tx-per-factory";
         case BenchConst.PARALLEL_SINGLE_TX:
-            return "parallel single-tx";
+            return "parallel" + threadSize() + " single-tx";
         case BenchConst.PARALLEL_FACTORY_TX:
-            return "parallel tx-per-factory";
+            return "parallel" + threadSize() + " tx-per-factory";
         case BenchConst.PARALLEL_FACTORY_SESSION:
-            return "parallel session-per-factory";
+            return "parallel" + threadSize() + " session-per-factory";
         default:
             return s;
         }

@@ -124,8 +124,8 @@ public class BenchConst {
         }
     }
 
-    public static int batchParallelism() {
-        return getPropertyInt("batch.parallelism", 0);
+    public static int batchThreadSize() {
+        return getPropertyInt("batch.thread.size", -1);
     }
 
     /**
@@ -165,6 +165,11 @@ public class BenchConst {
 
     public static String batchCommandFactoryList() {
         return getProperty("batch-command.factory.list");
+    }
+
+    public static List<Integer> batchCommandThreadSize() {
+        String s = getProperty("batch-command.thread.size", "-1");
+        return Arrays.stream(s.split(",")).map(String::trim).map(Integer::valueOf).collect(Collectors.toList());
     }
 
     public static List<IsolationLevel> batchCommandIsolationLevel() {

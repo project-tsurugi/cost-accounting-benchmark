@@ -66,6 +66,7 @@ public class CostAccountingBatch {
         var config = new BatchConfig(DbManagerPurpose.BATCH, executeType, batchDate, factoryList, commitRatio);
         config.setIsolationLevel(BenchConst.batchJdbcIsolationLevel());
         config.setTxOptions(BenchConst.batchTsurugiTxOption());
+        config.setThreadSize(BenchConst.batchThreadSize());
 
         try {
             return new CostAccountingBatch().main(config);
@@ -296,13 +297,10 @@ public class CostAccountingBatch {
     private int executeParallel(List<? extends Callable<Void>> threadList) {
         int exitCode = 0;
 
-        int batchParallelism = BenchConst.batchParallelism();
-        if (batchParallelism <= 0) {
-            var factoryList = config.getFactoryList();
-            batchParallelism = factoryList.size();
-        }
+        int threadPoolSize = config.getThreadSize();
+        LOG.info("threadPoolSize={}", threadPoolSize);
+        ExecutorService service = Executors.newFixedThreadPool(threadPoolSize);
 
-        ExecutorService service = Executors.newFixedThreadPool(batchParallelism);
         List<Future<Void>> resultList = Collections.emptyList();
         try {
             resultList = service.invokeAll(threadList);
