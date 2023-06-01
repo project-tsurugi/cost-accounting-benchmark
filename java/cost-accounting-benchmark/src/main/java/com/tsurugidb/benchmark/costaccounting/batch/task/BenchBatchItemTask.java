@@ -398,7 +398,7 @@ public class BenchBatchItemTask {
 
     protected void calculateCost1(BomNode node, int factoryId, BigDecimal manufacturingQuantity) {
         CostMaster costEntity = selectCostMaster(factoryId, node.itemId);
-        if (costEntity != null) {
+        if (costEntity != null && costEntity.getCStockQuantity().compareTo(BigDecimal.ZERO) != 0) {
             MeasurementValue stock = new MeasurementValue(costEntity.getCStockUnit(), costEntity.getCStockQuantity());
             ValuePair c = MeasurementUtil.getCommonUnitValue(stock, node.requiredQuantity);
             node.totalUnitCost = costEntity.getCStockAmount().multiply(c.value2).divide(c.value1, BenchConst.DECIMAL_SCALE, RoundingMode.DOWN);
