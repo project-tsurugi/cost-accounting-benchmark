@@ -329,12 +329,18 @@ public class CostAccountingOnline {
     private void terminateService() {
         if (service != null) {
             try {
+                LOG.info("terminateService start");
                 service.shutdown();
                 try {
                     service.awaitTermination(5, TimeUnit.MINUTES);
                 } catch (InterruptedException e) {
+                    LOG.error("terminateService error", e);
                     throw new RuntimeException(e);
+                } catch (Throwable e) {
+                    LOG.error("terminateService error", e);
+                    throw e;
                 }
+                LOG.info("terminateService end");
             } finally {
                 // 例外出力
                 service.printException();
@@ -354,6 +360,7 @@ public class CostAccountingOnline {
     }
 
     public int terminate() {
+        LOG.info("terminate start");
         try (var c = dbManager) {
             terminateOnlineApp();
             if (futureList != null) {
@@ -367,7 +374,11 @@ public class CostAccountingOnline {
                 }
             }
             terminateService();
+        } catch (Throwable e) {
+            LOG.error("terminate error", e);
+            throw e;
         }
+        LOG.info("terminate end");
         return exceptionList.size();
     }
 }

@@ -169,11 +169,19 @@ public class OnlineCbCommand implements ExecutableCommand {
             throw e;
         } finally {
             if (online != null) {
-                if (online.terminate() != 0) {
-                    if (occurred == null) {
-                        if (exitCode == 0) {
-                            return 2;
+                try {
+                    if (online.terminate() != 0) {
+                        if (occurred == null) {
+                            if (exitCode == 0) {
+                                return 2;
+                            }
                         }
+                    }
+                } catch (Throwable e) {
+                    if (occurred != null) {
+                        occurred.addSuppressed(e);
+                    } else {
+                        throw e;
                     }
                 }
             }

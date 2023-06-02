@@ -161,6 +161,7 @@ public class BatchCbCommand implements ExecutableCommand {
         }
 
         int exitCode = 0;
+        Throwable occurred = null;
         try {
             var record = new BatchRecord(config, onlineConfig, attempt);
             records.add(record);
@@ -182,13 +183,24 @@ public class BatchCbCommand implements ExecutableCommand {
                         exitCode = 2;
                     }
                 }
-                online = null;
             }
 
             return exitCode;
+        } catch (Throwable e) {
+            occurred = e;
+            LOG.error("execute1Main() error", e);
+            throw e;
         } finally {
             if (online != null) {
-                online.terminate();
+                try {
+                    online.terminate();
+                } catch (Throwable e) {
+                    if (occurred != null) {
+                        occurred.addSuppressed(e);
+                    } else {
+                        throw e;
+                    }
+                }
             }
         }
     }
