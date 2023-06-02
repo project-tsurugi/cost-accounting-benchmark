@@ -104,7 +104,7 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
         protected void initialize() {
             this.sql = "select c_i_id from " + TABLE_NAME + " where c_f_id = " + vFactoryId + " order by c_i_id";
             this.parameterMapping = TgParameterMapping.of(vFactoryId);
-            this.resultMapping = TgResultMapping.of(int.class);
+            this.resultMapping = TgResultMapping.ofSingle(int.class);
         }
     };
 
