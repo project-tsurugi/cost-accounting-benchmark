@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMasterCount;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMasterIds;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.CostBenchDbManagerJdbc;
 
@@ -93,6 +94,23 @@ public class ItemManufacturingMasterDaoJdbc extends JdbcDao<ItemManufacturingMas
             }
             setDate(ps, i++, date);
         }, this::newEntity);
+    }
+
+    @Override
+    public List<ItemManufacturingMasterCount> selectCount(LocalDate date) {
+        String sql = "select im_f_id, count(*) from item_manufacturing_master" //
+                + " where " + PS_COND_DATE //
+                + " group by im_f_id";
+        return executeQueryList(sql, ps -> {
+            int i = 1;
+            setDate(ps, i++, date);
+        }, rs -> {
+            var entity = new ItemManufacturingMasterCount();
+            int i = 1;
+            entity.setImFId(rs.getInt(i++));
+            entity.setCount(rs.getInt(i++));
+            return entity;
+        });
     }
 
     @Override

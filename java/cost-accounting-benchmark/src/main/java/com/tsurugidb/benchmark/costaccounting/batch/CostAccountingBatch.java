@@ -6,6 +6,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
@@ -29,6 +30,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst.BatchFactoryOrder;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
@@ -66,13 +68,47 @@ public class CostAccountingBatch {
         var config = new BatchConfig(DbManagerPurpose.BATCH, executeType, batchDate, factoryList, commitRatio);
         config.setIsolationLevel(BenchConst.batchJdbcIsolationLevel());
         config.setTxOptions(BenchConst.batchTsurugiTxOption());
+        config.setBatchFactoryOrder(BenchConst.getBatchFactoryOrder());
         config.setThreadSize(BenchConst.batchThreadSize());
+        initializeConfig(config);
 
         try {
             return new CostAccountingBatch().main(config);
         } finally {
             LOG.info("Counter infos: \n---\n{}---", CostBenchDbManager.createCounterReport());
         }
+    }
+
+    public static void initializeConfig(BatchConfig config) {
+        var initConfig = new BatchConfig(DbManagerPurpose.BATCH_INIT, config.getExecuteType(), config.getBatchDate(), List.of(), 100);
+        try (CostBenchDbManager manager = createDbManager(initConfig)) {
+            List<Integer> factoryList = config.getFactoryList();
+            if (factoryList == null || factoryList.isEmpty()) {
+                factoryList = getAllFactory(manager);
+                config.setFactoryList(factoryList);
+            }
+
+            if (config.getBatchFactoryOrder() != BatchFactoryOrder.NONE) {
+                var countMap = getFactoryCount(manager, config.getBatchDate());
+                config.setFactoryCount(countMap);
+            }
+        }
+        CostBenchDbManager.initCounter();
+    }
+
+    private static List<Integer> getAllFactory(CostBenchDbManager manager) {
+        FactoryMasterDao dao = manager.getFactoryMasterDao();
+
+        var setting = TgTmSetting.ofAlways(TgTxOption.ofRTX().label("select all factory"));
+        return manager.execute(setting, dao::selectAllId);
+    }
+
+    private static Map<Integer, Integer> getFactoryCount(CostBenchDbManager manager, LocalDate date) {
+        ItemManufacturingMasterDao dao = manager.getItemManufacturingMasterDao();
+
+        var setting = TgTmSetting.ofAlways(TgTxOption.ofRTX().label("select count from item_manufacturing_master"));
+        var list = manager.execute(setting, () -> dao.selectCount(date));
+        return list.stream().collect(Collectors.toMap(c -> c.getImFId(), c -> c.getCount()));
     }
 
     private BatchConfig config;
@@ -93,12 +129,6 @@ public class CostAccountingBatch {
         int exitCode;
         try (CostBenchDbManager manager = createDbManager(config)) {
             this.dbManager = manager;
-
-            List<Integer> factoryList = config.getFactoryList();
-            if (factoryList == null || factoryList.isEmpty()) {
-                factoryList = getAllFactory();
-                config.setFactoryList(factoryList);
-            }
 
             LOG.info("batchDate={}", config.getBatchDate());
             LOG.info("factory={}", StringUtil.toString(config.getFactoryList()));
@@ -141,7 +171,7 @@ public class CostAccountingBatch {
         return exitCode;
     }
 
-    private CostBenchDbManager createDbManager(BatchConfig config) {
+    private static CostBenchDbManager createDbManager(BatchConfig config) {
         var type = BenchConst.batchDbManagerType();
         var purpose = config.getDbManagerPurpose();
         boolean isMultiSession = config.getExecuteType().equals(BenchConst.PARALLEL_FACTORY_SESSION);
@@ -161,16 +191,9 @@ public class CostAccountingBatch {
         LOG.info("end {}[ms]", startTime.until(endTime, ChronoUnit.MILLIS));
     }
 
-    private List<Integer> getAllFactory() {
-        FactoryMasterDao dao = dbManager.getFactoryMasterDao();
-
-        var setting = TgTmSetting.ofAlways(TgTxOption.ofOCC().label("select all factory"));
-        return dbManager.execute(setting, dao::selectAllId);
-    }
-
     private int executeSequentialSingleTx() {
         var batchDate = config.getBatchDate();
-        var factoryList = config.getFactoryList();
+        var factoryList = config.getSortedFactoryList();
 
         BenchBatchItemTask itemTask = newBenchBatchItemTask(batchDate);
 
@@ -219,7 +242,7 @@ public class CostAccountingBatch {
 
     private int executeSequentialFactoryTx() {
         var batchDate = config.getBatchDate();
-        var factoryList = config.getFactoryList();
+        var factoryList = config.getSortedFactoryList();
 
         for (int factoryId : factoryList) {
             BenchBatchFactoryTask thread = newBenchBatchFactoryThread(batchDate, factoryId);
@@ -236,7 +259,7 @@ public class CostAccountingBatch {
 
     private int executeParallelSingleTx() {
         var batchDate = config.getBatchDate();
-        var factoryList = config.getFactoryList();
+        var factoryList = config.getSortedFactoryList();
 
         var count = new AtomicInteger(0);
         var threadList = factoryList.stream().map(factoryId -> {
@@ -278,7 +301,7 @@ public class CostAccountingBatch {
 
     private int executeParallelFactoryTx() {
         var batchDate = config.getBatchDate();
-        var factoryList = config.getFactoryList();
+        var factoryList = config.getSortedFactoryList();
 
         List<BenchBatchFactoryTask> threadList = factoryList.stream().map(factoryId -> newBenchBatchFactoryThread(batchDate, factoryId)).collect(Collectors.toList());
 
@@ -333,7 +356,7 @@ public class CostAccountingBatch {
 
     private int executeStream() {
         var batchDate = config.getBatchDate();
-        var factoryList = config.getFactoryList();
+        var factoryList = config.getSortedFactoryList();
 
         var threadList = new ArrayList<BenchBatchFactoryTask>();
         dbManager.execute(TX_BATCH, () -> {
@@ -368,7 +391,7 @@ public class CostAccountingBatch {
 
     private int executeQueue() {
         var batchDate = config.getBatchDate();
-        var factoryList = config.getFactoryList();
+        var factoryList = config.getSortedFactoryList();
 
         ResultTableDao resultTableDao = dbManager.getResultTableDao();
 

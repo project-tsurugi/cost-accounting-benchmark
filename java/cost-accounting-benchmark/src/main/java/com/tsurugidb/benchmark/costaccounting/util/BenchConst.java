@@ -155,6 +155,25 @@ public class BenchConst {
         return getProperty("batch.tsurugi.tx.option");
     }
 
+    public enum BatchFactoryOrder {
+        NONE, COUNT_ASC, COUNT_DESC
+    }
+
+    public static BatchFactoryOrder getBatchFactoryOrder() {
+        return getBatchFactoryOrder("batch.factory.order");
+    }
+
+    private static BatchFactoryOrder getBatchFactoryOrder(String key) {
+        String s = getProperty(key, BatchFactoryOrder.NONE.name());
+        try {
+            return BatchFactoryOrder.valueOf(s.replaceAll("[-.]", "_").toUpperCase());
+        } catch (Exception e) {
+            throw new RuntimeException("invalid BatchFactoryOrder. " + key + "=" + s, e);
+        }
+    }
+
+    // batch-command
+
     public static String batchCommandExecuteType() {
         String s = getProperty("batch-command.execute.type", null);
         if (s == null) {
@@ -239,7 +258,9 @@ public class BenchConst {
         return getPropertyBoolean("batch-command.with.online", false);
     }
 
-    public static final int DECIMAL_SCALE = getPropertyInt("decimal.scale", 20);
+    public static BatchFactoryOrder getBatchCommandFactoryOrder() {
+        return getBatchFactoryOrder("batch-command.factory.order");
+    }
 
     // online
 
@@ -342,6 +363,8 @@ public class BenchConst {
     public static int periodicSplitSize(String taskName) {
         return getPropertyInt("periodic.schedule." + taskName + ".split.size", 1);
     }
+
+    // online-command
 
     public static String onlineCommandLabel() {
         return getProperty("online-command.label", null);
@@ -475,6 +498,10 @@ public class BenchConst {
     public static String timeCommandResultFile() {
         return getProperty("time-command.result.file");
     }
+
+    // share
+
+    public static final int DECIMAL_SCALE = getPropertyInt("decimal.scale", 20);
 
     // properties
 

@@ -12,6 +12,9 @@ import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.SqlBetween;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 
+/**
+ * 品目マスターDAO
+ */
 public interface ItemMasterDao {
 
     public static final String TABLE_NAME = "item_master";

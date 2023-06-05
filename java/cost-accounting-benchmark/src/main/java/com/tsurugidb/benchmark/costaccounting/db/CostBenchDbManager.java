@@ -29,7 +29,7 @@ import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 public abstract class CostBenchDbManager implements Closeable {
 
     public enum DbManagerPurpose {
-        INIT_DATA, BATCH, PRE_BATCH, ONLINE, TIME, DEBUG, TEST
+        INIT_DATA, BATCH, PRE_BATCH, BATCH_INIT, ONLINE, TIME, DEBUG, TEST
     }
 
     protected final static BenchDbCounter counter = new BenchDbCounter();

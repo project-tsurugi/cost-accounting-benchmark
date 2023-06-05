@@ -7,11 +7,15 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMasterCount;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMasterIds;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.SqlBetween;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 
+/**
+ * 製造品目マスターDAO
+ */
 public interface ItemManufacturingMasterDao {
 
     public static final String TABLE_NAME = "item_manufacturing_master";
@@ -87,6 +91,15 @@ public interface ItemManufacturingMasterDao {
      * </pre>
      */
     Stream<ItemManufacturingMaster> selectByFactories(List<Integer> factoryIdList, LocalDate date);
+
+    /**
+     * <pre>
+     * select im_f_id, count(*) from item_manufacturing_master
+     * where :date between im_effective_date and im_expired_date
+     * group by im_f_id
+     * </pre>
+     */
+    List<ItemManufacturingMasterCount> selectCount(LocalDate date);
 
     /**
      * <pre>

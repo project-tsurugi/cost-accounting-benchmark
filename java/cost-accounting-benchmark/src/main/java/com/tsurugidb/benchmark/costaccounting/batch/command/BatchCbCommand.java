@@ -92,6 +92,7 @@ public class BatchCbCommand implements ExecutableCommand {
                                 var config = new BatchConfig(DbManagerPurpose.BATCH, executeType, batchDate, factoryList, 100);
                                 config.setIsolationLevel(isolationLevel);
                                 config.setDefaultTxOption(getOption(txOption));
+                                config.setBatchFactoryOrder(BenchConst.getBatchCommandFactoryOrder());
                                 config.setThreadSize(threadSize);
 
                                 OnlineConfig onlineConfig = null;
@@ -125,6 +126,8 @@ public class BatchCbCommand implements ExecutableCommand {
             var preConfig = new BatchConfig(DbManagerPurpose.PRE_BATCH, BenchConst.PARALLEL_FACTORY_SESSION, config.getBatchDate(), config.getFactoryList(), 100);
             preConfig.setIsolationLevel(IsolationLevel.READ_COMMITTED);
             preConfig.setDefaultTxOption(getOption("LTX"));
+            preConfig.setBatchFactoryOrder(BenchConst.getBatchFactoryOrder());
+            CostAccountingBatch.initializeConfig(preConfig);
 
             var batch = new CostAccountingBatch();
             int exitCode = batch.main(preConfig);
@@ -133,6 +136,7 @@ public class BatchCbCommand implements ExecutableCommand {
             }
             LOG.info("pre-batch end");
         }
+        CostAccountingBatch.initializeConfig(config);
         CostBenchDbManager.initCounter();
 
         int exitCode;

@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMasterCount;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMasterIds;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
@@ -144,6 +145,26 @@ public class ItemManufacturingMasterDaoIceaxe extends IceaxeDao<ItemManufacturin
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public List<ItemManufacturingMasterCount> selectCount(LocalDate date) {
+        var ps = selectCountCache.get();
+        var parameter = TgBindParameters.of(vDate.bind(date));
+        return executeAndGetList(ps, parameter);
+    }
+
+    private final CachePreparedQuery<TgBindParameters, ItemManufacturingMasterCount> selectCountCache = new CachePreparedQuery<>() {
+        @Override
+        protected void initialize() {
+            this.sql = "select im_f_id, count(*) from item_manufacturing_master" //
+                    + " where " + TG_COND_DATE //
+                    + " group by im_f_id";
+            this.parameterMapping = TgParameterMapping.of(vDate);
+            this.resultMapping = TgResultMapping.of(ItemManufacturingMasterCount::new) //
+                    .addInt(ItemManufacturingMasterCount::setImFId) //
+                    .addInt(ItemManufacturingMasterCount::setCount);
+        }
+    };
 
     private static final TgBindVariableInteger vItemId = IM_I_ID.clone("itemId");
 

@@ -10,6 +10,9 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.ResultTable;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 
+/**
+ * 結果テーブルDAO
+ */
 public interface ResultTableDao {
 
     public static final String TABLE_NAME = "result_table";

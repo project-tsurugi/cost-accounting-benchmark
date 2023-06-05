@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
+import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMasterCount;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMasterIds;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.CostBenchDbManagerTsubakuro;
 import com.tsurugidb.sql.proto.SqlCommon.AtomType;
@@ -74,6 +75,11 @@ public class ItemManufacturingMasterDaoTsubakuro extends TsubakuroDao<ItemManufa
 
     @Override
     public Stream<ItemManufacturingMaster> selectByFactories(List<Integer> factoryIdList, LocalDate date) {
+        throw new UnsupportedOperationException("not yet impl");
+    }
+
+    @Override
+    public List<ItemManufacturingMasterCount> selectCount(LocalDate date) {
         throw new UnsupportedOperationException("not yet impl");
     }
 

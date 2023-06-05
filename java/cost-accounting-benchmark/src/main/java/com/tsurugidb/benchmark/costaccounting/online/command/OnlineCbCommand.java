@@ -108,6 +108,8 @@ public class OnlineCbCommand implements ExecutableCommand {
             var preConfig = new BatchConfig(DbManagerPurpose.PRE_BATCH, BenchConst.PARALLEL_FACTORY_SESSION, config.getBatchDate(), null, 100);
             preConfig.setIsolationLevel(IsolationLevel.READ_COMMITTED);
             preConfig.setDefaultTxOption(TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
+            preConfig.setBatchFactoryOrder(BenchConst.getBatchFactoryOrder());
+            CostAccountingBatch.initializeConfig(preConfig);
 
             var batch = new CostAccountingBatch();
             int exitCode = batch.main(preConfig);

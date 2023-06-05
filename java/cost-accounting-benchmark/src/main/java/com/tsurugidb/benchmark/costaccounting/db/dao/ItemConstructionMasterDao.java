@@ -14,6 +14,9 @@ import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.SqlBetween;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 
+/**
+ * 品目構成マスターDAO
+ */
 public interface ItemConstructionMasterDao {
 
     public static final String TABLE_NAME = "item_construction_master";

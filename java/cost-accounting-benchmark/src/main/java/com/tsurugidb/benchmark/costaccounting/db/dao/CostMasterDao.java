@@ -8,6 +8,9 @@ import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 
+/**
+ * 原価マスターDAO
+ */
 public interface CostMasterDao {
 
     public static final String TABLE_NAME = "cost_master";

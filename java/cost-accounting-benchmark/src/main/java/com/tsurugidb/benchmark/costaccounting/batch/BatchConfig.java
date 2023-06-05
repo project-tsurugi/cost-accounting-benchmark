@@ -1,16 +1,24 @@
 package com.tsurugidb.benchmark.costaccounting.batch;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst.BatchFactoryOrder;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 public class BatchConfig {
+    private static final Logger LOG = LoggerFactory.getLogger(BatchConfig.class);
 
     private final DbManagerPurpose purpose;
     private final String executeType;
@@ -21,6 +29,9 @@ public class BatchConfig {
     private IsolationLevel isolationLevel;
     private TgTxOption defaultTxOption;
     private Map<Integer, TgTxOption> txOptionMap;
+    private BatchFactoryOrder batchFactoryOrder = BatchFactoryOrder.NONE;
+    /** Map&lt;factoryId, count&gt; */
+    private Map<Integer, Integer> factoryCountMap;
 
     public BatchConfig(DbManagerPurpose purpose, String executeType, LocalDate batchDate, List<Integer> factoryList, int commitRatio) {
         this.purpose = purpose;
@@ -48,6 +59,26 @@ public class BatchConfig {
 
     public List<Integer> getFactoryList() {
         return this.factoryList;
+    }
+
+    public List<Integer> getSortedFactoryList() {
+        if (this.factoryCountMap == null) {
+            return this.factoryList;
+        }
+
+        var list = new ArrayList<Integer>(factoryList);
+        switch (this.batchFactoryOrder) {
+        case COUNT_ASC:
+            Collections.sort(list, Comparator.comparingInt(fid -> factoryCountMap.getOrDefault(fid, Integer.MAX_VALUE)).thenComparingInt(fid -> (int) fid));
+            break;
+        case COUNT_DESC:
+            Collections.sort(list, Comparator.comparingInt(fid -> factoryCountMap.getOrDefault(fid, Integer.MIN_VALUE)).reversed().thenComparingInt(fid -> (int) fid));
+            break;
+        default:
+            break;
+        }
+        LOG.info("factory order={}", list);
+        return list;
     }
 
     public void setThreadSize(int threadSize) {
@@ -136,5 +167,17 @@ public class BatchConfig {
 
         var txOption = txOptionMap.get(factoryId);
         return (txOption != null) ? txOption : this.defaultTxOption;
+    }
+
+    public void setBatchFactoryOrder(BatchFactoryOrder order) {
+        this.batchFactoryOrder = order;
+    }
+
+    public BatchFactoryOrder getBatchFactoryOrder() {
+        return this.batchFactoryOrder;
+    }
+
+    public void setFactoryCount(Map<Integer, Integer> map) {
+        this.factoryCountMap = map;
     }
 }

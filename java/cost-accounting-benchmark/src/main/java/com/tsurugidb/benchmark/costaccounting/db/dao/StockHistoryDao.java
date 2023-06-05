@@ -8,6 +8,9 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 
+/**
+ * 在庫履歴DAO
+ */
 public interface StockHistoryDao {
 
     public static final String TABLE_NAME = "stock_history";

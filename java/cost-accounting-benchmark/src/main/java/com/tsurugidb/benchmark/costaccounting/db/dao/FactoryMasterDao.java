@@ -5,6 +5,9 @@ import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.entity.FactoryMaster;
 
+/**
+ * 工場マスターDAO
+ */
 public interface FactoryMasterDao {
 
     public static final String TABLE_NAME = "factory_master";

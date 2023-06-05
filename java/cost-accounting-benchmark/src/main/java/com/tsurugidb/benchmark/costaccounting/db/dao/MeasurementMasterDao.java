@@ -5,6 +5,9 @@ import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.entity.MeasurementMaster;
 
+/**
+ * 度量衡マスターDAO
+ */
 public interface MeasurementMasterDao {
 
     public static final String TABLE_NAME = "measurement_master";

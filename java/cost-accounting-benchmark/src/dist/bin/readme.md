@@ -162,6 +162,11 @@
     - parallel-single-tx: 工場毎に並列で実行する（全工場を1トランザクションで処理）
     - parallel-factory-tx: 工場毎に並列で実行する（工場毎にコミット）（工場全体で1セッション）
     - parallel-factory-session: 工場毎に並列で実行する（工場毎にコミット）（工場毎にセッション）
+- batch.factory.order
+  - 工場の処理順
+    - `none`: 順序なし（工場ID順）（デフォルト）
+    - `count-desc`: 処理対象件数の降順
+    - `count-asc`: 処理対象件数の昇順
 - batch.thread.size
   - 並列で実行する場合のスレッド数
     - 省略時や0以下の場合、工場数
@@ -265,6 +270,11 @@
   - 処理対象工場
     - `1-8` … 工場IDが1～8
     - `all` … 全工場
+- batch-command.factory.order
+  - 工場の処理順
+    - `none`: 順序なし（工場ID順）（デフォルト）
+    - `count-desc`: 処理対象件数の降順
+    - `count-asc`: 処理対象件数の昇順
 - batch-command.thread.size
   - 並列で実行する場合のスレッド数（カンマ区切りで複数指定）
     - 0以下の場合は工場数
