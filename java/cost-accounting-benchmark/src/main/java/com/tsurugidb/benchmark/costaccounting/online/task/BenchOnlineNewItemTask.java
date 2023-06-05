@@ -144,7 +144,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
             }
             return null;
         } catch (Exception e) {
-            if (!dbManager.isRetriable(e)) {
+            if (!dbManager.isRetryable(e)) {
                 LOG.warn("insertItemMaster error", e);
             }
             throw e;

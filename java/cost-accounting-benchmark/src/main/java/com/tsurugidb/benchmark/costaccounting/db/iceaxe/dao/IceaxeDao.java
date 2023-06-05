@@ -297,7 +297,7 @@ public abstract class IceaxeDao<E> {
                 throw new UniqueConstraintException(e);
             }
             var r = new TsurugiTransactionRuntimeException(e);
-            if (!dbManager.isRetriable(e)) {
+            if (!dbManager.isRetryable(e)) {
                 String message = MessageFormat.format("sql={0}, parameter={1}", ps.getSql(), parameter);
                 r.addSuppressed(new ExceptionInfo(message));
             }
@@ -327,7 +327,7 @@ public abstract class IceaxeDao<E> {
                         throw re;
                     }
                     re = new TsurugiTransactionRuntimeException(e);
-                    if (!dbManager.isRetriable(e)) {
+                    if (!dbManager.isRetryable(e)) {
                         String message = MessageFormat.format("sql={0}, parameter={1}", ps.getSql(), parameter);
                         re.addSuppressed(new ExceptionInfo(message));
                     }

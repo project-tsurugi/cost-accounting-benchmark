@@ -12,6 +12,8 @@ public class OnlineCounterRecord {
             "| title | tx option | cover rate | threads | tpm/thread | success | occ-try | occ-abort | occ-success | occ<br>abandoned<br>retry | ltx-try | ltx-abort | ltx-success | ltx<br>abandoned<br>retry | fail | task start | target nothing | task success | task fail |", //
             "|-------|-----------|-----------:|--------:|-----------:|--------:|--------:|----------:|------------:|--------------------------:|--------:|----------:|------------:|--------------------------:|-----:|-----------:|---------------:|-------------:|----------:|");
 
+    public static final String FOOTER = "※occ-abortの括弧内は、ERR_CONFLICT_ON_WRITE_PRESERVEの件数; CC_OCC_WP_VERIFYの件数";
+
     private final OnlineConfig config;
     private final String title;
     private final String tpm;
@@ -45,6 +47,8 @@ public class OnlineCounterRecord {
         sb.append(counter.getCount(title, CounterName.OCC_ABORT));
         sb.append("(");
         sb.append(counter.getCount(title, CounterName.CONFLIT_ON_WP));
+        sb.append(";");
+        sb.append(counter.getCount(title, CounterName.OCC_WP_VERIFY));
         sb.append(")");
         sb.append("|");
         sb.append(counter.getCount(title, CounterName.OCC_SUCCESS));

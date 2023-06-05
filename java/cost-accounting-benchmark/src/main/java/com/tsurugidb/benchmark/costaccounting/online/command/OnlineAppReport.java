@@ -81,7 +81,8 @@ public class OnlineAppReport {
             createOnlineCounterReport(config, sb, taskName);
         }
         sb.append("\n");
-        sb.append("※occ-abortの括弧内は、ERR_CONFLICT_ON_WRITE_PRESERVEの件数\n");
+        sb.append(OnlineCounterRecord.FOOTER);
+        sb.append("\n");
 
         sb.append("\n");
 

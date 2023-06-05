@@ -247,7 +247,7 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
     }
 
     @Override
-    public boolean isRetriable(Throwable t) {
+    public boolean isRetryable(Throwable t) {
         while (t != null) {
             if (t instanceof ServerException) {
                 return isRetyiableTsurugiException((ServerException) t);

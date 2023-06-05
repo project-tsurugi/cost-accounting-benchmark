@@ -175,7 +175,7 @@ public abstract class CostBenchDbManager implements Closeable {
 
     public abstract <T> T execute(TgTmSetting setting, Supplier<T> supplier);
 
-    public abstract boolean isRetriable(Throwable t);
+    public abstract boolean isRetryable(Throwable t);
 
     public final void commit() {
         commit(null);

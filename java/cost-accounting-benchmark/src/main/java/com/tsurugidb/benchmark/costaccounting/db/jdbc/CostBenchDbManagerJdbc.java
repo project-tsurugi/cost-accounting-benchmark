@@ -200,7 +200,7 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
                 } catch (Throwable t) {
                     e.addSuppressed(t);
                 }
-                if (isRetriable(e)) {
+                if (isRetryable(e)) {
                     removeCurrentTransaction();
                     LOG.info("retry");
                     continue;
@@ -227,7 +227,7 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
                 } catch (Throwable t) {
                     e.addSuppressed(t);
                 }
-                if (isRetriable(e)) {
+                if (isRetryable(e)) {
                     removeCurrentTransaction();
                     LOG.info("retry");
                     continue;
@@ -238,12 +238,12 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
     }
 
     @Override
-    public boolean isRetriable(Throwable t) {
+    public boolean isRetryable(Throwable t) {
         while (t != null) {
             if (t instanceof SQLException) {
                 SQLException se = (SQLException) t;
-                boolean ret = isRetriableSQLException(se);
-                LOG.debug("caught [{}] retriable exception, ErrorCode = {}, SQLStatus = {}.", se.getMessage(), se.getErrorCode(), se.getSQLState(), se);
+                boolean ret = isRetryableSQLException(se);
+                LOG.debug("caught [{}] retryable exception, ErrorCode = {}, SQLStatus = {}.", se.getMessage(), se.getErrorCode(), se.getSQLState(), se);
 
                 return ret;
             }
@@ -252,7 +252,7 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
         return false;
     }
 
-    protected boolean isRetriableSQLException(SQLException e) {
+    protected boolean isRetryableSQLException(SQLException e) {
         // PostgreSQL
         String sqlState = e.getSQLState();
         if (sqlState != null && sqlState.equals("40001")) {

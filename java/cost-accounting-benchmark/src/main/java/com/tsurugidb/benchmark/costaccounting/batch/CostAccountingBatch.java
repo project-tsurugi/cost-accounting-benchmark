@@ -315,7 +315,7 @@ public class CostAccountingBatch {
             try {
                 result.get(); // 例外が発生していた場合にそれを取り出す
             } catch (Exception e) {
-                if (dbManager.isRetriable(e)) {
+                if (dbManager.isRetryable(e)) {
                     LOG.info("task exception {}", e.getMessage());
                 } else {
                     LOG.error("task exception", e);

@@ -25,7 +25,7 @@ public class BenchDbCounter extends TgTmLabelCounter {
         // for online
         OCC_TRY, OCC_ABORT, OCC_SUCCESS, OCC_ABANDONED_RETRY, //
         LTX_TRY, LTX_ABORT, LTX_SUCCESS, LTX_ABANDONED_RETRY, //
-        CONFLIT_ON_WP, //
+        CONFLIT_ON_WP, OCC_WP_VERIFY, //
         FAIL, //
         TASK_START, TASK_NOTHING, TASK_SUCCESS, TASK_FAIL
     }
@@ -35,7 +35,8 @@ public class BenchDbCounter extends TgTmLabelCounter {
 
         private AtomicInteger occTry = new AtomicInteger(0);
         private AtomicInteger occAbort = new AtomicInteger(0);
-        private AtomicInteger conflictOnWp = new AtomicInteger();
+        private AtomicInteger conflictOnWp = new AtomicInteger(0);
+        private AtomicInteger occWpVerify = new AtomicInteger(0);
         private AtomicInteger occSuccess = new AtomicInteger(0);
         private AtomicInteger occAbandonedRetry = new AtomicInteger(0);
         private AtomicInteger ltxTry = new AtomicInteger(0);
@@ -141,6 +142,14 @@ public class BenchDbCounter extends TgTmLabelCounter {
             var code = ((TsurugiDiagnosticCodeProvider) e).getDiagnosticCode();
             if (code == SqlServiceCode.ERR_CONFLICT_ON_WRITE_PRESERVE) {
                 counter.conflictOnWp.incrementAndGet();
+            }
+            if (code == SqlServiceCode.ERR_ABORTED_RETRYABLE) {
+                String message = e.getMessage();
+                if (message.contains("shirakami response Status=ERR_CC")) {
+                    if (message.contains("reason_code:CC_OCC_WP_VERIFY")) {
+                        counter.occWpVerify.incrementAndGet();
+                    }
+                }
             }
         }
     }
@@ -278,6 +287,8 @@ public class BenchDbCounter extends TgTmLabelCounter {
             return getOnlineCount(label, counter -> counter.occAbort.get());
         case CONFLIT_ON_WP:
             return getOnlineCount(label, counter -> counter.conflictOnWp.get());
+        case OCC_WP_VERIFY:
+            return getOnlineCount(label, counter -> counter.occWpVerify.get());
         case OCC_ABANDONED_RETRY:
             return getOnlineCount(label, counter -> counter.occAbandonedRetry.get());
         case LTX_TRY:
