@@ -154,12 +154,12 @@ public class OnlineCbCommand implements ExecutableCommand {
             this.dedicatedTime = System.currentTimeMillis() - startTime;
             LOG.info("sleep end");
 
-            if (online.terminate() != 0) {
+            if (online.terminate(false) != 0) {
                 if (exitCode == 0) {
                     exitCode = 2;
                 }
-                online = null;
             }
+            online = null;
             record.finish();
 
             return exitCode;
@@ -170,11 +170,9 @@ public class OnlineCbCommand implements ExecutableCommand {
         } finally {
             if (online != null) {
                 try {
-                    if (online.terminate() != 0) {
-                        if (occurred == null) {
-                            if (exitCode == 0) {
-                                return 2;
-                            }
+                    if (online.terminate(true) != 0) {
+                        if (exitCode == 0) {
+                            return 2;
                         }
                     }
                 } catch (Throwable e) {

@@ -178,11 +178,12 @@ public class BatchCbCommand implements ExecutableCommand {
             this.dedicatedTime = record.elapsedMillis();
 
             if (online != null) {
-                if (online.terminate() != 0) {
+                if (online.terminate(false) != 0) {
                     if (exitCode == 0) {
                         exitCode = 2;
                     }
                 }
+                online = null;
             }
 
             return exitCode;
@@ -193,7 +194,7 @@ public class BatchCbCommand implements ExecutableCommand {
         } finally {
             if (online != null) {
                 try {
-                    online.terminate();
+                    online.terminate(true);
                 } catch (Throwable e) {
                     if (occurred != null) {
                         occurred.addSuppressed(e);

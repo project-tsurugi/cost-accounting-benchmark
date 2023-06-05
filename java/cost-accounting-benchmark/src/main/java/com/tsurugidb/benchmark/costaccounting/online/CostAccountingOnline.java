@@ -282,7 +282,7 @@ public class CostAccountingOnline {
         } finally {
             // オンラインアプリを終了する
             terminateOnlineApp();
-            terminateService();
+            terminateService(false);
             LOG.info("Counter infos: \n---\n{}---", CostBenchDbManager.createCounterReport());
         }
         return exceptionList.size();
@@ -314,37 +314,62 @@ public class CostAccountingOnline {
                 exceptionList.add(e);
             }
         }
-
-        public void printException() {
-            for (Exception e : exceptionList) {
-                LOG.error("thread exception report", e);
-            }
-        }
     }
 
     private void terminateOnlineApp() {
         terminationRequested.set(true);
     }
 
-    private void terminateService() {
+    private void printException() {
+        for (Exception e : exceptionList) {
+            LOG.error("thread exception report", e);
+        }
+    }
+
+    private void terminateService(boolean force) {
         if (service != null) {
-            try {
-                LOG.info("terminateService start");
-                service.shutdown();
-                try {
-                    service.awaitTermination(5, TimeUnit.MINUTES);
-                } catch (InterruptedException e) {
-                    LOG.error("terminateService error", e);
-                    throw new RuntimeException(e);
-                } catch (Throwable e) {
-                    LOG.error("terminateService error", e);
-                    throw e;
-                }
-                LOG.info("terminateService end");
-            } finally {
-                // 例外出力
-                service.printException();
+            if (force) {
+                terminateServiceForce();
+            } else {
+                terminateServiceNormal();
             }
+        }
+    }
+
+    private void terminateServiceNormal() {
+        try {
+            LOG.info("terminateService start");
+            service.shutdown();
+            try {
+                service.awaitTermination(5, TimeUnit.MINUTES);
+            } catch (InterruptedException e) {
+                LOG.error("terminateService error", e);
+                throw new RuntimeException(e);
+            } catch (Throwable e) {
+                LOG.error("terminateService error", e);
+                throw e;
+            }
+            LOG.info("terminateService end");
+        } finally {
+            // 例外出力
+            printException();
+            exceptionList.clear();
+        }
+    }
+
+    private void terminateServiceForce() {
+        try {
+            LOG.info("terminateServiceForce start");
+            try {
+                service.shutdownNow();
+            } catch (Throwable e) {
+                LOG.error("terminateServiceForce error", e);
+                throw e;
+            }
+            LOG.info("terminateServiceForce end");
+        } finally {
+            // 例外出力
+            printException();
         }
     }
 
@@ -359,26 +384,29 @@ public class CostAccountingOnline {
         this.futureList = appList.parallelStream().map(app -> service.submit(app)).collect(Collectors.toList());
     }
 
-    public int terminate() {
-        LOG.info("terminate start");
+    public int terminate(boolean force) {
+        String forceText = force ? "(force)" : "";
+        LOG.info("terminate{} start", forceText);
         try (var c = dbManager) {
             terminateOnlineApp();
-            if (futureList != null) {
-                for (var future : futureList) {
-                    try {
-                        future.get(2, TimeUnit.HOURS);
-                    } catch (Exception e) {
-                        exceptionList.add(e);
-                        LOG.warn("terminate future.get() error", e);
+            if (!force) {
+                if (futureList != null) {
+                    for (var future : futureList) {
+                        try {
+                            future.get(2, TimeUnit.HOURS);
+                        } catch (Exception e) {
+                            exceptionList.add(e);
+                            LOG.warn("terminate{} future.get() error", forceText, e);
+                        }
                     }
                 }
             }
-            terminateService();
+            terminateService(force);
         } catch (Throwable e) {
-            LOG.error("terminate error", e);
+            LOG.error("terminate{} error", forceText, e);
             throw e;
         }
-        LOG.info("terminate end");
+        LOG.info("terminate{} end", forceText);
         return exceptionList.size();
     }
 }
