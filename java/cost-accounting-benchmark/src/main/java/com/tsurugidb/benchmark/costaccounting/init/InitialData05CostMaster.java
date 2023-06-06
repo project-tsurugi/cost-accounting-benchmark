@@ -15,6 +15,7 @@ import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.util.DaoSplitTask;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -104,7 +105,12 @@ public class InitialData05CostMaster extends InitialData {
         int seed = materialEntity.getIId();
 
         List<Integer> factoryIds = new ArrayList<>(factoryIdSet);
-        int size = factoryIdSet.size() / 2; // 50%
+        int size = BenchConst.initCostFactoryPerMeterial();
+        if (size <= 0) {
+            size = factoryIdSet.size() / 2; // 50%
+        } else if (size > factoryIdSet.size()) {
+            size = factoryIdSet.size();
+        }
         Set<Integer> factorySet = new TreeSet<>();
         while (factorySet.size() < size) {
             int factoryId = getRandomAndRemove(seed++, factoryIds);

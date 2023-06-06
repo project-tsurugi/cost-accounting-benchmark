@@ -453,6 +453,10 @@ public class BenchConst {
         return getPropertyInt("init.item.manufacturing.size");
     }
 
+    public static int initCostFactoryPerMeterial() {
+        return getPropertyInt("init.cost.factory.per.material", -1);
+    }
+
     public static int initParallelism() {
         int defaultValue = Runtime.getRuntime().availableProcessors();
         return getPropertyInt("init.parallelism", defaultValue);

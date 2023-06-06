@@ -137,6 +137,9 @@
   - 品目マスターの「原料」の数（item_masterに生成するraw_materialのレコード数）
 - init.item.manufacturing.size
   - 製造品目数（item_manufacturing_masterに生成するレコード数）
+- init.cost.factory.per.material
+  - 原価マスターの原料毎の対象工場数（cost_masterに生成する原料毎のレコード数）
+  - デフォルトは工場数の50％
 - init.dbmanager.multi.session
   - スレッド毎にTsurugiのセッションを作るかどうか。デフォルトはtrue（セッションを作る）
 - init.parallelism
