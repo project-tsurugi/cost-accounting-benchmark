@@ -202,7 +202,7 @@ public class OnlineCbCommand implements ExecutableCommand {
     }
 
     private void writeOnlineAppReport(OnlineConfig config, OnlineResult record, Path outputPath) {
-        String title = record.dbmsType().name() + " " + config.getLabel() + " " + record.option("online") + ":" + record.option("periodic") + " coverRate=" + config.getCoverRate();
-        onlineAppReport.writeOnlineAppReport(config, title, outputPath, dedicatedTime);
+        var title = OnlineAppReportHeader.ofOnline(record.dbmsType(), config.getLabel(), record.option("online"), record.option("periodic"), config.getCoverRate());
+        onlineAppReport.writeOnlineAppReport(config, title, outputPath, dedicatedTime, null);
     }
 }

@@ -258,6 +258,14 @@ public class BenchConst {
         return getPropertyBoolean("batch-command.with.online", false);
     }
 
+    public static Path batchCommandOnlineCompareBase() {
+        String s = getProperty("batch-command.online.compare.base", null);
+        if (s != null) {
+            return Path.of(s);
+        }
+        return null;
+    }
+
     public static BatchFactoryOrder getBatchCommandFactoryOrder() {
         return getBatchFactoryOrder("batch-command.factory.order");
     }

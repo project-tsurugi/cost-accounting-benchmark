@@ -103,6 +103,11 @@ public class CostAccountingOnline {
         config.setMultiSession(BenchConst.onlineDbManagerMultiSession());
         config.setCoverRate(BenchConst.onlineCoverRate());
 
+        if (txOption) {
+            config.setTxOption("online", BenchConst.onlineTsurugiTxOption(null));
+            config.setTxOption("periodic", BenchConst.periodicTsurugiTxOption(null));
+        }
+
         for (String taskName : BenchOnlineTask.TASK_NAME_LIST) {
             if (txOption) {
                 config.setTxOption(taskName, BenchConst.onlineTsurugiTxOption(taskName));

@@ -27,6 +27,7 @@ import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline;
 import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.benchmark.costaccounting.online.command.OnlineAppReport;
+import com.tsurugidb.benchmark.costaccounting.online.command.OnlineAppReportHeader;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.benchmark.costaccounting.watcher.TateyamaWatcher;
@@ -285,7 +286,8 @@ public class BatchCbCommand implements ExecutableCommand {
     }
 
     private void writeOnlineAppReport(OnlineConfig onlineConfig, BatchRecord record, Path outputPath) {
-        String title = record.dbmsType().name() + " " + record.factory() + " " + record.scope() + " " + record.option() + " coverRate=" + onlineConfig.getCoverRate();
-        onlineAppReport.writeOnlineAppReport(onlineConfig, title, outputPath, dedicatedTime);
+        var title = OnlineAppReportHeader.ofBatch(record.dbmsType(), record.label(), record.scope(), record.option(), onlineConfig);
+        var compareBaseFile = BenchConst.batchCommandOnlineCompareBase();
+        onlineAppReport.writeOnlineAppReport(onlineConfig, title, outputPath, dedicatedTime, compareBaseFile);
     }
 }

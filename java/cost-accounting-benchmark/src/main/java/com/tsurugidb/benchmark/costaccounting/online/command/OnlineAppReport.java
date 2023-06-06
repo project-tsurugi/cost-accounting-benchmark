@@ -4,8 +4,13 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +25,14 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 public class OnlineAppReport {
     private static final Logger LOG = LoggerFactory.getLogger(OnlineAppReport.class);
 
-    private final StringBuilder onlineAppReport = new StringBuilder("# Online Application Report \n");
+    private static final String HEADER1 = "# Online Application Report";
 
-    public void writeOnlineAppReport(OnlineConfig config, String title, Path outputPath, long dedicatedTime) {
+    private final StringBuilder onlineAppReport = new StringBuilder(HEADER1 + "\n");
+
+    public void writeOnlineAppReport(OnlineConfig config, OnlineAppReportHeader title, Path outputPath, long dedicatedTime, Path compareBaseFile) {
         LOG.debug("Creating an online application report for {}", title);
 
-        String newReport = createOnlineAppReport(config, title, dedicatedTime);
+        String newReport = createOnlineAppReport(config, title, dedicatedTime, compareBaseFile);
         LOG.debug("Online application report: {}", newReport);
         this.onlineAppReport.append(newReport);
 
@@ -63,7 +70,7 @@ public class OnlineAppReport {
         }
     }
 
-    private String createOnlineAppReport(OnlineConfig config, String title, long dedicatedTime) {
+    private String createOnlineAppReport(OnlineConfig config, OnlineAppReportHeader title, long dedicatedTime, Path compareBaseFile) {
         var sb = new StringBuilder(2048);
         sb.append("\n");
 
@@ -87,19 +94,42 @@ public class OnlineAppReport {
         sb.append("\n");
 
         // time
+        OnlineAppReportHeader compareBaseKey = null;
+        Map<String, OnlineTimeRecord> compareBaseMap = Map.of();
+        {
+            LOG.info("compareBaseFile={}", compareBaseFile);
+            if (compareBaseFile != null) {
+                var allMap = readCompareBaseFile(compareBaseFile);
+                var key = getCompareBaseKey(config, title, allMap);
+                if (key != null) {
+                    LOG.info("compare base=[{}]", key);
+                    compareBaseKey = key;
+                    compareBaseMap = allMap.get(compareBaseKey);
+                }
+            }
+        }
         appendHeader(sb, OnlineTimeRecord.HEADER_LIST);
         for (String taskName : BenchOnlineTask.TASK_NAME_LIST) {
-            cerateOnlineTimeReport(config, sb, taskName, dedicatedTime);
+            var compareBaseRecord = compareBaseMap.get(taskName);
+            cerateOnlineTimeReport(config, sb, taskName, dedicatedTime, compareBaseRecord);
         }
         for (String taskName : BenchPeriodicTask.TASK_NAME_LIST) {
-            cerateOnlineTimeReport(config, sb, taskName, dedicatedTime);
+            var compareBaseRecord = compareBaseMap.get(taskName);
+            cerateOnlineTimeReport(config, sb, taskName, dedicatedTime, compareBaseRecord);
+        }
+
+        if (compareBaseKey != null) {
+            sb.append("\n");
+            sb.append("compare with ");
+            sb.append(compareBaseKey);
+            sb.append("\n\n");
         }
 
         return sb.toString();
     }
 
-    private void appendHeader(StringBuilder sb, List<String> list) {
-        for (String header : list) {
+    private static void appendHeader(StringBuilder sb, List<String> headerList) {
+        for (String header : headerList) {
             sb.append(header);
             sb.append("\n");
         }
@@ -125,11 +155,96 @@ public class OnlineAppReport {
         }
     }
 
-    private void cerateOnlineTimeReport(OnlineConfig config, StringBuilder sb, String taskName, long dedicatedTime) {
+    private void cerateOnlineTimeReport(OnlineConfig config, StringBuilder sb, String taskName, long dedicatedTime, OnlineTimeRecord compareBaseRecord) {
         var counter = CostBenchDbManager.getCounter();
 
-        var record = new OnlineTimeRecord(config, taskName, dedicatedTime, counter);
+        var record = OnlineTimeRecord.of(config, taskName, dedicatedTime, counter, compareBaseRecord);
         sb.append(record);
         sb.append("\n");
+    }
+
+    // compare base
+
+    private Map<OnlineAppReportHeader, Map<String, OnlineTimeRecord>> readCompareBaseFile(Path compareBaseFile) {
+        List<String> lines;
+        try {
+            lines = Files.readAllLines(compareBaseFile);
+        } catch (IOException e) {
+            LOG.warn("read compareBaseFile error", e);
+            return Map.of();
+        }
+
+        var allMap = new LinkedHashMap<OnlineAppReportHeader, Map<String, OnlineTimeRecord>>();
+
+        OnlineAppReportHeader header = null;
+        boolean onlineAppFile = false;
+        for (String line : lines) {
+            if (line.isEmpty()) {
+                continue;
+            }
+            if (line.contains(HEADER1)) {
+                onlineAppFile = true;
+                continue;
+            }
+            if (!onlineAppFile) {
+                continue;
+            }
+            if (line.startsWith("## ")) {
+                header = OnlineAppReportHeader.parse(line.substring(2).trim());
+                continue;
+            }
+
+            var record = OnlineTimeRecord.parse(line);
+            if (record != null) {
+                var map = allMap.computeIfAbsent(header, k -> new LinkedHashMap<>());
+                map.put(record.taskName(), record);
+            }
+        }
+
+        return allMap;
+    }
+
+    private OnlineAppReportHeader getCompareBaseKey(OnlineConfig config, OnlineAppReportHeader title, Map<OnlineAppReportHeader, Map<String, OnlineTimeRecord>> allMap) {
+        if (allMap.isEmpty()) {
+            return null;
+        }
+
+        List<OnlineAppReportHeader> keyList = new ArrayList<>(allMap.keySet());
+        if (keyList.size() == 1) {
+            return keyList.get(0);
+        }
+
+        { // coverRate
+            int coverRate = config.getCoverRate();
+            keyList = filterKey(keyList, it -> it.coverRate() == coverRate);
+            if (keyList.size() == 1) {
+                return keyList.get(0);
+            }
+        }
+        { // onlineTxOption
+            String onlineTxOption = config.getTxOption("online");
+            keyList = filterKey(keyList, it -> it.onlineTxOption().equals(onlineTxOption));
+            if (keyList.size() == 1) {
+                return keyList.get(0);
+            }
+        }
+        { // periodicTxOption
+            String periodicTxOption = config.getTxOption("periodic");
+            keyList = filterKey(keyList, it -> it.onlineTxOption().equals(periodicTxOption));
+            if (keyList.size() == 1) {
+                return keyList.get(0);
+            }
+        }
+
+        LOG.warn("can't decide on one. {}", keyList);
+        return keyList.get(0);
+    }
+
+    private List<OnlineAppReportHeader> filterKey(List<OnlineAppReportHeader> keyList, Predicate<OnlineAppReportHeader> predicate) {
+        List<OnlineAppReportHeader> keys = keyList.stream().filter(predicate).collect(Collectors.toList());
+        if (!keys.isEmpty()) {
+            return keys;
+        }
+        return keyList;
     }
 }

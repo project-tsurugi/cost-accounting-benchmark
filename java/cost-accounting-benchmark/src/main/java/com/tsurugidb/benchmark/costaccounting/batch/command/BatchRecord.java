@@ -111,7 +111,7 @@ public class BatchRecord {
         }
     }
 
-    public String factory() {
+    public String label() {
         String label = BenchConst.batchCommandLabel();
         if (label != null) {
             return label;
@@ -146,8 +146,8 @@ public class BatchRecord {
         sb.append(option());
         sb.append(", scope=");
         sb.append(scope());
-        sb.append(", factoryCount=");
-        sb.append(factory());
+        sb.append(", label=");
+        sb.append(label());
         if (this.onlineConfig != null) {
             sb.append(", coverRate=");
             sb.append(onlineConfig.getCoverRate());
@@ -166,7 +166,7 @@ public class BatchRecord {
         sb.append(",");
         sb.append(scope());
         sb.append(",");
-        sb.append(factory());
+        sb.append(label());
         sb.append(" ");
         sb.append(itemCount);
         sb.append(",");
