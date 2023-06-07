@@ -124,3 +124,9 @@ startScripts {
     mainClass = 'com.tsurugidb.benchmark.costaccounting.Main'
     applicationDefaultJvmArgs = ['-Dcom.tsurugidb.tsubakuro.jniverify=false']
 }
+
+distTar {
+    archiveFileName = "${project.name}.tar.gz"
+    archiveExtension = 'tar.gz'
+    compression = Compression.GZIP
+}
