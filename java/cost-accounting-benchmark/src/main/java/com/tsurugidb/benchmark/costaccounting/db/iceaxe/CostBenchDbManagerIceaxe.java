@@ -5,6 +5,7 @@ import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -50,6 +51,7 @@ import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManagerIceaxe.class);
 
+    private final AtomicBoolean closed = new AtomicBoolean(false);
     private final TsurugiConnector connector;
     private final TgSessionOption sessionOption;
     private final TsurugiTransactionManager singleTransactionManager;
@@ -57,6 +59,9 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     private final ThreadLocal<TsurugiTransactionManager> transactionManagerThreadLocal = new ThreadLocal<>() {
         @Override
         protected TsurugiTransactionManager initialValue() {
+            if (closed.get()) {
+                throw new IllegalStateException(Thread.currentThread().getName() + " CostBenchDbManagerIceaxe already closed");
+            }
             try {
                 var session = connector.createSession(sessionOption);
                 sessionList.add(session);
@@ -355,6 +360,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
 
     @Override
     public void close() {
+        closed.set(true);
         closeConnectionAll();
     }
 

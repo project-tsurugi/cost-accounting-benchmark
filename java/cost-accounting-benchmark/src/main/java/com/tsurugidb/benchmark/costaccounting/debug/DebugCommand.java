@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import com.tsurugidb.benchmark.costaccounting.ExecutableCommand;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
-import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
@@ -31,9 +30,14 @@ import com.tsurugidb.iceaxe.TsurugiConnector;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
+import com.tsurugidb.sql.proto.SqlRequest.TransactionOption;
+import com.tsurugidb.sql.proto.SqlRequest.TransactionType;
 import com.tsurugidb.tsubakuro.channel.common.connection.Connector;
 import com.tsurugidb.tsubakuro.common.Session;
 import com.tsurugidb.tsubakuro.common.SessionBuilder;
+import com.tsurugidb.tsubakuro.exception.ServerException;
+import com.tsurugidb.tsubakuro.sql.ResultSet;
+import com.tsurugidb.tsubakuro.sql.SqlClient;
 
 public class DebugCommand implements ExecutableCommand {
     private static final Logger LOG = LoggerFactory.getLogger(DebugCommand.class);
@@ -56,6 +60,9 @@ public class DebugCommand implements ExecutableCommand {
         case "tsubakuro":
             tsubakuro();
             break;
+        case "tsubakuro-rs.close":
+            tsubakuroResultSetClose();
+            break;
         case "manager":
             debugManager();
             break;
@@ -71,8 +78,8 @@ public class DebugCommand implements ExecutableCommand {
         case "fetch":
             new DebugSelectFetch(args).execute();
             break;
-        case "select-cost":
-            selectCost(arg(args, 2, "txOption"));
+        case "select-result":
+            selectResult();
             break;
         case "insert-stock":
             insertStock(arg(args, 2, "txOption"), argInt(args, 3, "recordSize"));
@@ -157,6 +164,80 @@ public class DebugCommand implements ExecutableCommand {
             }
         }
         LOG.info("close session end");
+    }
+
+    private void tsubakuroResultSetClose() {
+        var endpoint = BenchConst.tsurugiEndpoint();
+        LOG.info("endpoint={}", endpoint);
+        var connector = Connector.create(endpoint);
+
+        var sessionList = new ArrayList<Session>();
+        var threadList = new ArrayList<Thread>();
+        ResultSet[] resultSet = { null };
+        {
+            Session session;
+            try {
+                session = SessionBuilder.connect(connector).create();
+            } catch (Exception e) {
+                LOG.warn("connect error. {}: {}", e.getClass().getName(), e.getMessage());
+                return;
+            }
+            LOG.info("session created. {}", session);
+            sessionList.add(session);
+            var sqlClient = SqlClient.attach(session);
+
+            var thread = new Thread(() -> {
+                var option = TransactionOption.newBuilder().setType(TransactionType.SHORT).build();
+                try (var transaction = sqlClient.createTransaction(option).await()) {
+                    try (var rs = transaction.executeQuery("select * from result_table").await()) {
+                        resultSet[0] = rs;
+                        while (rs.nextRow()) {
+                        }
+                    }
+                } catch (ServerException | IOException | InterruptedException e) {
+                    LOG.error("thread error", e);
+                    throw new RuntimeException(e);
+                }
+            });
+            threadList.add(thread);
+            thread.start();
+        }
+
+        while (resultSet[0] == null) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                LOG.warn("resultSet wait error", e);
+            }
+        }
+
+        LOG.info("resultSet close start");
+        try {
+            resultSet[0].close();
+        } catch (ServerException | IOException | InterruptedException e) {
+            LOG.warn("resultSet close error", e);
+        }
+        LOG.info("resultSet close end");
+
+        LOG.info("close session start");
+        for (var session : sessionList) {
+            try {
+                session.close();
+            } catch (Exception e) {
+                LOG.warn("close error", e);
+            }
+        }
+        LOG.info("close session end");
+
+        LOG.info("thread join start");
+        for (var thread : threadList) {
+            try {
+                thread.join();
+            } catch (Exception e) {
+                LOG.warn("thread join error", e);
+            }
+        }
+        LOG.info("thread join end");
     }
 
     private void debugManager() {
@@ -280,22 +361,31 @@ public class DebugCommand implements ExecutableCommand {
         }
     }
 
-    private void selectCost(String txType) {
+    private void selectResult() throws InterruptedException {
+        Thread thread;
         try (var dbManager = createDbManager()) {
-            LOG.info("selectCost start");
-            var setting = TgTmSetting.of(getTxOption(txType, CostMasterDao.TABLE_NAME));
-            long start = System.currentTimeMillis();
-            dbManager.execute(setting, () -> {
-                var costMasterDao = dbManager.getCostMasterDao();
-                int[] count = { 0 };
-                try (var stream = costMasterDao.selectAll()) {
-                    stream.forEach(cost -> count[0]++);
-                }
-                LOG.info("selectCost count={}", count[0]);
+            thread = new Thread(() -> {
+                LOG.info("selectResult start");
+                var setting = TgTmSetting.of(TgTxOption.ofOCC());
+                long start = System.currentTimeMillis();
+                dbManager.execute(setting, () -> {
+                    var dao = dbManager.getResultTableDao();
+                    int[] count = { 0 };
+                    dao.forEach(entity -> {
+                        count[0]++;
+                    });
+                    LOG.info("selectResult count={}", count[0]);
+                });
+                long end = System.currentTimeMillis();
+                LOG.info("selectResult end {}", end - start);
             });
-            long end = System.currentTimeMillis();
-            LOG.info("selectCost end {}", end - start);
+            thread.start();
+            Thread.sleep(2000);
         }
+
+        LOG.info("thread join start");
+        thread.join();
+        LOG.info("thread join end");
     }
 
     private TgTxOption getTxOption(String type, String wp) {
