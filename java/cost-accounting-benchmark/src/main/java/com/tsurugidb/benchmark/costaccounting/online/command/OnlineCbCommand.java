@@ -40,7 +40,8 @@ public class OnlineCbCommand implements ExecutableCommand {
 
     @Override
     public int executeCommand(String... args) throws Exception {
-        var outputPath = Path.of(BenchConst.onlineCommandResultFile());
+        var outputCsvPath = Path.of(BenchConst.onlineCommandResultFile());
+        var onlineReportPath = Path.of(BenchConst.onlineCommandOnlineReport());
 
         var isolationList = BenchConst.onlineCommandIsolationLevel();
         LOG.info("isolationList={}", isolationList);
@@ -72,8 +73,8 @@ public class OnlineCbCommand implements ExecutableCommand {
 
                         exitCode |= execute1(config, i, records);
 
-                        writeResult(outputPath, records);
-                        writeOnlineAppReport(config, records.get(records.size() - 1), outputPath);
+                        writeResult(outputCsvPath, records);
+                        writeOnlineAppReport(config, records.get(records.size() - 1), onlineReportPath);
                     }
                 }
             }
@@ -201,8 +202,8 @@ public class OnlineCbCommand implements ExecutableCommand {
         }
     }
 
-    private void writeOnlineAppReport(OnlineConfig config, OnlineResult record, Path outputPath) {
+    private void writeOnlineAppReport(OnlineConfig config, OnlineResult record, Path onlineReportPath) {
         var title = OnlineAppReportHeader.ofOnline(record.dbmsType(), config.getLabel(), record.option("online"), record.option("periodic"), config.getCoverRate());
-        onlineAppReport.writeOnlineAppReport(config, title, outputPath, dedicatedTime, null);
+        onlineAppReport.writeOnlineAppReport(config, title, onlineReportPath, dedicatedTime, null);
     }
 }

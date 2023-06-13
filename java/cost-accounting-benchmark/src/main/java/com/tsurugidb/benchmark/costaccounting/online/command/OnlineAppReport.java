@@ -29,44 +29,18 @@ public class OnlineAppReport {
 
     private final StringBuilder onlineAppReport = new StringBuilder(HEADER1 + "\n");
 
-    public void writeOnlineAppReport(OnlineConfig config, OnlineAppReportHeader title, Path outputPath, long dedicatedTime, Path compareBaseFile) {
+    public void writeOnlineAppReport(OnlineConfig config, OnlineAppReportHeader title, Path onlineReportPath, long dedicatedTime, Path compareBaseFile) {
         LOG.debug("Creating an online application report for {}", title);
 
         String newReport = createOnlineAppReport(config, title, dedicatedTime, compareBaseFile);
         LOG.debug("Online application report: {}", newReport);
         this.onlineAppReport.append(newReport);
 
-        Path outputFile = getOutputFile(outputPath);
-        LOG.debug("Writing online application reports to {}", outputFile.toAbsolutePath());
+        LOG.debug("Writing online application reports to {}", onlineReportPath.toAbsolutePath());
         try {
-            Files.writeString(outputFile, onlineAppReport);
+            Files.writeString(onlineReportPath, onlineAppReport);
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
-        }
-    }
-
-    private Path getOutputFile(Path outputPath) {
-        String fileName;
-        {
-            var outputFileName = outputPath.getFileName();
-            if (outputFileName == null) {
-                fileName = "online-app.md";
-            } else {
-                var batchFileName = outputFileName.toString();
-                int n = batchFileName.lastIndexOf(".");
-                if (n >= 0) {
-                    fileName = batchFileName.substring(0, n) + ".online-app.md";
-                } else {
-                    fileName = batchFileName + ".online-app.md";
-                }
-            }
-        }
-
-        var dir = outputPath.getParent();
-        if (dir != null) {
-            return dir.resolve(fileName);
-        } else {
-            return Path.of(fileName);
         }
     }
 

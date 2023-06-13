@@ -49,9 +49,12 @@ public class BatchCbCommand implements ExecutableCommand {
     @Override
     public int executeCommand(String... args) throws Exception {
         this.baseResultFile = null;
-        var outputPath = Path.of(BenchConst.batchCommandResultFile());
-
+        var outputCsvPath = Path.of(BenchConst.batchCommandResultFile());
         boolean withOnline = BenchConst.batchCommandOnline();
+        Path onlineReportPath = null;
+        if (withOnline) {
+            onlineReportPath = Path.of(BenchConst.batchCommandOnlineReport());
+        }
 
         var executeList = Arrays.stream(BenchConst.batchCommandExecuteType().split(",")).map(String::trim).collect(Collectors.toList());
         LOG.info("executeList={}", executeList);
@@ -103,9 +106,9 @@ public class BatchCbCommand implements ExecutableCommand {
                                 }
                                 exitCode |= execute1(id++, config, onlineConfig, i, records);
 
-                                writeResult(outputPath, records);
-                                if (BenchConst.batchCommandOnline()) {
-                                    writeOnlineAppReport(onlineConfig, records.get(records.size() - 1), outputPath);
+                                writeResult(outputCsvPath, records);
+                                if (withOnline) {
+                                    writeOnlineAppReport(onlineConfig, records.get(records.size() - 1), onlineReportPath);
                                 }
                             }
                         }
@@ -285,9 +288,9 @@ public class BatchCbCommand implements ExecutableCommand {
         }
     }
 
-    private void writeOnlineAppReport(OnlineConfig onlineConfig, BatchRecord record, Path outputPath) {
+    private void writeOnlineAppReport(OnlineConfig onlineConfig, BatchRecord record, Path onlineReportPath) {
         var title = OnlineAppReportHeader.ofBatch(record.dbmsType(), record.label(), record.scope(), record.option(), onlineConfig);
         var compareBaseFile = BenchConst.batchCommandOnlineCompareBase();
-        onlineAppReport.writeOnlineAppReport(onlineConfig, title, outputPath, dedicatedTime, compareBaseFile);
+        onlineAppReport.writeOnlineAppReport(onlineConfig, title, onlineReportPath, dedicatedTime, compareBaseFile);
     }
 }

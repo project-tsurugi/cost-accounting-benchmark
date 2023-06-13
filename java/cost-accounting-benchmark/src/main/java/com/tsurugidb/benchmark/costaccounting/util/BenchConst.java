@@ -246,6 +246,10 @@ public class BenchConst {
         return getProperty("batch-command.result.file");
     }
 
+    public static String batchCommandOnlineReport() {
+        return getProperty("batch-command.online.report");
+    }
+
     public static boolean batchCommandInitData() {
         return getPropertyBoolean("batch-command.with.initdata", false);
     }
@@ -413,6 +417,10 @@ public class BenchConst {
 
     public static String onlineCommandResultFile() {
         return getProperty("online-command.result.file");
+    }
+
+    public static String onlineCommandOnlineReport() {
+        return getProperty("online-command.online.report");
     }
 
     // initial data

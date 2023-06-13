@@ -295,8 +295,7 @@
   - result_tableのダンプを出力するディレクトリー。バッチ処理を複数回実行する場合、最初にダンプしたファイルとの差異が無いかどうかをチェックする
   - このプロパティーを指定しない場合、ダンプファイルを出力せず、比較も行わない
 - batch-command.result.file
-  - 実行結果（処理時間やリトライ回数等）を出力するファイルのパス
-  - オンライン処理と同時に実行した場合は、拡張子csvをonline-app.mdに変えたファイルも出力する
+  - 実行結果（処理時間やリトライ回数等）を出力するcsvファイルのパス
 - batch-command.with.initdata
   - バッチ処理の実行前に初期データ作成処理（データの初期化・再作成）を行うかどうか
   - デフォルトはfalse（初期化しない）
@@ -306,6 +305,8 @@
   - 同時に実行するオンライン処理のパラメーターは、通常のオンライン処理のものと同じ
 - batch-command.online.cover.rate
   - オンライン処理でランダムにIDを決定する元となる一覧のカバー率（カンマ区切りで複数指定）
+- batch-command.online.report
+  - オンライン処理の実行結果（処理時間やリトライ回数等）を出力するmdファイルのパス
 - batch-command.online.compare.base
   - 他で実行したオンラインの実行結果ファイルのパス
     - 実行結果ファイルに、このファイルに出力されている実行時間と今回の実行時間の比較を出力する
@@ -314,17 +315,21 @@
 
 ```properties
 ## batch-command
-batch-command.execute.type=parallel-factory-tx, parallel-factory-session
-batch-command.factory.list=all
-batch-command.thread.size=-1
-batch-command.isolation.level=SERIALIZABLE
-batch-command.tx.option=OCC, LTX
+batch-command.execute.type=parallel-factory-session
+batch-command.tx.option=OCC,LTX
 batch-command.execute.times=1
+batch-command.factory.list=all
+batch-command.factory.order=none
+batch-command.thread.size=-1
 batch-command.diff.dir=/tmp/cost-accounting-benchmark/diff
-batch-command.result.file=/tmp/cost-accounting-benchmark/batch-command/batch.tsurugi.csv
+batch-command.label=medium.online_var
+batch-command.result.file=/tmp/cost-accounting-benchmark/batch-command/tsurugi.medium.online_var.csv
 batch-command.with.initdata=true
+batch-command.with.prebatch=true
 batch-command.with.online=true
-batch-command.online.cover.rate=100,75,50,25
+batch-command.online.cover.rate=100,25
+batch-command.online.report=/tmp/cost-accounting-benchmark/batch-command/tsurugi.medium.online_var.online-app.md
+batch-command.online.compare.base=/tmp/cost-accounting-benchmark/online-command/tsurugi.medium.online-app.md
 ```
 
 
@@ -369,7 +374,9 @@ batch-command.online.cover.rate=100,75,50,25
   - オンライン処理を実行する時間（秒）
     - バッチ処理を実行する代わりにこの時間スリープし、その間に別スレッドで各オンライン処理を実行する
 - online-command.result.file
-  - 実行結果（処理時間やリトライ回数等）を出力するファイルのパス
+  - 実行結果（処理時間やリトライ回数等）を出力するcsvファイルのパス
+- online-command.online.report
+  - オンライン処理の実行結果（処理時間やリトライ回数等）を出力するmdファイルのパス
 
 #### オンライン一括実行用プロパティーの例
 
@@ -383,6 +390,7 @@ online-command.with.initdata=true
 online-command.with.prebatch=true
 online-command.execute.time=100
 online-command.result.file=/tmp/cost-accounting-benchmark/online-command/tsurugi.medium.csv
+online-command.online.report=/tmp/cost-accounting-benchmark/online-command/tsurugi.medium.online-app.md
 ```
 
 
