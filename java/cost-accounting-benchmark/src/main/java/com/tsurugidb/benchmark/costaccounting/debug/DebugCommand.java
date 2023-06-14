@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -38,6 +39,7 @@ import com.tsurugidb.tsubakuro.common.SessionBuilder;
 import com.tsurugidb.tsubakuro.exception.ServerException;
 import com.tsurugidb.tsubakuro.sql.ResultSet;
 import com.tsurugidb.tsubakuro.sql.SqlClient;
+import com.tsurugidb.tsubakuro.util.FutureResponse;
 
 public class DebugCommand implements ExecutableCommand {
     private static final Logger LOG = LoggerFactory.getLogger(DebugCommand.class);
@@ -62,6 +64,9 @@ public class DebugCommand implements ExecutableCommand {
             break;
         case "tsubakuro-rs.close":
             tsubakuroResultSetClose();
+            break;
+        case "tsubakuro-tx.close":
+            tsubakuroTransactionClose();
             break;
         case "manager":
             debugManager();
@@ -238,6 +243,85 @@ public class DebugCommand implements ExecutableCommand {
             }
         }
         LOG.info("thread join end");
+    }
+
+    private void tsubakuroTransactionClose() {
+        var endpoint = BenchConst.tsurugiEndpoint();
+        LOG.info("endpoint={}", endpoint);
+        var connector = Connector.create(endpoint);
+
+        var sessionList = new ArrayList<Session>();
+        var threadList = new ArrayList<Thread>();
+        try {
+            final AtomicReference<FutureResponse<?>> transactionReference = new AtomicReference<>();
+            {
+                Session session;
+                try {
+                    session = SessionBuilder.connect(connector).create();
+                } catch (Exception e) {
+                    LOG.warn("connect error. {}: {}", e.getClass().getName(), e.getMessage());
+                    return;
+                }
+                LOG.info("session created. {}", session);
+                sessionList.add(session);
+                var sqlClient = SqlClient.attach(session);
+
+                var thread = new Thread(() -> {
+                    var option = TransactionOption.newBuilder().setType(TransactionType.SHORT).build();
+                    LOG.info("transaction start");
+                    try (var transaction0 = sqlClient.createTransaction(option)) {
+                        LOG.info("transaction started. {}", transaction0);
+                        transactionReference.set(transaction0);
+                        LOG.info("transaction await start");
+                        var transaction = transaction0.await();
+                        LOG.info("transaction await end. {}", transaction);
+                        try (var rs = transaction.executeQuery("select * from result_table").await()) {
+                            while (rs.nextRow()) {
+                            }
+                        }
+                    } catch (ServerException | IOException | InterruptedException e) {
+                        LOG.error("thread error", e);
+                        throw new RuntimeException(e);
+                    }
+                });
+                threadList.add(thread);
+                thread.start();
+            }
+
+            LOG.info("transactionFuture wait start");
+            while (transactionReference.get() == null) {
+            }
+            LOG.info("transactionFuture wait end");
+
+            LOG.info("transactionFuture close start");
+            try {
+                transactionReference.get().close();
+            } catch (ServerException | IOException | InterruptedException e) {
+                LOG.warn("transactionFuture close error", e);
+            }
+            LOG.info("transactionFuture close end");
+
+        } finally {
+            LOG.info("close session start");
+            for (var session : sessionList) {
+                try {
+                    session.close();
+                } catch (Exception e) {
+                    LOG.warn("close error", e);
+                }
+            }
+            LOG.info("close session end");
+
+            LOG.info("thread join start");
+            for (var thread : threadList) {
+                try {
+                    thread.join();
+                } catch (Exception e) {
+                    LOG.warn("thread join error", e);
+                }
+            }
+            LOG.info("thread join end");
+        }
     }
 
     private void debugManager() {
