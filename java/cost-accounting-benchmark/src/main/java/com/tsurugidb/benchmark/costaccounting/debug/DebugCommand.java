@@ -8,6 +8,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -171,7 +172,7 @@ public class DebugCommand implements ExecutableCommand {
         LOG.info("close session end");
     }
 
-    private void tsubakuroResultSetClose() {
+    private void tsubakuroResultSetClose() throws Exception {
         var endpoint = BenchConst.tsurugiEndpoint();
         LOG.info("endpoint={}", endpoint);
         var connector = Connector.create(endpoint);
@@ -180,12 +181,13 @@ public class DebugCommand implements ExecutableCommand {
         var threadList = new ArrayList<Thread>();
         ResultSet[] resultSet = { null };
         {
+            LOG.info("connect start");
             Session session;
             try {
-                session = SessionBuilder.connect(connector).create();
+                session = SessionBuilder.connect(connector).create(1, TimeUnit.MINUTES);
             } catch (Exception e) {
                 LOG.warn("connect error. {}: {}", e.getClass().getName(), e.getMessage());
-                return;
+                throw e;
             }
             LOG.info("session created. {}", session);
             sessionList.add(session);
@@ -245,7 +247,7 @@ public class DebugCommand implements ExecutableCommand {
         LOG.info("thread join end");
     }
 
-    private void tsubakuroTransactionClose() {
+    private void tsubakuroTransactionClose() throws Exception {
         var endpoint = BenchConst.tsurugiEndpoint();
         LOG.info("endpoint={}", endpoint);
         var connector = Connector.create(endpoint);
@@ -255,12 +257,13 @@ public class DebugCommand implements ExecutableCommand {
         try {
             final AtomicReference<FutureResponse<?>> transactionReference = new AtomicReference<>();
             {
+                LOG.info("connect start");
                 Session session;
                 try {
-                    session = SessionBuilder.connect(connector).create();
+                    session = SessionBuilder.connect(connector).create(1, TimeUnit.MINUTES);
                 } catch (Exception e) {
                     LOG.warn("connect error. {}: {}", e.getClass().getName(), e.getMessage());
-                    return;
+                    throw e;
                 }
                 LOG.info("session created. {}", session);
                 sessionList.add(session);
