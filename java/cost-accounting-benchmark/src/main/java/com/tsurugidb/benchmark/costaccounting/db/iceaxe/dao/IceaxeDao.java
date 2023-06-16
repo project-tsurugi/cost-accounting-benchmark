@@ -411,7 +411,7 @@ public abstract class IceaxeDao<E> {
     // TODO 暫定リトライ判定を廃止して正式版にする
     private void wipRetry(TsurugiTransactionException e) {
         if (e.getDiagnosticCode() == SqlServiceCode.ERR_ABORTED) {
-            throw new TsurugiTransactionRuntimeException(new TsurugiTransactionException("(WIP) retry", SqlServiceCode.ERR_ABORTED_RETRYABLE, e));
+            throw new TsurugiTransactionRuntimeException(new TsurugiTransactionException("(WIP) retry", SqlServiceCode.ERR_SERIALIZATION_FAILURE, e));
         }
     }
 

@@ -259,7 +259,7 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
 
     protected boolean isRetyiableTsurugiException(ServerException e) {
         var code = e.getDiagnosticCode();
-        return code == SqlServiceCode.ERR_ABORTED_RETRYABLE;
+        return code == SqlServiceCode.ERR_SERIALIZATION_FAILURE;
     }
 
     @Override

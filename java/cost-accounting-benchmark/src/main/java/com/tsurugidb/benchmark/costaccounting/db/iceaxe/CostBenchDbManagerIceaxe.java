@@ -276,7 +276,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
             if (code == SqlServiceCode.ERR_ALREADY_EXISTS) {
                 throw new UniqueConstraintException(e);
             }
-            if (code == SqlServiceCode.ERR_ABORTED_RETRYABLE) {
+            if (code == SqlServiceCode.ERR_SERIALIZATION_FAILURE) {
                 String message = e.getMessage();
                 if (message.contains("Status=ERR_VALIDATION") && message.contains("reason=KVS_INSERT")) {
                     throw new UniqueConstraintException(e);
@@ -307,7 +307,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
 
     protected boolean isRetyiableTsurugiException(TsurugiDiagnosticCodeProvider e) {
         var code = e.getDiagnosticCode();
-        if (code == SqlServiceCode.ERR_ABORTED_RETRYABLE) {
+        if (code == SqlServiceCode.ERR_SERIALIZATION_FAILURE) {
             return true;
         }
         if (code == SqlServiceCode.ERR_CONFLICT_ON_WRITE_PRESERVE) {

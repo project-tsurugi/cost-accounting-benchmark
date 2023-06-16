@@ -143,7 +143,7 @@ public class BenchDbCounter extends TgTmLabelCounter {
             if (code == SqlServiceCode.ERR_CONFLICT_ON_WRITE_PRESERVE) {
                 counter.conflictOnWp.incrementAndGet();
             }
-            if (code == SqlServiceCode.ERR_ABORTED_RETRYABLE) {
+            if (code == SqlServiceCode.ERR_SERIALIZATION_FAILURE) {
                 String message = e.getMessage();
                 if (message.contains("shirakami response Status=ERR_CC")) {
                     if (message.contains("reason_code:CC_OCC_WP_VERIFY")) {
