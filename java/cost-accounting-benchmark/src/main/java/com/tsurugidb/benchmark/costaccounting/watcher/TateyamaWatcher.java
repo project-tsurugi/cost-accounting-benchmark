@@ -32,7 +32,7 @@ public class TateyamaWatcher implements Runnable {
         final NumberFormat fmt = NumberFormat.getNumberInstance(Locale.US);
 
         if (pid == -1) {
-            LOG.error("Unable to locate tateyama-server. Terminating TateyamaWatcher.");
+            LOG.error("Unable to locate tsurugidb. Terminating TateyamaWatcher.");
             return;
         }
         Path path = PROC.resolve(Integer.toString(pid)).resolve("status");
@@ -48,11 +48,11 @@ public class TateyamaWatcher implements Runnable {
                     }
                 }
             } catch (IOException e) {
-                String msg = "Unable to retrieve memory info for tateyama-server. It is possible that the server has crashed.";
+                String msg = "Unable to retrieve memory info for tsurugidb. It is possible that the server has crashed.";
                 LOG.error(msg, e);
                 throw new UncheckedIOException(e);
             }
-            LOG.debug("tateyama-server memory info: VSZ = {} bytes, RSS = {} bytes", fmt.format(vsz), fmt.format(rss));
+            LOG.debug("tsurugidb memory info: VSZ = {} bytes, RSS = {} bytes", fmt.format(vsz), fmt.format(rss));
             if (stopRequested.get()) {
                 break;
             }

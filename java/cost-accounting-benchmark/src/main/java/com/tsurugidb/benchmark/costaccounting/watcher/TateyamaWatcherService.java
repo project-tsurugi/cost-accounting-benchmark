@@ -19,7 +19,7 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 public class TateyamaWatcherService implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(TateyamaWatcherService.class);
 
-    private static final String SERVER_NAME = "libexec/tateyama-server";
+    private static final String SERVER_NAME = "libexec/tsurugidb";
     private static final Path PROC = Path.of("/proc");
 
     private final TateyamaWatcher task;
@@ -68,9 +68,9 @@ public class TateyamaWatcherService implements AutoCloseable {
                 }
                 UserPrincipal owner = Files.getOwner(cmdline);
                 if (!owner.getName().equals(me)) {
-                    LOG.info("Found tateyama-server pid = {}, bad owner is not {}", pid, me);
+                    LOG.info("Found tsurugidb pid = {}, bad owner is not {}", pid, me);
                 } else {
-                    LOG.info("Found tateyama-server pid = {}", pid);
+                    LOG.info("Found tsurugidb pid = {}", pid);
                     return pid;
                 }
             } catch (IOException e) {
@@ -103,7 +103,7 @@ public class TateyamaWatcherService implements AutoCloseable {
             double m = 1024d * 1024 * 1024; // GB
             var vsz = String.format("%.1f", task.getVsz() / m);
             var rss = String.format("%.1f", task.getRss() / m);
-            LOG.info("tateyama-server memory info: VSZ = {} GB, RSS = {} GB", vsz, rss);
+            LOG.info("tsurugidb memory info: VSZ = {} GB, RSS = {} GB", vsz, rss);
         }
     }
 }
