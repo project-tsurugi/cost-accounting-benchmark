@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.UserPrincipal;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -16,22 +16,23 @@ import org.slf4j.LoggerFactory;
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
-public class TateyamaWatcherService implements AutoCloseable {
-    private static final Logger LOG = LoggerFactory.getLogger(TateyamaWatcherService.class);
+public class TsurugidbWatcherService implements AutoCloseable {
+    private static final Logger LOG = LoggerFactory.getLogger(TsurugidbWatcherService.class);
 
     private static final String SERVER_NAME = "libexec/tsurugidb";
     private static final Path PROC = Path.of("/proc");
 
-    private final TateyamaWatcher task;
+    private final TsurugidbWatcher task;
+    private ExecutorService service;
     private Future<?> future;
 
-    public static TateyamaWatcherService of() {
-        TateyamaWatcher task = null;
+    public static TsurugidbWatcherService of() {
+        TsurugidbWatcher task = null;
         if (BenchConst.dbmsType() == DbmsType.TSURUGI) {
             int pid = findServerPid();
-            task = new TateyamaWatcher(pid);
+            task = new TsurugidbWatcher(pid);
         }
-        return new TateyamaWatcherService(task);
+        return new TsurugidbWatcherService(task);
     }
 
     /**
@@ -81,29 +82,34 @@ public class TateyamaWatcherService implements AutoCloseable {
         return -1;
     }
 
-    protected TateyamaWatcherService(TateyamaWatcher task) {
+    protected TsurugidbWatcherService(TsurugidbWatcher task) {
         this.task = task;
     }
 
-    public TateyamaWatcher start() {
+    public TsurugidbWatcher start() {
         if (this.task != null) {
-            var service = Executors.newFixedThreadPool(1);
+            this.service = Executors.newFixedThreadPool(1);
             this.future = service.submit(task);
+            LOG.info("TsurugidbWatcher started");
         }
 
         return this.task;
     }
 
     @Override
-    public void close() throws InterruptedException, ExecutionException {
+    public void close() throws Exception {
         if (this.task != null) {
-            task.stop();
-            future.get();
+            LOG.info("TsurugidbWatcher close start");
+            try (AutoCloseable c = () -> service.shutdownNow()) {
+                task.stop();
+                future.get();
 
-            double m = 1024d * 1024 * 1024; // GB
-            var vsz = String.format("%.1f", task.getVsz() / m);
-            var rss = String.format("%.1f", task.getRss() / m);
-            LOG.info("tsurugidb memory info: VSZ = {} GB, RSS = {} GB", vsz, rss);
+                double m = 1024d * 1024 * 1024; // GB
+                var vsz = String.format("%.1f", task.getVsz() / m);
+                var rss = String.format("%.1f", task.getRss() / m);
+                LOG.info("tsurugidb memory info: VSZ = {} GB, RSS = {} GB", vsz, rss);
+            }
+            LOG.info("TsurugidbWatcher close end");
         }
     }
 }

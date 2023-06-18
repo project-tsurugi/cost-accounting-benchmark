@@ -11,8 +11,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TateyamaWatcher implements Runnable {
-    private static final Logger LOG = LoggerFactory.getLogger(TateyamaWatcher.class);
+public class TsurugidbWatcher implements Runnable {
+    private static final Logger LOG = LoggerFactory.getLogger(TsurugidbWatcher.class);
 
     private static final Path PROC = Path.of("/proc");
 
@@ -22,13 +22,13 @@ public class TateyamaWatcher implements Runnable {
     private long vsz = -1;
     private long rss = -1;
 
-    public TateyamaWatcher(int pid) {
+    public TsurugidbWatcher(int pid) {
         this.pid = pid;
     }
 
     @Override
     public void run() {
-        Thread.currentThread().setName("TateyamaWatcher");
+        Thread.currentThread().setName("TsurugidbWatcher");
         final NumberFormat fmt = NumberFormat.getNumberInstance(Locale.US);
 
         if (pid == -1) {
@@ -59,9 +59,11 @@ public class TateyamaWatcher implements Runnable {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
+                LOG.error("TsurugidbWatcher thread interrupted", e);
                 throw new RuntimeException(e);
             }
         }
+        LOG.info("TsurugidbWatcher thread end");
     }
 
     public void stop() {

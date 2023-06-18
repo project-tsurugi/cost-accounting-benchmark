@@ -30,8 +30,8 @@ import com.tsurugidb.benchmark.costaccounting.online.command.OnlineAppReport;
 import com.tsurugidb.benchmark.costaccounting.online.command.OnlineAppReportHeader;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
-import com.tsurugidb.benchmark.costaccounting.watcher.TateyamaWatcher;
-import com.tsurugidb.benchmark.costaccounting.watcher.TateyamaWatcherService;
+import com.tsurugidb.benchmark.costaccounting.watcher.TsurugidbWatcher;
+import com.tsurugidb.benchmark.costaccounting.watcher.TsurugidbWatcherService;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 public class BatchCbCommand implements ExecutableCommand {
@@ -144,8 +144,8 @@ public class BatchCbCommand implements ExecutableCommand {
         CostBenchDbManager.initCounter();
 
         int exitCode;
-        TateyamaWatcher watcher;
-        try (var watcherService = TateyamaWatcherService.of()) {
+        TsurugidbWatcher watcher;
+        try (var watcherService = TsurugidbWatcherService.of()) {
             watcher = watcherService.start();
             exitCode = execute1Main(config, onlineConfig, attempt, records);
         }
