@@ -14,7 +14,37 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 public class BatchRecord {
 
     public static String header() {
-        return "dbmsType, option, cover rate, scope, label, elapsed[s], tryCount, abortCount, difference, vsz[GB], rss[GB]";
+        return "dbmsType, option, cover rate, scope, label, elapsed[s], elapsed rate[%], tryCount, abortCount, difference, vsz[GB], rss[GB]";
+    }
+
+    public static BatchRecordPart parse(String line) {
+        String[] ss = line.split(",");
+        if (ss.length != header().split(",").length) {
+            return null;
+        }
+        if (ss[0].contains("dbmsType")) {
+            return null;
+        }
+
+        var record = new BatchRecordPart(line);
+        try {
+            int i = 0;
+            record.dbmsType = ss[i++].trim();
+            record.option = ss[i++].trim();
+            record.onlineCoverRate = ss[i++].trim();
+            record.scope = ss[i++].trim();
+            record.label = ss[i++].trim();
+            record.elapsed = Double.parseDouble(ss[i++].trim());
+            i++; // elapsed rate
+            i++; // tryCount
+            i++; // abortCount
+            i++; // difference
+            record.vsz = ss[i++].trim();
+            record.rss = ss[i++].trim();
+        } catch (Exception e) {
+            throw new RuntimeException("parse error. line=" + line, e);
+        }
+        return record;
     }
 
     private final BatchConfig config;
@@ -29,6 +59,7 @@ public class BatchRecord {
     private String diffCount;
     private long vsz;
     private long rss;
+    private BatchRecordPart compareBaseRecord;
 
     public BatchRecord(BatchConfig config, @Nullable OnlineConfig onlineConfig, int attempt) {
         this.config = config;
@@ -138,6 +169,23 @@ public class BatchRecord {
         return BigDecimal.valueOf(elapsedMillis).divide(BigDecimal.valueOf(1000), 3, RoundingMode.UNNECESSARY).toPlainString();
     }
 
+    public String elapsedRate() {
+        if (this.compareBaseRecord == null) {
+            return "-";
+        }
+
+        double base = compareBaseRecord.getElapsed();
+        if (base == 0) {
+            return "-";
+        }
+        double value = elapsedMillis / 1000d;
+        return String.format("%,.2f", value / base * 100);
+    }
+
+    public void setCompareBaseRecord(BatchRecordPart compareBaseRecord) {
+        this.compareBaseRecord = compareBaseRecord;
+    }
+
     public String getParamString() {
         var sb = new StringBuilder(64);
         sb.append("dbmsType=");
@@ -171,6 +219,8 @@ public class BatchRecord {
         sb.append(itemCount);
         sb.append(",");
         sb.append(elapsedSec());
+        sb.append(",");
+        sb.append(elapsedRate());
         sb.append(",");
         sb.append(tryCount);
         sb.append(",");

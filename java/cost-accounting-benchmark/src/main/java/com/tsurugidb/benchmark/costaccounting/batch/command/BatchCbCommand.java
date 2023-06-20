@@ -184,6 +184,8 @@ public class BatchCbCommand implements ExecutableCommand {
             exitCode = batch.main(config);
             record.finish(batch.getItemCount(), batch.getTryCount(), batch.getAbortCount());
             this.dedicatedTime = record.elapsedMillis();
+            var compareBaseReadThread = new BatchRecordReadThread(record);
+            compareBaseReadThread.start();
 
             if (online != null) {
                 if (online.terminate(false) != 0) {
@@ -193,6 +195,8 @@ public class BatchCbCommand implements ExecutableCommand {
                 }
                 online = null;
             }
+
+            compareBaseReadThread.join();
 
             return exitCode;
         } catch (Throwable e) {

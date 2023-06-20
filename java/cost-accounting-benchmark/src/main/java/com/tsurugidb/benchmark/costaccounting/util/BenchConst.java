@@ -246,6 +246,14 @@ public class BenchConst {
         return getProperty("batch-command.result.file");
     }
 
+    public static Path batchCommandBatchCompareBase() {
+        String s = getProperty("batch-command.batch.compare.base", null);
+        if (s != null) {
+            return Path.of(s);
+        }
+        return null;
+    }
+
     public static String batchCommandOnlineReport() {
         return getProperty("batch-command.online.report");
     }
