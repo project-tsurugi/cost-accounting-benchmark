@@ -229,7 +229,7 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
             // TODO abort retry
             var code = e.getDiagnosticCode();
             // FIXME コミット時の一意制約違反の判定方法
-            if (code == SqlServiceCode.ERR_ALREADY_EXISTS || code == SqlServiceCode.ERR_ABORTED) {
+            if (code == SqlServiceCode.ERR_UNIQUE_CONSTRAINT_VIOLATION) {
                 throw new UniqueConstraintException(e);
             }
             throw new RuntimeException(e);
