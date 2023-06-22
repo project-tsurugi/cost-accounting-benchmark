@@ -18,14 +18,14 @@ public class StockHistory implements Cloneable {
     /** s_date date(8) */
     private LocalDate sDate;
 
+    /** s_time time(6) */
+    private LocalTime sTime;
+
     /** s_f_id unique ID(4) */
     private Integer sFId;
 
     /** s_i_id unique ID(9) */
     private Integer sIId;
-
-    /** s_time time(6) */
-    private LocalTime sTime;
 
     /** s_stock_unit variable text(5) */
     private String sStockUnit;
@@ -44,6 +44,14 @@ public class StockHistory implements Cloneable {
         return this.sDate;
     }
 
+    public void setSTime(LocalTime value) {
+        this.sTime = value;
+    }
+
+    public LocalTime getSTime() {
+        return this.sTime;
+    }
+
     public void setSFId(Integer value) {
         this.sFId = value;
     }
@@ -58,14 +66,6 @@ public class StockHistory implements Cloneable {
 
     public Integer getSIId() {
         return this.sIId;
-    }
-
-    public void setSTime(LocalTime value) {
-        this.sTime = value;
-    }
-
-    public LocalTime getSTime() {
-        return this.sTime;
     }
 
     public void setSStockUnit(String value) {
@@ -102,11 +102,11 @@ public class StockHistory implements Cloneable {
     }
 
     public String toCsv(String suffix) {
-        return sDate + "," + sFId + "," + sIId + "," + sTime + "," + sStockUnit + "," + sStockQuantity + "," + sStockAmount + suffix;
+        return sDate + "," + sTime + "," + sFId + "," + sIId + "," + sStockUnit + "," + sStockQuantity + "," + sStockAmount + suffix;
     }
 
     @Override
     public String toString() {
-        return "StockHistory(s_date=" + sDate + ", s_f_id=" + sFId + ", s_i_id=" + sIId + ", s_time=" + sTime + ", s_stock_unit=" + sStockUnit + ", s_stock_quantity=" + sStockQuantity + ", s_stock_amount=" + sStockAmount + ")";
+        return "StockHistory(s_date=" + sDate + ", s_time=" + sTime + ", s_f_id=" + sFId + ", s_i_id=" + sIId + ", s_stock_unit=" + sStockUnit + ", s_stock_quantity=" + sStockQuantity + ", s_stock_amount=" + sStockAmount + ")";
     }
 }

@@ -17,9 +17,9 @@ public class StockHistoryDaoJdbc extends JdbcDao<StockHistory> implements StockH
     static {
         List<JdbcColumn<StockHistory, ?>> list = new ArrayList<>();
         add(list, "s_date", StockHistory::setSDate, StockHistory::getSDate, JdbcUtil::setDate, JdbcUtil::getDate, true);
+        add(list, "s_time", StockHistory::setSTime, StockHistory::getSTime, JdbcUtil::setTime, JdbcUtil::getTime, true);
         add(list, "s_f_id", StockHistory::setSFId, StockHistory::getSFId, JdbcUtil::setInt, JdbcUtil::getInt, true);
         add(list, "s_i_id", StockHistory::setSIId, StockHistory::getSIId, JdbcUtil::setInt, JdbcUtil::getInt, true);
-        add(list, "s_time", StockHistory::setSTime, StockHistory::getSTime, JdbcUtil::setTime, JdbcUtil::getTime, true);
         add(list, "s_stock_unit", StockHistory::setSStockUnit, StockHistory::getSStockUnit, JdbcUtil::setString, JdbcUtil::getString);
         add(list, "s_stock_quantity", StockHistory::setSStockQuantity, StockHistory::getSStockQuantity, JdbcUtil::setDecimal, JdbcUtil::getDecimal);
         add(list, "s_stock_amount", StockHistory::setSStockAmount, StockHistory::getSStockAmount, JdbcUtil::setDecimal, JdbcUtil::getDecimal);

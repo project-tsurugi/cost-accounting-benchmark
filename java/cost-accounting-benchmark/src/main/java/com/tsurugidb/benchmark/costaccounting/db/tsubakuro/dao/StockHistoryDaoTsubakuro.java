@@ -16,9 +16,9 @@ public class StockHistoryDaoTsubakuro extends TsubakuroDao<StockHistory> impleme
     static {
         List<TsubakuroColumn<StockHistory, ?>> list = new ArrayList<>();
         add(list, "s_date", AtomType.DATE, StockHistory::setSDate, StockHistory::getSDate, TsubakuroUtil::getParameter, TsubakuroUtil::getDate, true);
+        add(list, "s_time", AtomType.TIME_OF_DAY, StockHistory::setSTime, StockHistory::getSTime, TsubakuroUtil::getParameter, TsubakuroUtil::getTime, true);
         add(list, "s_f_id", AtomType.INT4, StockHistory::setSFId, StockHistory::getSFId, TsubakuroUtil::getParameter, TsubakuroUtil::getInt, true);
         add(list, "s_i_id", AtomType.INT4, StockHistory::setSIId, StockHistory::getSIId, TsubakuroUtil::getParameter, TsubakuroUtil::getInt, true);
-        add(list, "s_time", AtomType.TIME_OF_DAY, StockHistory::setSTime, StockHistory::getSTime, TsubakuroUtil::getParameter, TsubakuroUtil::getTime, true);
         add(list, "s_stock_unit", AtomType.CHARACTER, StockHistory::setSStockUnit, StockHistory::getSStockUnit, TsubakuroUtil::getParameter, TsubakuroUtil::getString);
         add(list, "s_stock_quantity", AtomType.DECIMAL, StockHistory::setSStockQuantity, StockHistory::getSStockQuantity,
                 (name, value) -> TsubakuroUtil.getParameter(name, value, StockHistory.S_STOCK_QUANTITY_SCALE), TsubakuroUtil::getDecimal);
