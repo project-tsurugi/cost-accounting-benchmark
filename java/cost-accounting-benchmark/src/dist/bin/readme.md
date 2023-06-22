@@ -97,6 +97,11 @@
 
 初期データ作成処理・バッチ処理・オンライン処理で使用するパラメーター。
 
+- dbms.type
+  - DBMSの種類
+    - `oracle`
+    - `postgresql`
+    - `tsurugi`
 - jdbc.url
   - JDBCの接続URL
 - jdbc.user, jdbc.password
@@ -207,12 +212,14 @@
     - `OCC`
     - `LTX`
       - 照会タスクの場合はRTXとして扱う
-    - `MIX`
-      - OCCで開始し、リトライ時はLTX
+    - `MIX`n-m
+      - OCCで開始し、リトライしてn回実行したらLTXでm回リトライする
+    - `VAR`n-m
+      - OCCで開始し、リトライしてn回実行したらLTXでm回リトライする。途中でwrite preserveによるシリアライゼーションエラーが発生した場合はすぐにLTXでリトライする
 - online.cover.rate
   - オンライン処理でランダムにIDを決定する元となる一覧のカバー率（デフォルトは100）
 - online.type
-  - オンライン処理の実行形式
+  - オンライン処理の実行種別
     - `random`
       - スレッド毎にランダムにタスクを実行する
     - `schedule`
@@ -303,6 +310,9 @@
 - batch-command.with.initdata
   - バッチ処理の実行前に初期データ作成処理（データの初期化・再作成）を行うかどうか
   - デフォルトはfalse（初期化しない）
+- batch-command.with.prebatch
+  - バッチ処理の実行前に事前準備としてバッチ処理を実行するかどうか
+  - デフォルトはfalse（実行しない）
 - batch-command.with.online
   - バッチ処理の実行と同時にオンライン処理を実行するかどうか
   - デフォルトはfalse（オンライン処理を実行しない）
@@ -365,6 +375,10 @@ batch-command.online.compare.base=/tmp/cost-accounting-benchmark/online-command/
       - OCCで3回実行した後、LTXで1回実行する
     - `MIX3-1:LTX`
       - オンライン処理はOCCで3回実行した後、LTXで1回実行する。定期実行バッチは常にLTX
+    - `VAR3-1`
+      - OCCで3回実行した後、LTXで1回実行する。write preserveによるシリアライゼーションエラーが発生した場合はすぐにLTXでリトライする
+    - `VAR3-1:LTX`
+      - オンライン処理はOCCで3回実行した後、LTXで1回実行する。write preserveによるシリアライゼーションエラーが発生した場合はすぐにLTXでリトライする。定期実行バッチは常にLTX
 - online-command.cover.rate
   - オンライン処理でランダムにIDを決定する元となる一覧のカバー率（カンマ区切りで複数指定）
 - online-command.execute.times
