@@ -3,14 +3,25 @@ package com.tsurugidb.benchmark.costaccounting.online.task;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.ConsoleType;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
+import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
 public abstract class BenchOnlineTask extends BenchTask {
 
@@ -134,6 +145,49 @@ public abstract class BenchOnlineTask extends BenchTask {
         default:
             throw new AssertionError(CONSOLE_TYPE);
         }
+    }
+
+    private static final Map<String, Optional<BufferedWriter>> debugWriterMap = new ConcurrentHashMap<>();
+
+    protected void writeDebugFile(TgTmSetting setting, Supplier<String> supplier) {
+        var debugWriterOpt = debugWriterMap.computeIfAbsent(title, k -> {
+            String s = BenchConst.onlineDebugDir(title);
+            if (s == null) {
+                return Optional.empty();
+            }
+            try {
+                var dir = Path.of(s);
+                Files.createDirectories(dir);
+                String desc = setting.getTransactionOptionSupplier().getDescription();
+                var path = dir.resolve(config.getLabel() + "." + desc + "." + title + ".tsv");
+                LOG.info("debugWriter: {}", path);
+                return Optional.of(Files.newBufferedWriter(path, StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e.getMessage(), e);
+            }
+        });
+        debugWriterOpt.ifPresent(writer -> {
+            String s = supplier.get();
+            try {
+                writer.write(s + "\n");
+            } catch (IOException e) {
+                throw new UncheckedIOException(e.getMessage(), e);
+            }
+        });
+    }
+
+    public static void closeDebugWriter() {
+        Logger log = LoggerFactory.getLogger(BenchOnlineTask.class);
+        for (var debugWriterOpt : debugWriterMap.values()) {
+            debugWriterOpt.ifPresent(writer -> {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    log.warn("debugWriter close error", e);
+                }
+            });
+        }
+        debugWriterMap.clear();
     }
 
     private long sleepTime = Integer.MIN_VALUE;

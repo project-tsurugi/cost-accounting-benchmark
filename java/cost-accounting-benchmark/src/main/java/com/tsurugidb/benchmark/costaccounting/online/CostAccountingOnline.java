@@ -89,6 +89,7 @@ public class CostAccountingOnline {
                 return executeOnlineApp(appList);
             } finally {
                 done.set(true);
+                BenchOnlineTask.closeDebugWriter();
             }
         }
     }
@@ -204,11 +205,11 @@ public class CostAccountingOnline {
                     if (task == null) {
                         task = taskSupplier.apply(i);
                     }
-                    task.setDao(dbManager);
-                    task.initializeSetting(config);
+                    task.setDao(config, dbManager);
+                    task.initializeSetting();
 
                     var finalTask = task;
-                    prepareList.add(prepareService.submit(() -> finalTask.executePrepare(config)));
+                    prepareList.add(prepareService.submit(() -> finalTask.executePrepare()));
 
                     Runnable app;
                     if (task instanceof BenchOnlineTask) {
@@ -396,13 +397,17 @@ public class CostAccountingOnline {
             terminateOnlineApp();
             if (!force) {
                 if (futureList != null) {
-                    for (var future : futureList) {
-                        try {
-                            future.get(2, TimeUnit.HOURS);
-                        } catch (Exception e) {
-                            exceptionList.add(e);
-                            LOG.warn("terminate{} future.get() error", forceText, e);
+                    try {
+                        for (var future : futureList) {
+                            try {
+                                future.get(2, TimeUnit.HOURS);
+                            } catch (Exception e) {
+                                exceptionList.add(e);
+                                LOG.warn("terminate{} future.get() error", forceText, e);
+                            }
                         }
+                    } finally {
+                        BenchOnlineTask.closeDebugWriter();
                     }
                 }
             }

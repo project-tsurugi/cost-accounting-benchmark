@@ -21,7 +21,6 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
-import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
@@ -50,7 +49,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
     }
 
     @Override
-    public void initializeSetting(OnlineConfig config) {
+    public void initializeSetting() {
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(StockHistoryDao.TABLE_NAME));
         setTxOptionDescription(settingMain);
     }
@@ -207,7 +206,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
     public static void main(String... args) {
         try (var task = new BenchPeriodicUpdateStockTask(0); //
                 CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
-            task.setDao(manager);
+            task.setDao(null, manager);
 
             List<Integer> factoryList = List.of();
             if (0 < args.length) {

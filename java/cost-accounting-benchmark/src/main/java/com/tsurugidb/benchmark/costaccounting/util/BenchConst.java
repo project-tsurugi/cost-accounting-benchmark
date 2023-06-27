@@ -360,6 +360,10 @@ public class BenchConst {
         }
     }
 
+    public static String onlineDebugDir(String taskName) {
+        return getProperty("online.debug.dir." + taskName, null);
+    }
+
     public static String periodicTsurugiTxOption(String taskName) {
         String s = getProperty("periodic.tsurugi.tx.option." + taskName, null);
         if (s == null) {

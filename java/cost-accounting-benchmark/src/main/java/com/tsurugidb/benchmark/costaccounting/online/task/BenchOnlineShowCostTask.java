@@ -10,7 +10,6 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.FactoryMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ResultTable;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
-import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -27,7 +26,7 @@ public class BenchOnlineShowCostTask extends BenchOnlineTask {
     }
 
     @Override
-    public void initializeSetting(OnlineConfig config) {
+    public void initializeSetting() {
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofRTX());
         setTxOptionDescription(settingMain);
     }
@@ -45,14 +44,19 @@ public class BenchOnlineShowCostTask extends BenchOnlineTask {
         FactoryMaster factory = factoryMasterDao.selectById(factoryId);
 
         ResultTableDao resultTableDao = dbManager.getResultTableDao();
+        int[] count = { 0 };
+        long start = System.nanoTime();
         try (Stream<ResultTable> stream = resultTableDao.selectCost(factoryId, date)) {
             stream.forEach(result -> {
                 ItemMasterDao itemMasterDao = dbManager.getItemMasterDao();
                 ItemMaster item = itemMasterDao.selectById(result.getRIId(), date);
                 console("factory=%s, product=%s, total=%s, quantity=%s, cost=%s", factory.getFName(), item.getIName(), result.getRTotalManufacturingCost(), result.getRManufacturingQuantity(),
                         result.getRManufacturingCost());
+                count[0]++;
             });
         }
+        long end = System.nanoTime();
+        writeDebugFile(settingMain, () -> String.format(TASK_NAME + "\t%d\t%d\t%d", factoryId, count[0], end - start));
     }
 
     // for test
@@ -60,7 +64,7 @@ public class BenchOnlineShowCostTask extends BenchOnlineTask {
         BenchOnlineShowCostTask task = new BenchOnlineShowCostTask(0);
 
         try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
-            task.setDao(manager);
+            task.setDao(null, manager);
 
             task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
 

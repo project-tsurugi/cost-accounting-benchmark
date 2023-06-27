@@ -63,9 +63,9 @@ public class CostAccountingOnlineAppRandom implements Runnable {
 
         BenchTask.clearPrepareDataAll();
         for (var task : taskList) {
-            task.setDao(dbManager);
-            task.initializeSetting(config);
-            task.executePrepare(config);
+            task.setDao(config, dbManager);
+            task.initializeSetting();
+            task.executePrepare();
         }
 
         this.taskRatioMax = initializeTaskRatio(taskList);

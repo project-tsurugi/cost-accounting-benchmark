@@ -22,6 +22,7 @@ public abstract class BenchTask {
     protected final String title;
     protected final int taskId;
 
+    protected OnlineConfig config;
     protected CostBenchDbManager dbManager;
 
     private long startTime;
@@ -35,18 +36,19 @@ public abstract class BenchTask {
         return title;
     }
 
-    public void setDao(CostBenchDbManager dbManager) {
+    public void setDao(OnlineConfig config, CostBenchDbManager dbManager) {
+        this.config = config;
         this.dbManager = dbManager;
     }
 
-    public abstract void initializeSetting(OnlineConfig config);
+    public abstract void initializeSetting();
 
     protected final void setTxOptionDescription(TgTmSetting setting) {
         String description = setting.getTransactionOptionSupplier().getDescription();
         dbManager.setTxOptionDescription(title, description);
     }
 
-    public void executePrepare(OnlineConfig config) {
+    public void executePrepare() {
         // do override
     }
 

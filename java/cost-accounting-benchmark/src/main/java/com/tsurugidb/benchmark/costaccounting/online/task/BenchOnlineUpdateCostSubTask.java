@@ -7,7 +7,6 @@ import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
-import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -26,7 +25,7 @@ public class BenchOnlineUpdateCostSubTask extends BenchOnlineTask {
     }
 
     @Override
-    public void initializeSetting(OnlineConfig config) {
+    public void initializeSetting() {
         this.settingPre = TgTmSetting.ofAlways(TgTxOption.ofRTX().label(TASK_NAME + ".pre"));
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(CostMasterDao.TABLE_NAME));
         setTxOptionDescription(settingMain);
@@ -88,7 +87,7 @@ public class BenchOnlineUpdateCostSubTask extends BenchOnlineTask {
         BenchOnlineUpdateCostSubTask task = new BenchOnlineUpdateCostSubTask(0);
 
         try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
-            task.setDao(manager);
+            task.setDao(null, manager);
 
             task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
 

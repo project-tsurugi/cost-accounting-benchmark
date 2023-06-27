@@ -11,7 +11,6 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.FactoryMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ResultTable;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
-import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -29,7 +28,7 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
     }
 
     @Override
-    public void initializeSetting(OnlineConfig config) {
+    public void initializeSetting() {
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofRTX());
         setTxOptionDescription(settingMain);
         this.coverRate = config.getCoverRateForTask(title);
@@ -49,17 +48,21 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
     }
 
     protected int selectRandomItemId() {
+        long start = System.nanoTime();
         ItemManufacturingMasterDao itemManufacturingMasterDao = dbManager.getItemManufacturingMasterDao();
         List<Integer> list = itemManufacturingMasterDao.selectIdByFactory(factoryId, date);
         if (list.isEmpty()) {
             return -1;
         }
+        long end = System.nanoTime();
+        writeDebugFile(settingMain, () -> String.format(TASK_NAME + "1\t%d\t%d\t%d", factoryId, list.size(), end - start));
         var selector = new RandomKeySelector<Integer>(list, random.getRawRandom(), 0, coverRate);
         return selector.get();
     }
 
     protected void executeMain(int productId) {
         ResultTableDao resultTableDao = dbManager.getResultTableDao();
+        long start = System.nanoTime();
         List<ResultTable> list = resultTableDao.selectByProductId(factoryId, date, productId);
 
         FactoryMasterDao factoryMasterDao = dbManager.getFactoryMasterDao();
@@ -72,6 +75,8 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
             console("factory=%s, product=%s, parent=%d, item=%s, weight=%s %s, ratio=%.3f", factory.getFName(), product.getIName(), result.getRParentIId(), item.getIName(), result.getRWeightTotal(),
                     result.getRWeightTotalUnit(), result.getRWeightRatio());
         }
+        long end = System.nanoTime();
+        writeDebugFile(settingMain, () -> String.format(TASK_NAME + "2\t%d\t%d\t%d\t%d", factoryId, productId, list.size(), end - start));
     }
 
     // for test
@@ -79,7 +84,7 @@ public class BenchOnlineShowWeightTask extends BenchOnlineTask {
         BenchOnlineShowWeightTask task = new BenchOnlineShowWeightTask(0);
 
         try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
-            task.setDao(manager);
+            task.setDao(null, manager);
 
             task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
 

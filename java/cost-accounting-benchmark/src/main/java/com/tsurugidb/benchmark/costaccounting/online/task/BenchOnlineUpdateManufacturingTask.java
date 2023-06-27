@@ -13,7 +13,6 @@ import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData04ItemManufacturingMaster;
-import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -37,14 +36,14 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
     }
 
     @Override
-    public void initializeSetting(OnlineConfig config) {
+    public void initializeSetting() {
         this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
         setTxOptionDescription(settingMain);
         this.coverRate = config.getCoverRateForTask(title);
     }
 
     @Override
-    public void executePrepare(OnlineConfig config) {
+    public void executePrepare() {
         var setting = TgTmSetting.of(TgTxOption.ofRTX().label(TASK_NAME + ".prepare"));
         var date = config.getBatchDate();
 
@@ -163,7 +162,7 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
         BenchOnlineUpdateManufacturingTask task = new BenchOnlineUpdateManufacturingTask(0);
 
         try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
-            task.setDao(manager);
+            task.setDao(null, manager);
 
             task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
 
