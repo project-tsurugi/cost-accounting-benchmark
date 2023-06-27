@@ -2,6 +2,7 @@ package com.tsurugidb.benchmark.costaccounting.init;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -26,6 +27,8 @@ public class InitialData01MeasurementMaster extends InitialData {
         new InitialData01MeasurementMaster().main(BenchConst.measurementXlsxStream(LOG));
     }
 
+    private final AtomicInteger insertCount = new AtomicInteger(0);
+
     public InitialData01MeasurementMaster() {
         super(null);
     }
@@ -41,6 +44,7 @@ public class InitialData01MeasurementMaster extends InitialData {
                 generateMeasurementMaster(table);
             }
         }
+        LOG.info("insert {}={}", MeasurementMasterDao.TABLE_NAME, insertCount.get());
 
         logEnd();
     }
@@ -75,6 +79,7 @@ public class InitialData01MeasurementMaster extends InitialData {
         var setting = getSetting(MeasurementMasterDao.TABLE_NAME);
         dbManager.execute(setting, () -> {
             dao.truncate();
+            insertCount.set(0);
             insertMeasureMaster(table, dao);
         });
     }
@@ -90,6 +95,7 @@ public class InitialData01MeasurementMaster extends InitialData {
             entity.setMScale(table.getCellAsDecimal(row, c++));
 
             dao.insert(entity);
+            insertCount.incrementAndGet();
         });
     }
 }

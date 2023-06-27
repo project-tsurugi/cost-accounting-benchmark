@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
@@ -32,6 +33,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
     }
 
     private final int manufacturingSize;
+    private final AtomicInteger insertCount = new AtomicInteger(0);
 
     private final List<Integer> factoryIdSet = new ArrayList<>();
     private final Set<Integer> productIdSet = new TreeSet<>();
@@ -44,10 +46,15 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
     private void main() {
         logStart();
 
+        long start, end;
         try (CostBenchDbManager manager = initializeDbManager()) {
             initializeField();
-            generateItemManufacturingMaster();
+            var map = generateProductMap();
+            start = System.currentTimeMillis();
+            generateItemManufacturingMaster(map);
+            end = System.currentTimeMillis();
         }
+        LOG.info("truncate/insert {}={} ({}[ms])", ItemManufacturingMasterDao.TABLE_NAME, insertCount.get(), end - start);
 
         dumpExplainCounter(dbManager.getItemMasterDao());
 
@@ -67,6 +74,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
             });
         }
         {
+            long start = System.currentTimeMillis();
             ItemMasterDao dao = dbManager.getItemMasterDao();
             var setting = getSetting(() -> TgTxOption.ofRTX());
             dbManager.execute(setting, () -> {
@@ -75,30 +83,16 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
                 productIdSet.clear();
                 productIdSet.addAll(list);
             });
+            long end = System.currentTimeMillis();
+            LOG.info("select {}.product={} ({}[ms])", ItemMasterDao.TABLE_NAME, productIdSet.size(), end - start);
         }
     }
 
-    private void generateItemManufacturingMaster() {
-        ItemManufacturingMasterDao dao = dbManager.getItemManufacturingMasterDao();
-
-        var setting = getSetting(ItemManufacturingMasterDao.TABLE_NAME);
-        dbManager.execute(setting, () -> {
-            dao.truncate();
-            insertItemManufacturingMaster(dao);
-        });
-    }
-
-    private void insertItemManufacturingMaster(ItemManufacturingMasterDao dao) {
+    private Map<Integer, Set<Integer>> generateProductMap() {
         Set<Integer> remainSet = new TreeSet<>(productIdSet);
         Map<Integer, Set<Integer>> mapA = generateA(remainSet);
         Map<Integer, Set<Integer>> map = generateB(mapA, remainSet);
-
-        map.forEach((factoryId, list) -> {
-            for (Integer productId : list) {
-                ItemManufacturingMaster entity = newItemManufacturingMaster(factoryId, productId);
-                insertItemManufacturingMaster(dao, entity);
-            }
-        });
+        return map;
     }
 
     private Map<Integer, Set<Integer>> generateA(Set<Integer> remainSet) {
@@ -169,6 +163,29 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
         return map;
     }
 
+    private void generateItemManufacturingMaster(Map<Integer, Set<Integer>> map) {
+        ItemManufacturingMasterDao dao = dbManager.getItemManufacturingMasterDao();
+
+        var setting = getSetting(ItemManufacturingMasterDao.TABLE_NAME);
+        dbManager.execute(setting, () -> {
+            LOG.info("truncate start");
+            dao.truncate();
+            insertCount.set(0);
+            LOG.info("truncate end, insert start");
+            insertItemManufacturingMaster(map, dao);
+            LOG.info("insert end");
+        });
+    }
+
+    private void insertItemManufacturingMaster(Map<Integer, Set<Integer>> map, ItemManufacturingMasterDao dao) {
+        map.forEach((factoryId, list) -> {
+            for (Integer productId : list) {
+                ItemManufacturingMaster entity = newItemManufacturingMaster(factoryId, productId);
+                insertItemManufacturingMaster(dao, entity);
+            }
+        });
+    }
+
     public ItemManufacturingMaster newItemManufacturingMaster(int factoryId, int productId) {
         ItemManufacturingMaster entity = new ItemManufacturingMaster();
 
@@ -207,6 +224,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
     private void insertItemManufacturingMaster(ItemManufacturingMasterDao dao, ItemManufacturingMaster entity) {
         Collection<ItemManufacturingMaster> list = AMPLIFICATION_ITEM_MANUFACTURING.amplify(entity);
         dao.insertBatch(list);
+        insertCount.addAndGet(list.size());
     }
 
     public static void initializeItemManufacturingMasterRandom(BenchReproducibleRandom random, ItemManufacturingMaster entity) {

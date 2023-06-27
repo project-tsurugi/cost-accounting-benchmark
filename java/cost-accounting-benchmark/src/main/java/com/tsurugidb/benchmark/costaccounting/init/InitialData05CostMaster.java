@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
@@ -26,6 +27,7 @@ public class InitialData05CostMaster extends InitialData {
         new InitialData05CostMaster(batchDate).main();
     }
 
+    private final AtomicInteger insertCount = new AtomicInteger(0);
     private final Set<Integer> factoryIdSet = new TreeSet<>();
 
     public InitialData05CostMaster(LocalDate batchDate) {
@@ -39,6 +41,7 @@ public class InitialData05CostMaster extends InitialData {
             initializeField();
             generateCostMaster();
         }
+        LOG.info("insert {}={}", CostMasterDao.TABLE_NAME, insertCount.get());
 
         dumpExplainCounter(dbManager.getItemMasterDao());
 
@@ -64,12 +67,15 @@ public class InitialData05CostMaster extends InitialData {
             CostMasterDao dao = dbManager.getCostMasterDao();
             dao.truncate();
         });
+        insertCount.set(0);
 
         InitialData03ItemMaster itemMasterData = InitialData03ItemMaster.getDefaultInstance();
         int materialStartId = itemMasterData.getMaterialStartId();
         int materialEndId = itemMasterData.getMaterialEndId();
-        executeTask(new CostMasterTask(materialStartId, materialEndId));
+        CostMasterTask task = new CostMasterTask(materialStartId, materialEndId);
+        executeTask(task);
         joinAllTask();
+        insertCount.set(task.getInsertCount());
     }
 
     @SuppressWarnings("serial")
@@ -84,8 +90,8 @@ public class InitialData05CostMaster extends InitialData {
         }
 
         @Override
-        protected void execute(int iId) {
-            insertCostMaster(iId, dbManager.getItemMasterDao(), dbManager.getCostMasterDao());
+        protected void execute(int iId, AtomicInteger insertCount) {
+            insertCostMaster(iId, dbManager.getItemMasterDao(), dbManager.getCostMasterDao(), insertCount);
         }
     }
 
@@ -96,7 +102,7 @@ public class InitialData05CostMaster extends InitialData {
     private static final BigDecimal A_END = new BigDecimal("1.10");
     private static final BigDecimal A_MIN = new BigDecimal("0.01");
 
-    private void insertCostMaster(int materialId, ItemMasterDao itemDao, CostMasterDao dao) {
+    private void insertCostMaster(int materialId, ItemMasterDao itemDao, CostMasterDao dao, AtomicInteger insertCount) {
         ItemMaster materialEntity = itemDao.selectById(materialId, batchDate);
         if (materialEntity.getIType() != ItemType.RAW_MATERIAL) {
             throw new AssertionError(materialEntity);
@@ -150,5 +156,6 @@ public class InitialData05CostMaster extends InitialData {
             list.add(entity);
         }
         dao.insertBatch(list);
+        insertCount.addAndGet(list.size());
     }
 }

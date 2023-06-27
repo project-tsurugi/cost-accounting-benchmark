@@ -143,7 +143,7 @@ public class InitialData03ItemMaster extends InitialData {
         }
 
         @Override
-        protected void execute(int iId) {
+        protected void execute(int iId, AtomicInteger insertCount) {
             ItemMaster entity = newItemMasterProduct(iId);
             insertItemMaster(dbManager.getItemMasterDao(), entity, null);
         }
@@ -160,7 +160,7 @@ public class InitialData03ItemMaster extends InitialData {
         }
 
         @Override
-        protected void execute(int iId) {
+        protected void execute(int iId, AtomicInteger insertCount) {
             ItemMaster entity = newItemMasterMaterial(iId);
             insertItemMaster(dbManager.getItemMasterDao(), entity, InitialData03ItemMaster.this::randomtItemMasterMaterial);
         }
@@ -338,8 +338,8 @@ public class InitialData03ItemMaster extends InitialData {
         }
 
         @Override
-        protected void execute(Range range) {
-            insertItemMasterWorkInProcess(range.startId, range.endId, dbManager.getItemMasterDao(), dbManager.getItemConstructionMasterDao());
+        protected void execute(Range range, AtomicInteger insertCount) {
+            insertItemMasterWorkInProcess(range.startId, range.endId, dbManager.getItemMasterDao(), dbManager.getItemConstructionMasterDao(), insertCount);
         }
     }
 
@@ -405,7 +405,7 @@ public class InitialData03ItemMaster extends InitialData {
     private static final BigDecimal WEIGHT_START = new BigDecimal("20.0000");
     private static final BigDecimal WEIGHT_END = new BigDecimal("100.0000");
 
-    private void insertItemMasterWorkInProcess(int startId, int endId, ItemMasterDao dao, ItemConstructionMasterDao icDao) {
+    private void insertItemMasterWorkInProcess(int startId, int endId, ItemMasterDao dao, ItemConstructionMasterDao icDao, AtomicInteger insertCount) {
         AtomicInteger iId = new AtomicInteger(startId);
 
         final int treeSize = endId - startId;
@@ -475,7 +475,7 @@ public class InitialData03ItemMaster extends InitialData {
 
             initializeLossRatio(entity.getIcIId() + entity.getIcParentIId(), entity);
 
-            insertItemConstructionMaster(icDao, entity);
+            insertItemConstructionMaster(icDao, entity, insertCount);
         }
     }
 
@@ -546,7 +546,7 @@ public class InitialData03ItemMaster extends InitialData {
         }
 
         @Override
-        protected void execute(int iId) {
+        protected void execute(int iId, AtomicInteger insertCount) {
             final int workStart = getWorkStartId();
             final int workEnd = getWorkEndId() - 1;
 
@@ -557,11 +557,11 @@ public class InitialData03ItemMaster extends InitialData {
                 set.add(random(++seed, workStart, workEnd));
             }
 
-            insertItemConstructionMasterProduct(iId, set, dbManager.getItemConstructionMasterDao());
+            insertItemConstructionMasterProduct(iId, set, dbManager.getItemConstructionMasterDao(), insertCount);
         }
     }
 
-    public void insertItemConstructionMasterProduct(int productId, Set<Integer> workSet, ItemConstructionMasterDao icDao) {
+    public void insertItemConstructionMasterProduct(int productId, Set<Integer> workSet, ItemConstructionMasterDao icDao, AtomicInteger insertCount) {
         for (Integer workId : workSet) {
             ItemConstructionMaster entity = new ItemConstructionMaster();
             entity.setIcIId(workId);
@@ -569,7 +569,7 @@ public class InitialData03ItemMaster extends InitialData {
             initializeStartEndDate(workId + productId, entity);
             initializeItemConstructionMasterRandom(random, entity);
 
-            insertItemConstructionMaster(icDao, entity);
+            insertItemConstructionMaster(icDao, entity, insertCount);
         }
     }
 
@@ -631,9 +631,10 @@ public class InitialData03ItemMaster extends InitialData {
         }
     };
 
-    private void insertItemConstructionMaster(ItemConstructionMasterDao icDao, ItemConstructionMaster entity) {
+    private void insertItemConstructionMaster(ItemConstructionMasterDao icDao, ItemConstructionMaster entity, AtomicInteger insertCount) {
         Collection<ItemConstructionMaster> list = AMPLIFICATION_ITEM_CONSTRUCTION.amplify(entity);
         icDao.insertBatch(list);
+        insertCount.addAndGet(list.size());
     }
 
     public static void initializeItemConstructionMasterRandom(BenchReproducibleRandom random, ItemConstructionMaster entity) {

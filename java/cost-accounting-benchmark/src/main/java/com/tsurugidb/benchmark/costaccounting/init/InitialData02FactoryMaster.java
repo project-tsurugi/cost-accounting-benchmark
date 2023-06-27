@@ -1,5 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.init;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.FactoryMaster;
@@ -12,6 +14,8 @@ public class InitialData02FactoryMaster extends InitialData {
         new InitialData02FactoryMaster().main(factorySize);
     }
 
+    private final AtomicInteger insertCount = new AtomicInteger(0);
+
     public InitialData02FactoryMaster() {
         super(null);
     }
@@ -22,6 +26,7 @@ public class InitialData02FactoryMaster extends InitialData {
         try (CostBenchDbManager manager = initializeDbManager()) {
             generateFactoryMaster(size);
         }
+        LOG.info("insert {}={}", FactoryMasterDao.TABLE_NAME, insertCount.get());
 
         logEnd();
     }
@@ -32,6 +37,7 @@ public class InitialData02FactoryMaster extends InitialData {
         var setting = getSetting(FactoryMasterDao.TABLE_NAME);
         dbManager.execute(setting, () -> {
             dao.truncate();
+            insertCount.set(0);
             insertFactoryMaster(size, dao);
         });
     }
@@ -45,6 +51,7 @@ public class InitialData02FactoryMaster extends InitialData {
             entity.setFName("Factory" + fId);
 
             dao.insert(entity);
+            insertCount.incrementAndGet();
         }
     }
 }

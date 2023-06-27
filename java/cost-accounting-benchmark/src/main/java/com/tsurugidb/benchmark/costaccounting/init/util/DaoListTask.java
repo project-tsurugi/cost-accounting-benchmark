@@ -3,6 +3,7 @@ package com.tsurugidb.benchmark.costaccounting.init.util;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
@@ -14,6 +15,7 @@ public abstract class DaoListTask<T> extends RecursiveAction {
     private final TgTmSetting setting;
 
     private final List<T> list = new ArrayList<>();
+    private final AtomicInteger insertCount = new AtomicInteger();
 
     public DaoListTask(CostBenchDbManager dbManager, TgTmSetting setting) {
         this.dbManager = dbManager;
@@ -31,11 +33,16 @@ public abstract class DaoListTask<T> extends RecursiveAction {
     @Override
     protected final void compute() {
         dbManager.execute(setting, () -> {
+            insertCount.set(0);
             for (T t : list) {
-                execute(t);
+                execute(t, insertCount);
             }
         });
     }
 
-    protected abstract void execute(T t);
+    protected abstract void execute(T t, AtomicInteger insertCount);
+
+    public int getInsertCount() {
+        return insertCount.get();
+    }
 }
