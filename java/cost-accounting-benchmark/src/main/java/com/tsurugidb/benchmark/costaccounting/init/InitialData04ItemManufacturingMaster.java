@@ -89,9 +89,11 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
     }
 
     private Map<Integer, Set<Integer>> generateProductMap() {
+        LOG.info("generateProductMap start");
         Set<Integer> remainSet = new TreeSet<>(productIdSet);
         Map<Integer, Set<Integer>> mapA = generateA(remainSet);
         Map<Integer, Set<Integer>> map = generateB(mapA, remainSet);
+        LOG.info("generateProductMap end");
         return map;
     }
 
@@ -102,10 +104,12 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
         }
 
         List<Integer> productIds = new ArrayList<>(this.productIdSet);
+        randomShuffle(productIds);
+        int productIndex = 0;
 
         // A all
         for (int i = 0; i < 10; i++) {
-            int productId = getRandomAndRemove(i, productIds);
+            Integer productId = productIds.get(productIndex++);
             for (Set<Integer> list : mapA.values()) {
                 list.add(productId);
             }
@@ -114,7 +118,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 
         // A 50%
         for (int i = 0; i < 20; i++) {
-            int productId = getRandomAndRemove(i, productIds);
+            Integer productId = productIds.get(productIndex++);
             mapA.forEach((factoryId, list) -> {
                 if (factoryId.intValue() % 2 == 1) {
                     list.add(productId);
@@ -125,7 +129,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 
         // A 25%
         for (int i = 0; i < 30; i++) {
-            int productId = getRandomAndRemove(i, productIds);
+            Integer productId = productIds.get(productIndex++);
             mapA.forEach((factoryId, list) -> {
                 if (factoryId.intValue() % 4 == 1) {
                     list.add(productId);
@@ -136,7 +140,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
 
         // A 10%
         for (int i = 0; i < 40; i++) {
-            int productId = getRandomAndRemove(i, productIds);
+            Integer productId = productIds.get(productIndex++);
             mapA.forEach((factoryId, list) -> {
                 if (factoryId.intValue() % 10 == 1) {
                     list.add(productId);
@@ -149,15 +153,20 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
     }
 
     private Map<Integer, Set<Integer>> generateB(Map<Integer, Set<Integer>> map, Set<Integer> remainSet) {
-        int seed = 0;
+        int startCount = map.values().stream().mapToInt(v -> v.size()).sum();
+        LOG.info("generateB start={}, target={}, remainSet={}", startCount, manufacturingSize, remainSet.size());
+
         List<Integer> breadIds = new ArrayList<>(remainSet);
-        for (int count = map.values().stream().mapToInt(v -> v.size()).sum(); count < manufacturingSize; count++) {
+        randomShuffle(breadIds);
+        int breadIndex = 0;
+
+        for (int count = startCount; count < manufacturingSize; count++) {
             int i = random.prandom(count, factoryIdSet.size());
             Integer factoryId = factoryIdSet.get(i);
-            Set<Integer> list = map.get(factoryId);
+            Set<Integer> set = map.get(factoryId);
 
-            int breadId = getRandomAndRemove(seed++, breadIds);
-            list.add(breadId);
+            Integer breadId = breadIds.get(breadIndex++);
+            set.add(breadId);
         }
 
         return map;

@@ -130,6 +130,21 @@ public class InitialData {
         return list.remove(i);
     }
 
+    protected void randomShuffle(List<Integer> list) {
+        randomShuffle(list, 0, list.size());
+    }
+
+    public void randomShuffle(List<Integer> list, int seed, int shuffleSize) {
+        int listSize = list.size();
+        for (int i = 0; i < shuffleSize; i++) {
+            int j = random.prandom(seed + i + 1, listSize);
+            Integer v1 = list.get(i);
+            Integer v2 = list.get(j);
+            list.set(i, v2);
+            list.set(j, v1);
+        }
+    }
+
     // thread
 
     private ForkJoinPool forkJoinPool = null;

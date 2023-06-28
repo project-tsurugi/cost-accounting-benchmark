@@ -114,10 +114,13 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
             list = selectItemMasterWorkKeyList(date);
         }
         List<Integer> workList = new ArrayList<>(list);
-        int s = random.random(1, InitialData03ItemMaster.PRODUCT_TREE_SIZE);
-        Set<Integer> workSet = new HashSet<>(s);
-        for (int i = 0; i < s; i++) {
-            Integer id = initialData.getRandomAndRemove(i, workList);
+        int treeSize = random.random(1, InitialData03ItemMaster.PRODUCT_TREE_SIZE);
+        initialData.randomShuffle(workList, random.random(1, Integer.MAX_VALUE / 2), treeSize);
+        int workIndex = 0;
+
+        Set<Integer> workSet = new HashSet<>(treeSize);
+        for (int i = 0; i < treeSize; i++) {
+            Integer id = workList.get(workIndex++);
             workSet.add(id);
         }
 
