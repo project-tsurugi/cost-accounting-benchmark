@@ -5,11 +5,11 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -25,8 +25,6 @@ import com.tsurugidb.benchmark.costaccounting.init.util.DaoSplitTask;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchReproducibleRandom;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
-import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
-import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 @SuppressWarnings("serial")
 public class InitialData03ItemMaster extends InitialData {
@@ -48,6 +46,8 @@ public class InitialData03ItemMaster extends InitialData {
     private final int productSize;
     private final int workSize;
     private final int materialSize;
+
+    private final Map<Integer, ItemMaster> materialMap = BenchConst.init03MaterialCache() ? new ConcurrentHashMap<>(BenchConst.initItemMaterialSize()) : null;
 
     public InitialData03ItemMaster(int productSize, int workSize, int materialSize, LocalDate batchDate) {
         super(batchDate);
@@ -93,7 +93,7 @@ public class InitialData03ItemMaster extends InitialData {
         try (CostBenchDbManager manager = initializeDbManager()) {
             insertItemMaster();
         } finally {
-            if (materialMap != null) {
+            if (this.materialMap != null) {
                 materialMap.clear();
             }
             shutdown();
@@ -125,12 +125,21 @@ public class InitialData03ItemMaster extends InitialData {
         LOG.info("insert {}.product={}", ItemMasterDao.TABLE_NAME, productTask.getInsertCount());
         LOG.info("insert {}.material={}", ItemMasterDao.TABLE_NAME, materialTask.getInsertCount());
 
-        initMaterialMap();
-        forkItemMasterWorkInProcess(getWorkStartId(), getWorkEndId());
+        // after insert-material
+        var workTaskList = forkItemMasterWorkInProcess(getWorkStartId(), getWorkEndId());
 
         var constructionProductTask = new ItemConstructionMasterProductTask(getProductStartId(), getProductEndId());
         executeTask(constructionProductTask);
         joinAllTask();
+
+        int itemWorkCount = 0, constructionWorkCount = 0;
+        for (var workTask : workTaskList) {
+            itemWorkCount += workTask.getInsertCount();
+            constructionWorkCount += workTask.getItemConstructionInsertCount();
+        }
+        LOG.info("insert {}.work={}", ItemMasterDao.TABLE_NAME, itemWorkCount);
+        LOG.info("insert {}.work={}", ItemConstructionMasterDao.TABLE_NAME, constructionWorkCount);
+
         LOG.info("insert {}.product={}", ItemConstructionMasterDao.TABLE_NAME, constructionProductTask.getInsertCount());
     }
 
@@ -170,7 +179,16 @@ public class InitialData03ItemMaster extends InitialData {
         @Override
         protected void execute(int iId, AtomicInteger insertCount) {
             ItemMaster entity = newItemMasterMaterial(iId);
-            insertItemMaster(dbManager.getItemMasterDao(), entity, InitialData03ItemMaster.this::randomtItemMasterMaterial, insertCount);
+            var list = insertItemMaster(dbManager.getItemMasterDao(), entity, InitialData03ItemMaster.this::randomtItemMasterMaterial, insertCount);
+
+            if (materialMap != null) {
+                for (var ent : list) {
+                    if (ent.getIEffectiveDate().compareTo(batchDate) <= 0 && batchDate.compareTo(ent.getIExpiredDate()) <= 0) {
+                        assert ent.getIType() == ItemType.RAW_MATERIAL;
+                        materialMap.put(ent.getIId(), ent);
+                    }
+                }
+            }
         }
     }
 
@@ -291,7 +309,7 @@ public class InitialData03ItemMaster extends InitialData {
 
     private static final int TASK_THRESHOLD = DaoSplitTask.TASK_THRESHOLD;
 
-    private void forkItemMasterWorkInProcess(int startId, int endId) {
+    private List<ItemMasterWorkTask> forkItemMasterWorkInProcess(int startId, int endId) {
         var taskList = new ArrayList<ItemMasterWorkTask>();
 
         int id = startId;
@@ -318,15 +336,8 @@ public class InitialData03ItemMaster extends InitialData {
 
         executeTask(task);
         taskList.add(task);
-        joinAllTask();
 
-        int itemWorkCount = 0, constructionCount = 0;
-        for (var t : taskList) {
-            itemWorkCount += t.getInsertCount();
-            constructionCount += t.getItemConstructionInsertCount();
-        }
-        LOG.info("insert {}.work={}", ItemMasterDao.TABLE_NAME, itemWorkCount);
-        LOG.info("insert {}.work={}", ItemConstructionMasterDao.TABLE_NAME, constructionCount);
+        return taskList;
     }
 
     private static class Range {
@@ -434,7 +445,7 @@ public class InitialData03ItemMaster extends InitialData {
     private static final BigDecimal WEIGHT_START = new BigDecimal("20.0000");
     private static final BigDecimal WEIGHT_END = new BigDecimal("100.0000");
 
-    private void insertItemMasterWorkInProcess(int startId, int endId, ItemMasterDao dao, ItemConstructionMasterDao icDao, AtomicInteger workCount, AtomicInteger constructionCount) {
+    private void insertItemMasterWorkInProcess(int startId, int endId, ItemMasterDao dao, ItemConstructionMasterDao icDao, AtomicInteger itemCount, AtomicInteger constructionCount) {
         AtomicInteger iId = new AtomicInteger(startId);
 
         final int treeSize = endId - startId;
@@ -459,7 +470,7 @@ public class InitialData03ItemMaster extends InitialData {
         root.assignId(iId);
         for (Node node : nodeList) {
             node.entity = newItemMasterWork(node.itemId);
-            insertItemMaster(dao, node.entity, null, workCount);
+            insertItemMaster(dao, node.entity, null, itemCount);
         }
 
         // 材料を割り当てる
@@ -508,8 +519,6 @@ public class InitialData03ItemMaster extends InitialData {
         }
     }
 
-    private static final Map<Integer, ItemMaster> materialMap = BenchConst.init03MaterialCache() ? new HashMap<>(BenchConst.initItemMaterialSize()) : null;
-
     private List<ItemMaster> findRandomMaterial(int seed, int size, ItemMasterDao dao) {
         int materialStartId = getMaterialStartId();
         int materialEndId = materialStartId + materialSize - 1;
@@ -519,7 +528,7 @@ public class InitialData03ItemMaster extends InitialData {
             idSet.add(random(seed++, materialStartId, materialEndId));
         }
 
-        if (materialMap == null) {
+        if (this.materialMap == null) {
             return dao.selectByIds(idSet, batchDate);
         }
 
@@ -533,31 +542,6 @@ public class InitialData03ItemMaster extends InitialData {
             }
         }
         return list;
-    }
-
-    private void initMaterialMap() {
-        if (materialMap == null) {
-            return;
-        }
-
-        LOG.info("select material start");
-        var setting = TgTmSetting.of(TgTxOption.ofRTX().label("initMaterialMap"));
-        int[] count = { 0 };
-        dbManager.execute(setting, () -> {
-            count[0] = 0;
-            var dao = dbManager.getItemMasterDao();
-            try (var stream = dao.selectByType(batchDate, ItemType.RAW_MATERIAL)) {
-                stream.forEach(entity -> {
-                    materialMap.put(entity.getIId(), entity);
-                    count[0]++;
-                });
-            }
-        });
-        LOG.info("select {}.material={}", ItemMasterDao.TABLE_NAME, count[0]);
-
-        if (materialMap.isEmpty()) {
-            throw new RuntimeException("metarial not found in " + ItemMasterDao.TABLE_NAME);
-        }
     }
 
     private static final BigDecimal LOSS_END = new BigDecimal("10.00");
@@ -631,7 +615,7 @@ public class InitialData03ItemMaster extends InitialData {
         }
     };
 
-    private void insertItemMaster(ItemMasterDao dao, ItemMaster entity, Consumer<ItemMaster> initializer, AtomicInteger insertCount) {
+    private Collection<ItemMaster> insertItemMaster(ItemMasterDao dao, ItemMaster entity, Consumer<ItemMaster> initializer, AtomicInteger insertCount) {
         Collection<ItemMaster> list = AMPLIFICATION_ITEM.amplify(entity);
         list.forEach(ent -> {
             if (initializer != null) {
@@ -640,6 +624,7 @@ public class InitialData03ItemMaster extends InitialData {
         });
         dao.insertBatch(list);
         insertCount.addAndGet(list.size());
+        return list;
     }
 
     // 1.25倍に増幅する
