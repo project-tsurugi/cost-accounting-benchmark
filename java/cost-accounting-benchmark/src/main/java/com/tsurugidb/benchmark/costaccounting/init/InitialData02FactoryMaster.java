@@ -14,8 +14,6 @@ public class InitialData02FactoryMaster extends InitialData {
         new InitialData02FactoryMaster().main(factorySize);
     }
 
-    private final AtomicInteger insertCount = new AtomicInteger(0);
-
     public InitialData02FactoryMaster() {
         super(null);
     }
@@ -24,25 +22,28 @@ public class InitialData02FactoryMaster extends InitialData {
         logStart();
 
         try (CostBenchDbManager manager = initializeDbManager()) {
-            generateFactoryMaster(size);
+            insertFactoryMaster(size);
+        } finally {
+            shutdown();
         }
-        LOG.info("insert {}={}", FactoryMasterDao.TABLE_NAME, insertCount.get());
 
         logEnd();
     }
 
-    private void generateFactoryMaster(int size) {
+    private void insertFactoryMaster(int size) {
         FactoryMasterDao dao = dbManager.getFactoryMasterDao();
 
         var setting = getSetting(FactoryMasterDao.TABLE_NAME);
+        var insertCount = new AtomicInteger();
         dbManager.execute(setting, () -> {
             dao.truncate();
             insertCount.set(0);
-            insertFactoryMaster(size, dao);
+            insertFactoryMaster(size, dao, insertCount);
         });
+        LOG.info("insert {}={}", FactoryMasterDao.TABLE_NAME, insertCount.get());
     }
 
-    private void insertFactoryMaster(int size, FactoryMasterDao dao) {
+    private void insertFactoryMaster(int size, FactoryMasterDao dao, AtomicInteger insertCount) {
         for (int i = 0; i < size; i++) {
             int fId = i + 1;
 

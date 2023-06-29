@@ -166,4 +166,10 @@ public class InitialData {
         }
         taskList.clear();
     }
+
+    protected void shutdown() {
+        if (forkJoinPool != null) {
+            forkJoinPool.shutdownNow();
+        }
+    }
 }

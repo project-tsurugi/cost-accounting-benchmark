@@ -27,8 +27,6 @@ public class InitialData01MeasurementMaster extends InitialData {
         new InitialData01MeasurementMaster().main(BenchConst.measurementXlsxStream(LOG));
     }
 
-    private final AtomicInteger insertCount = new AtomicInteger(0);
-
     public InitialData01MeasurementMaster() {
         super(null);
     }
@@ -41,10 +39,11 @@ public class InitialData01MeasurementMaster extends InitialData {
                 Sheet sheet = workbook.getSheet("measurement");
                 TableSheet table = new TableSheet(sheet);
 
-                generateMeasurementMaster(table);
+                insertMeasurementMaster(table);
             }
+        } finally {
+            shutdown();
         }
-        LOG.info("insert {}={}", MeasurementMasterDao.TABLE_NAME, insertCount.get());
 
         logEnd();
     }
@@ -73,18 +72,20 @@ public class InitialData01MeasurementMaster extends InitialData {
         }
     }
 
-    private void generateMeasurementMaster(TableSheet table) {
+    private void insertMeasurementMaster(TableSheet table) {
         MeasurementMasterDao dao = dbManager.getMeasurementMasterDao();
 
         var setting = getSetting(MeasurementMasterDao.TABLE_NAME);
+        var insertCount = new AtomicInteger();
         dbManager.execute(setting, () -> {
             dao.truncate();
             insertCount.set(0);
-            insertMeasureMaster(table, dao);
+            insertMeasureMaster(table, dao, insertCount);
         });
+        LOG.info("insert {}={}", MeasurementMasterDao.TABLE_NAME, insertCount.get());
     }
 
-    private void insertMeasureMaster(TableSheet table, MeasurementMasterDao dao) {
+    private void insertMeasureMaster(TableSheet table, MeasurementMasterDao dao, AtomicInteger insertCount) {
         table.getRows().forEachOrdered(row -> {
             MeasurementMaster entity = new MeasurementMaster();
             int c = 0;

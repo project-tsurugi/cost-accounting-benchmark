@@ -23,6 +23,8 @@ public class InitialData00CreateTable extends InitialData {
         var generator = DdlGenerator.createDdlGenerator(dbmsType);
         try (var manager = initializeDbManager()) {
             generator.executeDdl(manager);
+        } finally {
+            shutdown();
         }
 
         logEnd();

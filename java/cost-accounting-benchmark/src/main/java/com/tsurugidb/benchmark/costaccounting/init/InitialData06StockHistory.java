@@ -18,6 +18,8 @@ public class InitialData06StockHistory extends InitialData {
 
         try (CostBenchDbManager manager = initializeDbManager()) {
             deleteStockHistory();
+        } finally {
+            shutdown();
         }
 
         logEnd();

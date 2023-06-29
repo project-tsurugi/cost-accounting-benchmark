@@ -34,10 +34,15 @@ public abstract class DaoListTask<T> extends RecursiveAction {
     protected final void compute() {
         dbManager.execute(setting, () -> {
             insertCount.set(0);
+            startTransaction();
             for (T t : list) {
                 execute(t, insertCount);
             }
         });
+    }
+
+    protected void startTransaction() {
+        // do override
     }
 
     protected abstract void execute(T t, AtomicInteger insertCount);

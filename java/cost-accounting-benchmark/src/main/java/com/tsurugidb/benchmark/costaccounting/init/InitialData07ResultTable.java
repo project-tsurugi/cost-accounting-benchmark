@@ -18,6 +18,8 @@ public class InitialData07ResultTable extends InitialData {
 
         try (CostBenchDbManager manager = initializeDbManager()) {
             deleteResultTable();
+        } finally {
+            shutdown();
         }
 
         logEnd();

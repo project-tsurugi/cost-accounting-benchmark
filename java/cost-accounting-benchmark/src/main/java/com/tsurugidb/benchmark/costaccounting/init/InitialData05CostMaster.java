@@ -27,7 +27,6 @@ public class InitialData05CostMaster extends InitialData {
         new InitialData05CostMaster(batchDate).main();
     }
 
-    private final AtomicInteger insertCount = new AtomicInteger(0);
     private final Set<Integer> factoryIdSet = new TreeSet<>();
 
     public InitialData05CostMaster(LocalDate batchDate) {
@@ -39,9 +38,10 @@ public class InitialData05CostMaster extends InitialData {
 
         try (CostBenchDbManager manager = initializeDbManager()) {
             initializeField();
-            generateCostMaster();
+            insertCostMaster();
+        } finally {
+            shutdown();
         }
-        LOG.info("insert {}={}", CostMasterDao.TABLE_NAME, insertCount.get());
 
         dumpExplainCounter(dbManager.getItemMasterDao());
 
@@ -61,13 +61,12 @@ public class InitialData05CostMaster extends InitialData {
         }
     }
 
-    private void generateCostMaster() {
+    private void insertCostMaster() {
         var setting = getSetting(CostMasterDao.TABLE_NAME);
         dbManager.execute(setting, () -> {
             CostMasterDao dao = dbManager.getCostMasterDao();
             dao.truncate();
         });
-        insertCount.set(0);
 
         InitialData03ItemMaster itemMasterData = InitialData03ItemMaster.getDefaultInstance();
         int materialStartId = itemMasterData.getMaterialStartId();
@@ -75,7 +74,8 @@ public class InitialData05CostMaster extends InitialData {
         CostMasterTask task = new CostMasterTask(materialStartId, materialEndId);
         executeTask(task);
         joinAllTask();
-        insertCount.set(task.getInsertCount());
+
+        LOG.info("insert {}={}", CostMasterDao.TABLE_NAME, task.getInsertCount());
     }
 
     @SuppressWarnings("serial")

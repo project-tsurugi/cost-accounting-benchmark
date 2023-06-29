@@ -50,7 +50,9 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
         try (CostBenchDbManager manager = initializeDbManager()) {
             initializeField();
             var map = generateProductMap();
-            truncateInsertItemManufacturingMaster(map);
+            insertItemManufacturingMaster(map);
+        } finally {
+            shutdown();
         }
 
         dumpExplainCounter(dbManager.getItemMasterDao());
@@ -170,7 +172,7 @@ public class InitialData04ItemManufacturingMaster extends InitialData {
         return map;
     }
 
-    private void truncateInsertItemManufacturingMaster(Map<Integer, Set<Integer>> map) {
+    private void insertItemManufacturingMaster(Map<Integer, Set<Integer>> map) {
         ItemManufacturingMasterDao dao = dbManager.getItemManufacturingMasterDao();
 
         var setting = getSetting(ItemManufacturingMasterDao.TABLE_NAME);
