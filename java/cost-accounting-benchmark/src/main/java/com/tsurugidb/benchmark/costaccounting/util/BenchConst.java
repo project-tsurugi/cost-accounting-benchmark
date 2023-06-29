@@ -490,6 +490,10 @@ public class BenchConst {
         return getPropertyBoolean("init.03.material.cache", true);
     }
 
+    public static boolean init05MaterialCache() {
+        return getPropertyBoolean("init.05.material.cache", false);
+    }
+
     public static boolean debugExplain() {
         return getPropertyBoolean("debug.explain", false);
     }

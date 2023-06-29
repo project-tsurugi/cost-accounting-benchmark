@@ -3,7 +3,9 @@ package com.tsurugidb.benchmark.costaccounting.init;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -18,6 +20,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.util.DaoSplitTask;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
+import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 public class InitialData05CostMaster extends InitialData {
@@ -28,6 +31,7 @@ public class InitialData05CostMaster extends InitialData {
     }
 
     private final Set<Integer> factoryIdSet = new TreeSet<>();
+    private final Map<Integer, ItemMaster> materialMap = BenchConst.init05MaterialCache() ? new HashMap<>(BenchConst.initItemMaterialSize()) : null;
 
     public InitialData05CostMaster(LocalDate batchDate) {
         super(batchDate);
@@ -38,6 +42,7 @@ public class InitialData05CostMaster extends InitialData {
 
         try (CostBenchDbManager manager = initializeDbManager()) {
             initializeField();
+            initMaterialMap();
             insertCostMaster();
         } finally {
             shutdown();
@@ -61,6 +66,33 @@ public class InitialData05CostMaster extends InitialData {
         }
     }
 
+    private void initMaterialMap() {
+        if (this.materialMap == null) {
+            return;
+        }
+
+        LOG.info("select start");
+        long start = System.currentTimeMillis();
+        var setting = TgTmSetting.of(TgTxOption.ofRTX().label("initMaterialMap"));
+        int[] count = { 0 };
+        dbManager.execute(setting, () -> {
+            count[0] = 0;
+            var dao = dbManager.getItemMasterDao();
+            try (var stream = dao.selectByType(batchDate, ItemType.RAW_MATERIAL)) {
+                stream.forEach(entity -> {
+                    materialMap.put(entity.getIId(), entity);
+                    count[0]++;
+                });
+            }
+        });
+        long end = System.currentTimeMillis();
+        LOG.info("select {}.material={} ({}[ms])", ItemMasterDao.TABLE_NAME, count[0], end - start);
+
+        if (materialMap.isEmpty()) {
+            throw new RuntimeException("metarial not found in " + ItemMasterDao.TABLE_NAME);
+        }
+    }
+
     private void insertCostMaster() {
         var setting = getSetting(CostMasterDao.TABLE_NAME);
         dbManager.execute(setting, () -> {
@@ -72,10 +104,12 @@ public class InitialData05CostMaster extends InitialData {
         int materialStartId = itemMasterData.getMaterialStartId();
         int materialEndId = itemMasterData.getMaterialEndId();
         CostMasterTask task = new CostMasterTask(materialStartId, materialEndId);
+        long start = System.currentTimeMillis();
         executeTask(task);
         joinAllTask();
+        long end = System.currentTimeMillis();
 
-        LOG.info("insert {}={}", CostMasterDao.TABLE_NAME, task.getInsertCount());
+        LOG.info("insert {}={} ({}[ms])", CostMasterDao.TABLE_NAME, task.getInsertCount(), end - start);
     }
 
     @SuppressWarnings("serial")
@@ -95,6 +129,7 @@ public class InitialData05CostMaster extends InitialData {
         }
     }
 
+    private static final int INIT_COST_FACTORY_PER_MATERIAL = BenchConst.initCostFactoryPerMeterial();
     private static final BigDecimal Q_START = new BigDecimal("1.0");
     private static final BigDecimal Q_END = new BigDecimal("10.0");
     private static final BigDecimal Q_MULT = new BigDecimal("100");
@@ -103,7 +138,12 @@ public class InitialData05CostMaster extends InitialData {
     private static final BigDecimal A_MIN = new BigDecimal("0.01");
 
     private void insertCostMaster(int materialId, ItemMasterDao itemDao, CostMasterDao dao, AtomicInteger insertCount) {
-        ItemMaster materialEntity = itemDao.selectById(materialId, batchDate);
+        ItemMaster materialEntity;
+        if (this.materialMap != null) {
+            materialEntity = materialMap.get(materialId);
+        } else {
+            materialEntity = itemDao.selectById(materialId, batchDate);
+        }
         if (materialEntity.getIType() != ItemType.RAW_MATERIAL) {
             throw new AssertionError(materialEntity);
         }
@@ -111,7 +151,7 @@ public class InitialData05CostMaster extends InitialData {
         int seed = materialEntity.getIId();
 
         List<Integer> factoryIds = new ArrayList<>(factoryIdSet);
-        int size = BenchConst.initCostFactoryPerMeterial();
+        int size = INIT_COST_FACTORY_PER_MATERIAL;
         if (size <= 0) {
             size = factoryIdSet.size() / 2; // 50%
         } else if (size > factoryIdSet.size()) {
