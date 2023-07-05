@@ -292,14 +292,14 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 
     // for test
     public static void main(String[] args) {
-        BenchOnlineUpdateMaterialTask task = new BenchOnlineUpdateMaterialTask(0);
+        try (BenchOnlineUpdateMaterialTask task = new BenchOnlineUpdateMaterialTask(0)) {
+            try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
+                task.setDao(null, manager);
 
-        try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
-            task.setDao(null, manager);
+                task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
 
-            task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
-
-            task.execute();
+                task.execute();
+            }
         }
     }
 }

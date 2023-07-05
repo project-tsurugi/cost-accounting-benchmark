@@ -71,7 +71,7 @@ public class CostAccountingOnlineAppSchedule implements Runnable {
 
     @Override
     public void run() {
-        try {
+        try (onlineTask) {
             Thread.currentThread().setName(name);
             if (execPerMin == 0) {
                 // txPerMinが0の場合は何もしない

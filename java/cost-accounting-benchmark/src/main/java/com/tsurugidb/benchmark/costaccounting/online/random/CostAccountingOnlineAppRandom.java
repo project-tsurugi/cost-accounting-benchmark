@@ -115,6 +115,10 @@ public class CostAccountingOnlineAppRandom implements Runnable {
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } finally {
+            for (var task : taskList) {
+                task.close();
+            }
         }
 
         LOG.info("thread{} end", threadId);

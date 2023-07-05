@@ -84,14 +84,14 @@ public class BenchOnlineUpdateCostSubTask extends BenchOnlineTask {
 
     // for test
     public static void main(String[] args) {
-        BenchOnlineUpdateCostSubTask task = new BenchOnlineUpdateCostSubTask(0);
+        try (BenchOnlineUpdateCostSubTask task = new BenchOnlineUpdateCostSubTask(0)) {
+            try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
+                task.setDao(null, manager);
 
-        try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
-            task.setDao(null, manager);
+                task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
 
-            task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
-
-            task.execute();
+                task.execute();
+            }
         }
     }
 }

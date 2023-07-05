@@ -1,6 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.online.task;
 
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +24,7 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst.ConsoleType;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 
-public abstract class BenchOnlineTask extends BenchTask {
+public abstract class BenchOnlineTask extends BenchTask implements Closeable {
 
     public static final List<String> TASK_NAME_LIST = List.of( //
             BenchOnlineNewItemTask.TASK_NAME, //
@@ -197,5 +198,10 @@ public abstract class BenchOnlineTask extends BenchTask {
             this.sleepTime = TimeUnit.SECONDS.toMillis(BenchConst.onlineRandomTaskSleepTime(title));
         }
         return sleepTime;
+    }
+
+    @Override
+    public void close() {
+        // do override
     }
 }

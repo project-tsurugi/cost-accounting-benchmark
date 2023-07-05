@@ -60,14 +60,14 @@ public class BenchOnlineShowQuantityTask extends BenchOnlineTask {
 
     // for test
     public static void main(String[] args) {
-        BenchOnlineShowQuantityTask task = new BenchOnlineShowQuantityTask(0);
+        try (BenchOnlineShowQuantityTask task = new BenchOnlineShowQuantityTask(0)) {
+            try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
+                task.setDao(null, manager);
 
-        try (CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
-            task.setDao(null, manager);
+                task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
 
-            task.initialize(1, InitialData.DEFAULT_BATCH_DATE);
-
-            task.execute();
+                task.execute();
+            }
         }
     }
 }
