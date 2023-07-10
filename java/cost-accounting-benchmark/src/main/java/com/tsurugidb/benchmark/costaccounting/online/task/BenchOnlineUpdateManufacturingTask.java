@@ -54,8 +54,8 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
         cacheItemMasterProductKeyList(setting, date);
     }
 
-    private long commitSuccessTime = 0, commitFailTime = 0, rollbackTime = 0;
-    private int commitSuccessCount = 0, commitFailCount = 0, rollbackCount = 0;
+    private long commitOccTime = 0, commitLtxTime = 0, commitFailTime = 0, rollbackTime = 0;
+    private int commitOccCount = 0, commitLtxCount = 0, commitFailCount = 0, rollbackCount = 0;
 
     @Override
     protected boolean execute1() {
@@ -98,8 +98,14 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
         @Override
         public void commitEnd(TsurugiTransaction transaction, TgCommitType commitType, Throwable occurred) {
             if (occurred == null) {
-                commitSuccessTime += System.nanoTime() - commitStart;
-                commitSuccessCount++;
+                long time = System.nanoTime() - commitStart;
+                if (transaction.getTransactionOption().isOCC()) {
+                    commitOccTime += time;
+                    commitOccCount++;
+                } else {
+                    commitLtxTime += time;
+                    commitLtxCount++;
+                }
             } else {
                 commitFailTime += System.nanoTime() - commitStart;
                 commitFailTime++;
@@ -252,7 +258,8 @@ public class BenchOnlineUpdateManufacturingTask extends BenchOnlineTask {
         dumpTime("insert.fail", insertExceptionTime, insertExceptionCount);
         dumpTime("update", updateTime, updateCount);
         dumpTime("update.fail", updateExceptionTime, updateExceptionCount);
-        dumpTime("commit.success", commitSuccessTime, commitSuccessCount);
+        dumpTime("commit.occ", commitOccTime, commitOccCount);
+        dumpTime("commit.ltx", commitLtxTime, commitLtxCount);
         dumpTime("commit.fail", commitFailTime, commitFailCount);
         dumpTime("rollback", rollbackTime, rollbackCount);
     }
