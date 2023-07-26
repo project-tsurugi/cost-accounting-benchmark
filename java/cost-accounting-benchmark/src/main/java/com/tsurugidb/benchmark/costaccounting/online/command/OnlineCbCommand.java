@@ -17,7 +17,6 @@ import com.tsurugidb.benchmark.costaccounting.batch.CostAccountingBatch;
 import com.tsurugidb.benchmark.costaccounting.batch.StringUtil;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
-import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.online.CostAccountingOnline;
 import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
@@ -25,7 +24,6 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.benchmark.costaccounting.watcher.TsurugidbWatcher;
 import com.tsurugidb.benchmark.costaccounting.watcher.TsurugidbWatcherService;
-import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 public class OnlineCbCommand implements ExecutableCommand {
     private static final Logger LOG = LoggerFactory.getLogger(OnlineCbCommand.class);
@@ -108,7 +106,7 @@ public class OnlineCbCommand implements ExecutableCommand {
             LOG.info("pre-batch start");
             var preConfig = new BatchConfig(DbManagerPurpose.PRE_BATCH, BenchConst.PARALLEL_FACTORY_SESSION, config.getBatchDate(), null, 100);
             preConfig.setIsolationLevel(IsolationLevel.READ_COMMITTED);
-            preConfig.setDefaultTxOption(TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
+            preConfig.setDefaultTxOption(CostAccountingBatch.BATCH_LTX_OPTION);
             preConfig.setBatchFactoryOrder(BenchConst.getBatchFactoryOrder());
             CostAccountingBatch.initializeConfig(preConfig);
 

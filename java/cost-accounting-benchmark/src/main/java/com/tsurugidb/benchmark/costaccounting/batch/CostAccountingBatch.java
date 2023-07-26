@@ -24,8 +24,12 @@ import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchItemTask;
 import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchTxOption;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
+import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemConstructionMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemManufacturingMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
@@ -34,12 +38,22 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst.BatchFactoryOrder;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
+import com.tsurugidb.iceaxe.transaction.option.TgTxOptionLtx;
 
 public class CostAccountingBatch {
     private static final Logger LOG = LoggerFactory.getLogger(CostAccountingBatch.class);
 
-    private static final TgTmSetting TX_BATCH = TgTmSetting.of( //
-            TgTxOption.ofLTX(ResultTableDao.TABLE_NAME));
+    public static final TgTxOptionLtx BATCH_LTX_OPTION;
+    static {
+        if (BenchConst.useReadArea()) {
+            BATCH_LTX_OPTION = TgTxOption.ofLTX(BenchConst.DEFAULT_TX_OPTION).addWritePreserve(ResultTableDao.TABLE_NAME) //
+                    .addInclusiveReadArea(ItemManufacturingMasterDao.TABLE_NAME, ItemConstructionMasterDao.TABLE_NAME, ItemMasterDao.TABLE_NAME, CostMasterDao.TABLE_NAME,
+                            MeasurementMasterDao.TABLE_NAME);
+        } else {
+            BATCH_LTX_OPTION = TgTxOption.ofLTX(ResultTableDao.TABLE_NAME);
+        }
+    }
+    private static final TgTmSetting TX_BATCH = TgTmSetting.of(BATCH_LTX_OPTION);
 
     public static void main(String... args) {
         int exitCode = main0(args);

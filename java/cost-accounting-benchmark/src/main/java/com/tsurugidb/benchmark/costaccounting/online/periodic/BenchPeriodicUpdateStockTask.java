@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.batch.StringUtil;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
+import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
@@ -50,7 +51,14 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
 
     @Override
     public void initializeSetting() {
-        this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(StockHistoryDao.TABLE_NAME));
+        this.settingMain = config.getSetting(LOG, this, () -> {
+            if (BenchConst.useReadArea()) {
+                return TgTxOption.ofLTX(BenchConst.DEFAULT_TX_OPTION).addWritePreserve(StockHistoryDao.TABLE_NAME) //
+                        .addInclusiveReadArea(CostMasterDao.TABLE_NAME);
+            } else {
+                return TgTxOption.ofLTX(StockHistoryDao.TABLE_NAME);
+            }
+        });
         setTxOptionDescription(settingMain);
     }
 

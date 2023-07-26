@@ -6,9 +6,11 @@ import java.util.List;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
+import com.tsurugidb.benchmark.costaccounting.db.dao.MeasurementMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.MeasurementUtil;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
@@ -30,7 +32,14 @@ public class BenchOnlineUpdateCostAddTask extends BenchOnlineTask {
     @Override
     public void initializeSetting() {
         this.settingPre = TgTmSetting.ofAlways(TgTxOption.ofRTX().label(TASK_NAME + ".pre"));
-        this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(CostMasterDao.TABLE_NAME));
+        this.settingMain = config.getSetting(LOG, this, () -> {
+            if (BenchConst.useReadArea()) {
+                return TgTxOption.ofLTX(BenchConst.DEFAULT_TX_OPTION).addWritePreserve(CostMasterDao.TABLE_NAME) //
+                        .addInclusiveReadArea(CostMasterDao.TABLE_NAME, ItemMasterDao.TABLE_NAME, MeasurementMasterDao.TABLE_NAME);
+            } else {
+                return TgTxOption.ofLTX(CostMasterDao.TABLE_NAME);
+            }
+        });
         setTxOptionDescription(settingMain);
         this.coverRate = config.getCoverRateForTask(title);
     }

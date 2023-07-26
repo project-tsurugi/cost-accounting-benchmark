@@ -223,7 +223,7 @@ public class BatchCbCommand implements ExecutableCommand {
         case "OCC":
             return TgTxOption.ofOCC();
         default:
-            return TgTxOption.ofLTX(ResultTableDao.TABLE_NAME);
+            return CostAccountingBatch.BATCH_LTX_OPTION;
         }
     }
 

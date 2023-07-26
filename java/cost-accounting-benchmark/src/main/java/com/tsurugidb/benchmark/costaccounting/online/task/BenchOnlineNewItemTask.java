@@ -20,6 +20,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData03ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData04ItemManufacturingMaster;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -44,8 +45,22 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
 
     @Override
     public void initializeSetting() {
-        this.settingPre = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemMasterDao.TABLE_NAME, ItemConstructionMasterDao.TABLE_NAME));
-        this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME));
+        this.settingPre = config.getSetting(LOG, this, () -> {
+            if (BenchConst.useReadArea()) {
+                return TgTxOption.ofLTX(BenchConst.DEFAULT_TX_OPTION).addWritePreserve(ItemMasterDao.TABLE_NAME, ItemConstructionMasterDao.TABLE_NAME) //
+                        .addInclusiveReadArea(ItemMasterDao.TABLE_NAME);
+            } else {
+                return TgTxOption.ofLTX(ItemMasterDao.TABLE_NAME, ItemConstructionMasterDao.TABLE_NAME);
+            }
+        });
+        this.settingMain = config.getSetting(LOG, this, () -> {
+            if (BenchConst.useReadArea()) {
+                return TgTxOption.ofLTX(BenchConst.DEFAULT_TX_OPTION).addWritePreserve(ItemManufacturingMasterDao.TABLE_NAME) //
+                        .addInclusiveReadArea(ItemManufacturingMasterDao.TABLE_NAME);
+            } else {
+                return TgTxOption.ofLTX(ItemManufacturingMasterDao.TABLE_NAME);
+            }
+        });
         setTxOptionDescription(settingMain);
     }
 

@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
+import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
 public class BenchConst {
     /** 暫定回避 */ // TODO 暫定回避策廃止
@@ -537,7 +538,17 @@ public class BenchConst {
 
     // share
 
+    public static boolean useReadArea() {
+        return getPropertyBoolean("use.read-area", true);
+    }
+
     public static final int DECIMAL_SCALE = getPropertyInt("decimal.scale", 20);
+
+    // Iceaxeのデフォルトトランザクションオプションの使用例
+    // 例えば原価計算ベンチマークと料金計算ベンチマークのテーブルが同じDBにあるとき、原価計算ベンチマークからは料金計算ベンチマークのテーブルを絶対参照しない。
+    // こうした絶対参照しないと分かっているテーブルをデフォルトトランザクションオプション（exclusive read area）として定義しておく。
+    /** Iceaxe default transaction option */
+    public static final TgTxOption DEFAULT_TX_OPTION = TgTxOption.ofLTX()/*.addExclusiveReadArea("billing", "contracts", "history")*/;
 
     // properties
 

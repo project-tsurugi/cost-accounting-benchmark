@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
-import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.BatchFactoryOrder;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
@@ -148,7 +147,7 @@ public class BatchConfig {
     private static TgTxOption createTxOption(String s) {
         switch (s) {
         case "LTX":
-            return TgTxOption.ofLTX(ResultTableDao.TABLE_NAME);
+            return CostAccountingBatch.BATCH_LTX_OPTION;
         case "OCC":
             return TgTxOption.ofOCC();
         default:

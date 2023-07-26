@@ -17,6 +17,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.ItemConstructionMasterKe
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData03ItemMaster;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -45,7 +46,14 @@ public class BenchOnlineUpdateMaterialTask extends BenchOnlineTask {
 
     @Override
     public void initializeSetting() {
-        this.settingMain = config.getSetting(LOG, this, () -> TgTxOption.ofLTX(ItemConstructionMasterDao.TABLE_NAME));
+        this.settingMain = config.getSetting(LOG, this, () -> {
+            if (BenchConst.useReadArea()) {
+                return TgTxOption.ofLTX(BenchConst.DEFAULT_TX_OPTION).addWritePreserve(ItemConstructionMasterDao.TABLE_NAME) //
+                        .addInclusiveReadArea(ItemConstructionMasterDao.TABLE_NAME, ItemMasterDao.TABLE_NAME);
+            } else {
+                return TgTxOption.ofLTX(ItemConstructionMasterDao.TABLE_NAME);
+            }
+        });
         setTxOptionDescription(settingMain);
         this.coverRate = config.getCoverRateForTask(title);
     }
