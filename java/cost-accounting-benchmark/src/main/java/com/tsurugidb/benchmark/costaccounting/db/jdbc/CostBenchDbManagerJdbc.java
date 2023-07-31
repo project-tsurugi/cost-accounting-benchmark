@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
@@ -57,7 +58,7 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
     public CostBenchDbManagerJdbc(DbManagerPurpose purpose, IsolationLevel isolationLevel) {
         super("JDBC", false, purpose);
         this.jdbcUrl = BenchConst.jdbcUrl();
-        this.isolationLevel = isolationLevel;
+        this.isolationLevel = Objects.requireNonNull(isolationLevel);
         LOG.info("jdbcUrl={}", jdbcUrl);
         LOG.info("isolationLevel={}", isolationLevel);
     }

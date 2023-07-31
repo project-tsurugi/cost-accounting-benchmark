@@ -24,6 +24,7 @@ import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchItemTask;
 import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchTxOption;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager;
 import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
+import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.FactoryMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.ItemConstructionMasterDao;
@@ -35,6 +36,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.ItemManufacturingMaster;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.BatchFactoryOrder;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
@@ -95,6 +97,7 @@ public class CostAccountingBatch {
 
     public static void initializeConfig(BatchConfig config) {
         var initConfig = new BatchConfig(DbManagerPurpose.BATCH_INIT, config.getExecuteType(), config.getBatchDate(), List.of(), 100);
+        initConfig.setIsolationLevel((BenchConst.dbmsType() == DbmsType.TSURUGI) ? IsolationLevel.SERIALIZABLE : IsolationLevel.READ_COMMITTED);
         try (CostBenchDbManager manager = createDbManager(initConfig)) {
             List<Integer> factoryList = config.getFactoryList();
             if (factoryList == null || factoryList.isEmpty()) {
