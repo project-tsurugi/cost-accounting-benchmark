@@ -22,6 +22,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
+import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
@@ -214,7 +215,10 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
     public static void main(String... args) {
         try (var task = new BenchPeriodicUpdateStockTask(0); //
                 CostBenchDbManager manager = createCostBenchDbManagerForTest()) {
-            task.setDao(null, manager);
+            var config = new OnlineConfig(InitialData.DEFAULT_BATCH_DATE);
+            config.setTxOption(TASK_NAME, "LTX");
+            task.setDao(config, manager);
+            task.initializeSetting();
 
             List<Integer> factoryList = List.of();
             if (0 < args.length) {
@@ -227,7 +231,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
             }
             LOG.info("factoryList={}", StringUtil.toString(factoryList));
 
-            task.initialize(factoryList, InitialData.DEFAULT_BATCH_DATE);
+            task.initialize(factoryList, config.getBatchDate());
 
             LOG.info("start");
             long start = System.currentTimeMillis();

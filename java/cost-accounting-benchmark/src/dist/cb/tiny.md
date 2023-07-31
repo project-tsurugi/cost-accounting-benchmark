@@ -8,8 +8,8 @@
 | item_construction_master  |    785 |        128 |    R |                     |
 | item_manufacturing_master |  3,030 |        320 |    R |                     |
 | cost_master               |  9,000 |        944 |    R |                     |
-| stock_history             |  9,000 |       TODO |    - | 在庫履歴の追加1回分 |
+| stock_history             |  9,000 |       1384 |    - | 在庫履歴の追加1回分 |
 | result_table              | 34,704 |      7,384 |   CD | 全件削除全件登録    |
-| 合計                      | 49,402 |      9,096 |      |                     |
+| 合計                      | 58,402 |     10,480 |      |                     |
 
 
