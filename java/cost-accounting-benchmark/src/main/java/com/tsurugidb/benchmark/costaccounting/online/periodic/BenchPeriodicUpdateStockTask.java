@@ -83,15 +83,16 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
     private void executeAllInTransaction() {
         var time = LocalTime.now();
 
-        if (!BenchConst.WORKAROUND) {
-            // TODO select-insert
-            throw new AssertionError("implemtens select-insert");
+        if (BenchConst.WORKAROUND) {
+            var costMasterDao = dbManager.getCostMasterDao();
+            try (var stream = costMasterDao.selectAll()) {
+                streamInsert(stream, time);
+            }
+            return;
         }
 
-        var costMasterDao = dbManager.getCostMasterDao();
-        try (var stream = costMasterDao.selectAll()) {
-            streamInsert(stream, time);
-        }
+        var dao = dbManager.getStockHistoryDao();
+        dao.insertSelectFromCostMaster(date, time);
     }
 
     private void streamInsert(Stream<CostMaster> stream, LocalTime time) {
@@ -192,15 +193,16 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
         }
 
         private void executeInTransaction() {
-            if (!BenchConst.WORKAROUND) {
-                // TODO select-insert
-                throw new AssertionError("implemtens select-insert");
+            if (BenchConst.WORKAROUND) {
+                var costMasterDao = dbManager.getCostMasterDao();
+                try (var stream = costMasterDao.selectByFactory(factoryId)) {
+                    streamInsert(stream, time);
+                }
+                return;
             }
 
-            var costMasterDao = dbManager.getCostMasterDao();
-            try (var stream = costMasterDao.selectByFactory(factoryId)) {
-                streamInsert(stream, time);
-            }
+            var dao = dbManager.getStockHistoryDao();
+            dao.insertSelectFromCostMaster(date, time, factoryId);
         }
     }
 

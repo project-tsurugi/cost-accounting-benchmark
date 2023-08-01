@@ -2,11 +2,15 @@ package com.tsurugidb.benchmark.costaccounting.db.jdbc.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
+import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.CostBenchDbManagerJdbc;
@@ -48,6 +52,31 @@ public class StockHistoryDaoJdbc extends JdbcDao<StockHistory> implements StockH
     @Override
     public int[] insertBatch(Collection<StockHistory> entityList) {
         return doInsert(entityList);
+    }
+
+    private static final String INSERT_SELECT_FROM_COST_MASTER_SQL = "insert into " + TABLE_NAME //
+            + "(" + COLUMN_LIST.stream().map(c -> c.getName()).collect(Collectors.joining(", ")) + ")" //
+            + " select ?, ?, c_f_id, c_i_id, c_stock_unit, c_stock_quantity, c_stock_amount from " + CostMasterDao.TABLE_NAME;
+
+    @Override
+    public void insertSelectFromCostMaster(LocalDate date, LocalTime time) {
+        executeUpdate(INSERT_SELECT_FROM_COST_MASTER_SQL, ps -> {
+            int i = 1;
+            JdbcUtil.setDate(ps, i++, date);
+            JdbcUtil.setTime(ps, i++, time);
+        });
+    }
+
+    private static final String INSERT_SELECT_FROM_COST_MASTER_FACTORY_SQL = INSERT_SELECT_FROM_COST_MASTER_SQL + " where c_f_id = ?";
+
+    @Override
+    public void insertSelectFromCostMaster(LocalDate date, LocalTime time, int factoryId) {
+        executeUpdate(INSERT_SELECT_FROM_COST_MASTER_FACTORY_SQL, ps -> {
+            int i = 1;
+            JdbcUtil.setDate(ps, i++, date);
+            JdbcUtil.setTime(ps, i++, time);
+            JdbcUtil.setInt(ps, i++, factoryId);
+        });
     }
 
     @SuppressWarnings("unused")

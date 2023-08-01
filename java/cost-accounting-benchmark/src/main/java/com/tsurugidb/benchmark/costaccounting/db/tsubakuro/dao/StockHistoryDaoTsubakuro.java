@@ -1,5 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.db.tsubakuro.dao;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -49,6 +51,16 @@ public class StockHistoryDaoTsubakuro extends TsubakuroDao<StockHistory> impleme
     @Override
     public int[] insertBatch(Collection<StockHistory> entityList) {
         return doInsert(entityList);
+    }
+
+    @Override
+    public void insertSelectFromCostMaster(LocalDate date, LocalTime time) {
+        throw new UnsupportedOperationException("not yet impl");
+    }
+
+    @Override
+    public void insertSelectFromCostMaster(LocalDate date, LocalTime time, int factoryId) {
+        throw new UnsupportedOperationException("not yet impl");
     }
 
     @Override

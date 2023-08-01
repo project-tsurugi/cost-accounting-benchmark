@@ -1,6 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.db.dao;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.function.Consumer;
 
@@ -43,6 +44,22 @@ public interface StockHistoryDao {
     int insert(StockHistory entity);
 
     int[] insertBatch(Collection<StockHistory> entityList);
+
+    /**
+     * <pre>
+     * insert into stock_history
+     * select ... from cost_master
+     * </prE>
+     */
+    void insertSelectFromCostMaster(LocalDate date, LocalTime time);
+
+    /**
+     * <pre>
+     * insert into stock_history
+     * select ... from cost_master where c_f_id = :factoryId
+     * </prE>
+     */
+    void insertSelectFromCostMaster(LocalDate date, LocalTime time, int factoryId);
 
     void forEach(Consumer<StockHistory> entityConsumer);
 }
