@@ -282,7 +282,36 @@ public class DebugCommand implements ExecutableCommand {
                             while (rs.nextRow()) {
                             }
                         }
-                    } catch (ServerException | IOException | InterruptedException e) {
+                    } catch (IOException e) {
+                        var message = e.getMessage();
+                        if (message.contains("The wire was closed before receiving a response to this request")) {
+                            return;
+                        }
+                        if (message.contains("the current session is already closed")) {
+                            return;
+                        }
+                        if (message.contains("transaction already closed")) {
+                            return;
+                        }
+                        if (message.contains("already closed")) { // wire
+                            return;
+                        }
+                        if (message.contains("Server crashed")) {
+                            return;
+                        }
+                        LOG.error("thread error", e);
+                        throw new RuntimeException(e);
+                    } catch (ServerException e) {
+                        var message = e.getMessage();
+                        if (message.contains("Current transaction is inactive (maybe aborted already.)")) {
+                            return;
+                        }
+                        if (message.contains("invalid tx handle")) {
+                            return;
+                        }
+                        LOG.error("thread error", e);
+                        throw new RuntimeException(e);
+                    } catch (InterruptedException e) {
                         LOG.error("thread error", e);
                         throw new RuntimeException(e);
                     }
