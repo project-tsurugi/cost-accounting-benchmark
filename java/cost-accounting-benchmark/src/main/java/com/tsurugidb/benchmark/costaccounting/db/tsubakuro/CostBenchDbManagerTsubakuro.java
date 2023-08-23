@@ -172,9 +172,9 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
 
     @Override
     public void execute(TgTmSetting setting, Runnable runnable) {
-        var info = setting.getTransactionOptionSupplier().createExecuteInfo(0);
-        var option = setting.getFirstTransactionOption(info).toLowTransactionOption();
         try {
+            var info = setting.getTransactionOptionSupplier().createExecuteInfo(0);
+            var option = setting.getFirstTransactionOption(info).toLowTransactionOption();
             var transaction = sqlClient.createTransaction(option).await();
             setCurrentTransaction(transaction);
 
@@ -207,9 +207,9 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
 
     @Override
     public <T> T execute(TgTmSetting setting, Supplier<T> supplier) {
-        var info = setting.getTransactionOptionSupplier().createExecuteInfo(0);
-        var option = setting.getFirstTransactionOption(info).toLowTransactionOption();
         try {
+            var info = setting.getTransactionOptionSupplier().createExecuteInfo(0);
+            var option = setting.getFirstTransactionOption(info).toLowTransactionOption();
             var transaction = sqlClient.createTransaction(option).await();
             setCurrentTransaction(transaction);
 

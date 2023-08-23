@@ -1,5 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.db;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -195,8 +197,14 @@ public class BenchDbCounter extends TgTmLabelCounter {
 
     public void increment(TgTmSetting setting, CounterName name) {
         var info = setting.getTransactionOptionSupplier().createExecuteInfo(0);
-        var option = setting.getFirstTransactionOption(info);
-        increment(option, name);
+        try {
+            var option = setting.getFirstTransactionOption(info);
+            increment(option, name);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void increment(TgTxOption option, CounterName name) {

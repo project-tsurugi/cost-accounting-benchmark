@@ -1,5 +1,7 @@
 package com.tsurugidb.benchmark.costaccounting.batch.task;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +46,7 @@ public class BenchBatchTxOption extends TgTmTxOptionAlways {
     }
 
     @Override
-    protected TgTmRetryInstruction isRetryable(TsurugiTransaction transaction, TsurugiTransactionException e) {
+    protected TgTmRetryInstruction isRetryable(TsurugiTransaction transaction, TsurugiTransactionException e) throws IOException, InterruptedException {
         var code = e.getDiagnosticCode();
         if (code == SqlServiceCode.ERR_INACTIVE_TRANSACTION) {
             return TgTmRetryInstruction.ofRetryable(code);

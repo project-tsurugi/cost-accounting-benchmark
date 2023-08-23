@@ -1,5 +1,6 @@
 package com.tsurugidb.benchmark.costaccounting.online;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -128,7 +129,7 @@ public class CostAccountingOnline {
     public static CostBenchDbManager createDbManager(OnlineConfig config) {
         TsurugiDefaultRetryPredicate.setInstance(new TsurugiDefaultRetryPredicate() {
             @Override
-            protected TgTmRetryInstruction testOcc(TsurugiTransaction transaction, TsurugiTransactionException e) {
+            protected TgTmRetryInstruction testOcc(TsurugiTransaction transaction, TsurugiTransactionException e) throws IOException, InterruptedException {
                 var code = e.getDiagnosticCode();
                 if (code == SqlServiceCode.ERR_ABORTED) {
                     return TgTmRetryInstruction.ofRetryable(code);
