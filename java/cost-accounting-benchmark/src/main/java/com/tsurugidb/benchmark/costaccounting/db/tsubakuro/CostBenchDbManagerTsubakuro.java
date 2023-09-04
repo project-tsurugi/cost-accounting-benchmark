@@ -35,8 +35,10 @@ import com.tsurugidb.tsubakuro.common.Session;
 import com.tsurugidb.tsubakuro.common.SessionBuilder;
 import com.tsurugidb.tsubakuro.exception.ServerException;
 import com.tsurugidb.tsubakuro.sql.SqlClient;
-import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 import com.tsurugidb.tsubakuro.sql.Transaction;
+import com.tsurugidb.tsubakuro.sql.exception.CcException;
+import com.tsurugidb.tsubakuro.sql.exception.TargetNotFoundException;
+import com.tsurugidb.tsubakuro.sql.exception.UniqueConstraintViolationException;
 
 public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
     private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManagerTsubakuro.class);
@@ -141,7 +143,7 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
                         try {
                             sqlClient.getTableMetadata(tableName).await();
                         } catch (ServerException e) {
-                            if (e.getDiagnosticCode() == SqlServiceCode.ERR_NOT_FOUND) {
+                            if (e instanceof TargetNotFoundException) {
                                 continue;
                             }
                             throw new RuntimeException(e);
@@ -227,9 +229,8 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
             counter.increment(setting, CounterName.ABORTED);
             rollback();
             // TODO abort retry
-            var code = e.getDiagnosticCode();
             // FIXME コミット時の一意制約違反の判定方法
-            if (code == SqlServiceCode.ERR_UNIQUE_CONSTRAINT_VIOLATION) {
+            if (e instanceof UniqueConstraintViolationException) {
                 throw new UniqueConstraintException(e);
             }
             throw new RuntimeException(e);
@@ -258,8 +259,7 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
     }
 
     protected boolean isRetyiableTsurugiException(ServerException e) {
-        var code = e.getDiagnosticCode();
-        return code == SqlServiceCode.ERR_SERIALIZATION_FAILURE;
+        return e instanceof CcException;
     }
 
     @Override

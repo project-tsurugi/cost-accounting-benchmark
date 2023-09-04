@@ -9,6 +9,7 @@ import java.util.function.Function;
 
 import com.tsurugidb.benchmark.costaccounting.batch.task.BenchBatchTxOption;
 import com.tsurugidb.iceaxe.exception.TsurugiDiagnosticCodeProvider;
+import com.tsurugidb.iceaxe.exception.TsurugiExceptionUtil;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.manager.TsurugiTransactionManager;
@@ -16,7 +17,6 @@ import com.tsurugidb.iceaxe.transaction.manager.event.counter.TgTmCount;
 import com.tsurugidb.iceaxe.transaction.manager.event.counter.TgTmLabelCounter;
 import com.tsurugidb.iceaxe.transaction.manager.option.TgTmTxOption;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
-import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
 public class BenchDbCounter extends TgTmLabelCounter {
 
@@ -141,11 +141,12 @@ public class BenchDbCounter extends TgTmLabelCounter {
         }
 
         if (e instanceof TsurugiDiagnosticCodeProvider) {
-            var code = ((TsurugiDiagnosticCodeProvider) e).getDiagnosticCode();
-            if (code == SqlServiceCode.ERR_CONFLICT_ON_WRITE_PRESERVE) {
+            var t = (TsurugiDiagnosticCodeProvider) e;
+            var exceptionUtil = TsurugiExceptionUtil.getInstance();
+            if (exceptionUtil.isConflictOnWritePreserve(t)) {
                 counter.conflictOnWp.incrementAndGet();
             }
-            if (code == SqlServiceCode.ERR_SERIALIZATION_FAILURE) {
+            if (exceptionUtil.isSerializationFailure(t)) {
                 String message = e.getMessage();
                 if (message.contains("shirakami response Status=ERR_CC")) {
                     if (message.contains("reason_code:CC_OCC_WP_VERIFY")) {

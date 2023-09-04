@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.TsurugiConnector;
+import com.tsurugidb.iceaxe.exception.TsurugiExceptionUtil;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
 import com.tsurugidb.iceaxe.sql.TsurugiSqlPreparedStatement;
 import com.tsurugidb.iceaxe.sql.TsurugiSqlQuery;
@@ -30,7 +31,6 @@ import com.tsurugidb.iceaxe.transaction.function.TsurugiTransactionAction;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.manager.exception.TsurugiTmIOException;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
-import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
 /**
  * iceaxe-dbtest DbInsertDuplicate2Test
@@ -216,7 +216,8 @@ public class DebugInsertDuplicate {
                             execute(transaction, maxPs, insertPs, insert2Ps);
                         });
                     } catch (TsurugiTmIOException e) {
-                        if (e.getDiagnosticCode() == SqlServiceCode.ERR_UNIQUE_CONSTRAINT_VIOLATION) {
+                        var exceptionUtil = TsurugiExceptionUtil.getInstance();
+                        if (exceptionUtil.isUniqueConstraintViolation(e)) {
 //                          LOG.info("ERR_UNIQUE_CONSTRAINT_VIOLATION {}", i);
                             continue;
                         }

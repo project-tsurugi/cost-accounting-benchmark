@@ -1,6 +1,5 @@
 package com.tsurugidb.benchmark.costaccounting.online;
 
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -39,13 +38,8 @@ import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateManuf
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineUpdateMaterialTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchTask;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
-import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
-import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
-import com.tsurugidb.iceaxe.transaction.manager.retry.TgTmRetryInstruction;
-import com.tsurugidb.iceaxe.transaction.manager.retry.TsurugiDefaultRetryPredicate;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
-import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
 public class CostAccountingOnline {
     private static final Logger LOG = LoggerFactory.getLogger(CostAccountingOnline.class);
@@ -127,18 +121,6 @@ public class CostAccountingOnline {
     }
 
     public static CostBenchDbManager createDbManager(OnlineConfig config) {
-        TsurugiDefaultRetryPredicate.setInstance(new TsurugiDefaultRetryPredicate() {
-            @Override
-            protected TgTmRetryInstruction testOcc(TsurugiTransaction transaction, TsurugiTransactionException e) throws IOException, InterruptedException {
-                var code = e.getDiagnosticCode();
-                if (code == SqlServiceCode.ERR_ABORTED) {
-                    return TgTmRetryInstruction.ofRetryable(code);
-                }
-
-                return super.testOcc(transaction, e);
-            }
-        });
-
         var type = BenchConst.onlineDbManagerType();
         var isolationLevel = config.getIsolationLevel();
         boolean isMultiSession = config.isMultiSession();

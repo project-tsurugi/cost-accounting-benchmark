@@ -33,6 +33,7 @@ import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.StockHistoryDaoIceax
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.TsurugiConnector;
 import com.tsurugidb.iceaxe.exception.TsurugiDiagnosticCodeProvider;
+import com.tsurugidb.iceaxe.exception.TsurugiExceptionUtil;
 import com.tsurugidb.iceaxe.session.TgSessionOption;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
 import com.tsurugidb.iceaxe.session.event.logging.file.TsurugiSessionTxFileLogConfig;
@@ -46,7 +47,6 @@ import com.tsurugidb.iceaxe.transaction.manager.TsurugiTransactionManager;
 import com.tsurugidb.iceaxe.transaction.manager.exception.TsurugiTmIOException;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.tsubakuro.channel.common.connection.UsernamePasswordCredential;
-import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
 public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManagerIceaxe.class);
@@ -271,11 +271,11 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
                 }
             });
         } catch (TsurugiTmIOException e) {
-            var code = e.getDiagnosticCode();
-            if (code == SqlServiceCode.ERR_UNIQUE_CONSTRAINT_VIOLATION) {
+            var exceptionUtil = TsurugiExceptionUtil.getInstance();
+            if (exceptionUtil.isUniqueConstraintViolation(e)) {
                 throw new UniqueConstraintException(e);
             }
-            if (code == SqlServiceCode.ERR_SERIALIZATION_FAILURE) {
+            if (exceptionUtil.isSerializationFailure(e)) {
                 String message = e.getMessage();
                 if (message.contains("reason_code:KVS_INSERT")) {
                     throw new UniqueConstraintException(e);
@@ -305,14 +305,14 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
     }
 
     protected boolean isRetyiableTsurugiException(TsurugiDiagnosticCodeProvider e) {
-        var code = e.getDiagnosticCode();
-        if (code == SqlServiceCode.ERR_SERIALIZATION_FAILURE) {
+        var exceptionUtil = TsurugiExceptionUtil.getInstance();
+        if (exceptionUtil.isSerializationFailure(e)) {
             return true;
         }
-        if (code == SqlServiceCode.ERR_CONFLICT_ON_WRITE_PRESERVE) {
+        if (exceptionUtil.isConflictOnWritePreserve(e)) {
             return true;
         }
-        if (code == SqlServiceCode.ERR_INACTIVE_TRANSACTION) {
+        if (exceptionUtil.isInactiveTransaction(e)) {
             return true;
         }
         return false;

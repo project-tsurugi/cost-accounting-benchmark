@@ -27,6 +27,7 @@ import com.tsurugidb.benchmark.costaccounting.db.UniqueConstraintException;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao.IceaxeColumn.RecordGetter;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
+import com.tsurugidb.iceaxe.exception.TsurugiExceptionUtil;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
 import com.tsurugidb.iceaxe.sql.TsurugiSql;
 import com.tsurugidb.iceaxe.sql.TsurugiSqlPreparedQuery;
@@ -45,7 +46,6 @@ import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionRuntimeException;
 import com.tsurugidb.tsubakuro.explain.PlanGraph;
-import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
 public abstract class IceaxeDao<E> {
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
@@ -376,8 +376,8 @@ public abstract class IceaxeDao<E> {
     }
 
     private boolean isUniqueConstraint(TsurugiTransactionException e) {
-        var code = e.getDiagnosticCode();
-        if (code == SqlServiceCode.ERR_UNIQUE_CONSTRAINT_VIOLATION) {
+        var exceptionUtil = TsurugiExceptionUtil.getInstance();
+        if (exceptionUtil.isUniqueConstraintViolation(e)) {
             // 同一トランザクション内でinsertの一意制約違反
             return true;
         }
@@ -403,15 +403,7 @@ public abstract class IceaxeDao<E> {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } catch (TsurugiTransactionException e) {
-            wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
-        }
-    }
-
-    // TODO 暫定リトライ判定を廃止して正式版にする
-    private void wipRetry(TsurugiTransactionException e) {
-        if (e.getDiagnosticCode() == SqlServiceCode.ERR_ABORTED) {
-            throw new TsurugiTransactionRuntimeException(new TsurugiTransactionException("(WIP) retry", SqlServiceCode.ERR_SERIALIZATION_FAILURE, e));
         }
     }
 
@@ -435,7 +427,6 @@ public abstract class IceaxeDao<E> {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } catch (TsurugiTransactionException e) {
-            wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
         }
     }
@@ -450,7 +441,6 @@ public abstract class IceaxeDao<E> {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } catch (TsurugiTransactionException e) {
-            wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
         }
     }
@@ -465,7 +455,6 @@ public abstract class IceaxeDao<E> {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } catch (TsurugiTransactionException e) {
-            wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
         }
     }
@@ -491,7 +480,6 @@ public abstract class IceaxeDao<E> {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } catch (TsurugiTransactionException e) {
-            wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
         }
     }
@@ -517,7 +505,6 @@ public abstract class IceaxeDao<E> {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } catch (TsurugiTransactionException e) {
-            wipRetry(e);
             throw new TsurugiTransactionRuntimeException(e);
         }
     }

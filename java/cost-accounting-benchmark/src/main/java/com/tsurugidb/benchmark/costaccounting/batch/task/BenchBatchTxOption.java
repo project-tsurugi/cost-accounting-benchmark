@@ -6,12 +6,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.benchmark.costaccounting.batch.BatchConfig;
+import com.tsurugidb.iceaxe.exception.TsurugiExceptionUtil;
 import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 import com.tsurugidb.iceaxe.transaction.manager.option.TgTmTxOptionAlways;
 import com.tsurugidb.iceaxe.transaction.manager.retry.TgTmRetryInstruction;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
-import com.tsurugidb.tsubakuro.sql.SqlServiceCode;
 
 public class BenchBatchTxOption extends TgTmTxOptionAlways {
     private static final Logger LOG = LoggerFactory.getLogger(BenchBatchTxOption.class);
@@ -47,8 +47,9 @@ public class BenchBatchTxOption extends TgTmTxOptionAlways {
 
     @Override
     protected TgTmRetryInstruction isRetryable(TsurugiTransaction transaction, TsurugiTransactionException e) throws IOException, InterruptedException {
-        var code = e.getDiagnosticCode();
-        if (code == SqlServiceCode.ERR_INACTIVE_TRANSACTION) {
+        var exceptionUtil = TsurugiExceptionUtil.getInstance();
+        if (exceptionUtil.isInactiveTransaction(e)) {
+            var code = e.getDiagnosticCode();
             return TgTmRetryInstruction.ofRetryable(code);
         }
 
