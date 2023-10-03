@@ -5,7 +5,7 @@
 * Java `>= 11`
 
 * access to installed dependent modules:
-  * iceaxe
+  * Iceaxe
 
 ## How to build
 
