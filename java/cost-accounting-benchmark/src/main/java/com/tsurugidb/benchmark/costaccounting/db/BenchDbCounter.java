@@ -287,7 +287,7 @@ public class BenchDbCounter extends TgTmLabelCounter {
         case SUCCESS:
             return getCount(label, TgTmCount::successCommitCount);
         case ABORTED:
-            return getCount(label, TgTmCount::execptionCount);
+            return getCount(label, TgTmCount::exceptionCount);
         case OCC_TRY:
             return getOnlineCount(label, counter -> counter.occTry.get());
         case OCC_SUCCESS:
