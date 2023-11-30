@@ -106,7 +106,7 @@ public abstract class SheetWrapper {
         case BLANK:
             return null;
         default:
-            throw new UnsupportedOperationException(cell.getCellType().name());
+            throw new UnsupportedOperationException(String.format("(row=%d, col=%d) %s", row.getRowNum(), colIndex, cell.getCellType().name()));
         }
     }
 
@@ -119,10 +119,20 @@ public abstract class SheetWrapper {
         case NUMERIC:
         case FORMULA:
             return (int) cell.getNumericCellValue();
+        case STRING:
+            String s = cell.getStringCellValue();
+            if (s.trim().isEmpty()) {
+                return null;
+            }
+            try {
+                return Integer.valueOf(s);
+            } catch (Exception e) {
+                throw new IllegalStateException(String.format("(row=%d, col=%d) %s", row.getRowNum(), colIndex, cell.getCellType().name()), e);
+            }
         case BLANK:
             return null;
         default:
-            throw new UnsupportedOperationException(cell.getCellType().name());
+            throw new UnsupportedOperationException(String.format("(row=%d, col=%d) %s", row.getRowNum(), colIndex, cell.getCellType().name()));
         }
     }
 
@@ -135,10 +145,20 @@ public abstract class SheetWrapper {
         case NUMERIC:
         case FORMULA:
             return BigDecimal.valueOf(cell.getNumericCellValue());
+        case STRING:
+            String s = cell.getStringCellValue();
+            if (s.trim().isEmpty()) {
+                return null;
+            }
+            try {
+                return new BigDecimal(s);
+            } catch (Exception e) {
+                throw new IllegalStateException(String.format("(row=%d, col=%d) %s", row.getRowNum(), colIndex, cell.getCellType().name()), e);
+            }
         case BLANK:
             return null;
         default:
-            throw new UnsupportedOperationException(cell.getCellType().name());
+            throw new UnsupportedOperationException(String.format("(row=%d, col=%d) %s", row.getRowNum(), colIndex, cell.getCellType().name()));
         }
     }
 }
