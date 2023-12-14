@@ -40,11 +40,19 @@ public interface ItemMasterDao {
 
     /**
      * <pre>
-     * insert into item_master
+     * insert (or replace) into item_master
      * values(:entity)
      * </pre>
      */
     int insert(ItemMaster entity);
+
+    /**
+     * <pre>
+     * insert into item_master
+     * values(:entity)
+     * </pre>
+     */
+    int insertOnly(ItemMaster entity);
 
     int[] insertBatch(Collection<ItemMaster> entityList);
 

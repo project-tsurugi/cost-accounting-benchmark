@@ -131,12 +131,12 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
 
     @Override
     public int insert(ResultTable entity) {
-        return doInsert(entity);
+        return doInsert(entity, false);
     }
 
     @Override
     public int[] insertBatch(Collection<ResultTable> entityList) {
-        return doInsert(entityList);
+        return doInsert(entityList, false);
     }
 
     @Override

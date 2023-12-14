@@ -48,7 +48,7 @@ public interface ItemConstructionMasterDao {
      */
     int insert(ItemConstructionMaster entity);
 
-    int[] insertBatch(Collection<ItemConstructionMaster> entityList);
+    int[] insertBatch(Collection<ItemConstructionMaster> entityList, boolean insertOnly);
 
     /**
      * <pre>

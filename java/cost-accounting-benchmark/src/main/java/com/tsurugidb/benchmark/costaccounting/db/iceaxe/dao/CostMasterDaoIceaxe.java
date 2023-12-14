@@ -50,12 +50,12 @@ public class CostMasterDaoIceaxe extends IceaxeDao<CostMaster> implements CostMa
 
     @Override
     public int insert(CostMaster entity) {
-        return doInsert(entity);
+        return doInsert(entity, false);
     }
 
     @Override
     public int[] insertBatch(Collection<CostMaster> entityList) {
-        return doInsert(entityList);
+        return doInsert(entityList, false);
     }
 
     @Override

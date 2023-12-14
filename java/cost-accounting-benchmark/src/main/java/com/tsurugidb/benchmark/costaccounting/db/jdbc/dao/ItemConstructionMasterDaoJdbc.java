@@ -58,7 +58,7 @@ public class ItemConstructionMasterDaoJdbc extends JdbcDao<ItemConstructionMaste
     }
 
     @Override
-    public int[] insertBatch(Collection<ItemConstructionMaster> entityList) {
+    public int[] insertBatch(Collection<ItemConstructionMaster> entityList, boolean insertOnly) {
         return doInsert(entityList);
     }
 

@@ -139,7 +139,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
             workSet.add(id);
         }
 
-        initialData.insertItemConstructionMasterProduct(item.getIId(), workSet, dbManager.getItemConstructionMasterDao(), new AtomicInteger());
+        initialData.insertItemConstructionMasterProduct(item.getIId(), workSet, dbManager.getItemConstructionMasterDao(), true, new AtomicInteger());
 
         return item;
     }
@@ -154,7 +154,7 @@ public class BenchOnlineNewItemTask extends BenchOnlineTask {
         entity.setExpiredDate(endDate);
 
         try {
-            itemMasterDao.insert(entity);
+            itemMasterDao.insertOnly(entity);
         } catch (UniqueConstraintException e) {
             LOG.debug("duplicate item_master (insert)", e);
             if (dbManager.isTsurugi()) {

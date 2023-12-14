@@ -45,12 +45,12 @@ public class ItemManufacturingMasterDaoTsubakuro extends TsubakuroDao<ItemManufa
 
     @Override
     public int insert(ItemManufacturingMaster entity) {
-        return doInsert(entity);
+        return doInsert(entity, false);
     }
 
     @Override
     public int[] insertBatch(Collection<ItemManufacturingMaster> entityList) {
-        return doInsert(entityList);
+        return doInsert(entityList, false);
     }
 
     @Override

@@ -39,7 +39,7 @@ public class FactoryMasterDaoIceaxe extends IceaxeDao<FactoryMaster> implements 
 
     @Override
     public int insert(FactoryMaster entity) {
-        return doInsert(entity);
+        return doInsert(entity, false);
     }
 
     @Override

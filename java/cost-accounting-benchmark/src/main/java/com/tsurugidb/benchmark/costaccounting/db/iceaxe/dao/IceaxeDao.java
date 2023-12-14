@@ -55,6 +55,7 @@ public abstract class IceaxeDao<E> {
     private final String tableName;
     private final List<IceaxeColumn<E, ?>> columnList;
     private final Supplier<E> entitySupplier;
+    protected final String insert;
 
     protected static <E, T> void add(List<IceaxeColumn<E, ?>> list, TgBindVariable<T> variable, BiConsumer<E, T> entitySetter, Function<E, T> entityGetter, RecordGetter<T> recordGetter) {
         add(list, variable, entitySetter, entityGetter, recordGetter, false);
@@ -70,6 +71,7 @@ public abstract class IceaxeDao<E> {
         this.tableName = tableName;
         this.columnList = columnList;
         this.entitySupplier = entitySupplier;
+        this.insert = BenchConst.sqlInsert(dbManager.getPurpose());
     }
 
     protected final TsurugiSession getSession() {
@@ -101,24 +103,24 @@ public abstract class IceaxeDao<E> {
         }
     }
 
-    protected final int doInsert(E entity) {
-        var ps = insertCache.get();
+    protected final int doInsert(E entity, boolean insertOnly) {
+        var ps = getInsertPs(insertOnly);
         return executeAndGetCount(ps, entity);
     }
 
-    protected final int[] doInsert(Collection<E> entityList) {
+    protected final int[] doInsert(Collection<E> entityList, boolean insertOnly) {
         // TODO batch insertに切り替え
         switch (1) {
         default:
         case 0:
-            return doInsertWait(entityList);
+            return doInsertWait(entityList, insertOnly);
         case 1:
-            return doInsertNoWait(entityList);
+            return doInsertNoWait(entityList, insertOnly);
         }
     }
 
-    private int[] doInsertWait(Collection<E> entityList) {
-        var ps = insertCache.get();
+    private int[] doInsertWait(Collection<E> entityList, boolean insertOnly) {
+        var ps = getInsertPs(insertOnly);
         var result = new int[entityList.size()];
         int i = 0;
         for (var entity : entityList) {
@@ -127,17 +129,35 @@ public abstract class IceaxeDao<E> {
         return result;
     }
 
-    private int[] doInsertNoWait(Collection<E> entityList) {
-        var ps = insertCache.get();
+    private int[] doInsertNoWait(Collection<E> entityList, boolean insertOnly) {
+        var ps = getInsertPs(insertOnly);
         return executeAndGetCount(ps, entityList);
     }
+
+    private TsurugiSqlPreparedStatement<E> getInsertPs(boolean insertOnly) {
+        if (insertOnly) {
+            return insertOnlyCache.get();
+        } else {
+            return insertCache.get();
+        }
+    }
+
+    private final CachePreparedStatement<E> insertOnlyCache = new CachePreparedStatement<>() {
+        @Override
+        protected void initialize() {
+            var names = getColumnNames();
+            var values = columnList.stream().map(c -> c.getSqlName()).collect(Collectors.joining(","));
+            this.sql = "insert into " + tableName + "(" + names + ") values (" + values + ")";
+            this.parameterMapping = getEntityParameterMapping();
+        }
+    };
 
     private final CachePreparedStatement<E> insertCache = new CachePreparedStatement<>() {
         @Override
         protected void initialize() {
             var names = getColumnNames();
             var values = columnList.stream().map(c -> c.getSqlName()).collect(Collectors.joining(","));
-            this.sql = "insert into " + tableName + "(" + names + ") values (" + values + ")";
+            this.sql = insert + " into " + tableName + "(" + names + ") values (" + values + ")";
             this.parameterMapping = getEntityParameterMapping();
         }
     };

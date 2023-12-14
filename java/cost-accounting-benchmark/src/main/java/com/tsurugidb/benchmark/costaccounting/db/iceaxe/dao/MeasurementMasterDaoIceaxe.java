@@ -38,7 +38,7 @@ public class MeasurementMasterDaoIceaxe extends IceaxeDao<MeasurementMaster> imp
 
     @Override
     public int insert(MeasurementMaster entity) {
-        return doInsert(entity);
+        return doInsert(entity, false);
     }
 
     @Override

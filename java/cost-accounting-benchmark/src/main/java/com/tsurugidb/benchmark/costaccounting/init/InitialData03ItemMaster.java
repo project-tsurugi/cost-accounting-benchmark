@@ -515,7 +515,7 @@ public class InitialData03ItemMaster extends InitialData {
 
             initializeLossRatio(entity.getIcIId() + entity.getIcParentIId(), entity);
 
-            insertItemConstructionMaster(icDao, entity, constructionCount);
+            insertItemConstructionMaster(icDao, entity, false, constructionCount);
         }
     }
 
@@ -575,11 +575,11 @@ public class InitialData03ItemMaster extends InitialData {
                 set.add(random(++seed, workStart, workEnd));
             }
 
-            insertItemConstructionMasterProduct(iId, set, dbManager.getItemConstructionMasterDao(), insertCount);
+            insertItemConstructionMasterProduct(iId, set, dbManager.getItemConstructionMasterDao(), false, insertCount);
         }
     }
 
-    public void insertItemConstructionMasterProduct(int productId, Set<Integer> workSet, ItemConstructionMasterDao icDao, AtomicInteger insertCount) {
+    public void insertItemConstructionMasterProduct(int productId, Set<Integer> workSet, ItemConstructionMasterDao icDao, boolean insertOnly, AtomicInteger insertCount) {
         for (Integer workId : workSet) {
             ItemConstructionMaster entity = new ItemConstructionMaster();
             entity.setIcIId(workId);
@@ -587,7 +587,7 @@ public class InitialData03ItemMaster extends InitialData {
             initializeStartEndDate(workId + productId, entity);
             initializeItemConstructionMasterRandom(random, entity);
 
-            insertItemConstructionMaster(icDao, entity, insertCount);
+            insertItemConstructionMaster(icDao, entity, insertOnly, insertCount);
         }
     }
 
@@ -651,9 +651,9 @@ public class InitialData03ItemMaster extends InitialData {
         }
     };
 
-    private void insertItemConstructionMaster(ItemConstructionMasterDao icDao, ItemConstructionMaster entity, AtomicInteger insertCount) {
+    private void insertItemConstructionMaster(ItemConstructionMasterDao icDao, ItemConstructionMaster entity, boolean insertOnly, AtomicInteger insertCount) {
         Collection<ItemConstructionMaster> list = AMPLIFICATION_ITEM_CONSTRUCTION.amplify(entity);
-        icDao.insertBatch(list);
+        icDao.insertBatch(list, insertOnly);
         insertCount.addAndGet(list.size());
     }
 

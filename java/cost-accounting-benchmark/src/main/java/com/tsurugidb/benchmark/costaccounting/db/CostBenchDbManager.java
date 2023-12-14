@@ -85,6 +85,10 @@ public abstract class CostBenchDbManager implements Closeable {
         return this.isTsurugi;
     }
 
+    public DbManagerPurpose getPurpose() {
+        return this.purpose;
+    }
+
     // DAO
 
     public synchronized MeasurementMasterDao getMeasurementMasterDao() {

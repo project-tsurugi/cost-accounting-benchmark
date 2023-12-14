@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 
+import com.tsurugidb.benchmark.costaccounting.db.CostBenchDbManager.DbManagerPurpose;
 import com.tsurugidb.benchmark.costaccounting.db.DbmsType;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -538,6 +539,14 @@ public class BenchConst {
 
     // share
 
+    public static String sqlInsert(DbManagerPurpose purpose) {
+        String s = getProperty("sql.insert." + purpose.name().toLowerCase(), null);
+        if (s != null) {
+            return s;
+        }
+        return getProperty("sql.insert", "insert");
+    }
+
     public static boolean useReadArea() {
         return getPropertyBoolean("use.read-area", true);
     }
@@ -548,7 +557,7 @@ public class BenchConst {
     // 例えば原価計算ベンチマークと料金計算ベンチマークのテーブルが同じDBにあるとき、原価計算ベンチマークからは料金計算ベンチマークのテーブルを絶対参照しない。
     // こうした絶対参照しないと分かっているテーブルをデフォルトトランザクションオプション（exclusive read area）として定義しておく。
     /** Iceaxe default transaction option */
-    public static final TgTxOption DEFAULT_TX_OPTION = TgTxOption.ofLTX()/*.addExclusiveReadArea("billing", "contracts", "history")*/;
+    public static final TgTxOption DEFAULT_TX_OPTION = TgTxOption.ofLTX()/* .addExclusiveReadArea("billing", "contracts", "history") */;
 
     // properties
 

@@ -40,6 +40,7 @@ public abstract class TsubakuroDao<E> {
     private final String tableName;
     private final List<TsubakuroColumn<E, ?>> columnList;
     private final Supplier<E> entitySupplier;
+    protected final String insert;
 
     protected static <E, T> void add(List<TsubakuroColumn<E, ?>> list, String name, AtomType type, BiConsumer<E, T> entitySetter, Function<E, T> entityGetter,
             BiFunction<String, T, Parameter> parameterSupplier, TsubakuroResultSetGetter<T> resultSetGetter) {
@@ -56,6 +57,7 @@ public abstract class TsubakuroDao<E> {
         this.tableName = tableName;
         this.columnList = columnList;
         this.entitySupplier = entitySupplier;
+        this.insert = BenchConst.sqlInsert(dbManager.getPurpose());
     }
 
     protected final SqlClient getSqlClient() {
@@ -85,13 +87,13 @@ public abstract class TsubakuroDao<E> {
         }
     }
 
-    protected final int doInsert(E entity) {
-        var ps = getInsertPs();
+    protected final int doInsert(E entity, boolean insertOnly) {
+        var ps = getInsertPs(insertOnly);
         return executeAndGetCount(ps, entity);
     }
 
-    protected final int[] doInsert(Collection<E> entityList) {
-        var ps = getInsertPs();
+    protected final int[] doInsert(Collection<E> entityList, boolean insertOnly) {
+        var ps = getInsertPs(insertOnly);
         var result = new int[entityList.size()];
         int i = 0;
         for (var entity : entityList) {
@@ -100,17 +102,29 @@ public abstract class TsubakuroDao<E> {
         return result;
     }
 
+    private PreparedStatement insertOnlyPs;
     private PreparedStatement insertPs;
 
-    private synchronized PreparedStatement getInsertPs() {
+    private synchronized PreparedStatement getInsertPs(boolean insertOnly) {
+        if (insertOnly) {
+            if (this.insertOnlyPs == null) {
+                this.insertOnlyPs = createInsertPs("insert");
+            }
+            return this.insertOnlyPs;
+        }
+
         if (this.insertPs == null) {
-            var names = getColumnNames();
-            var values = columnList.stream().map(c -> c.getSqlName()).collect(Collectors.joining(","));
-            var sql = "insert into " + tableName + "(" + names + ") values (" + values + ")";
-            var placeholders = getInsertPlaceholders();
-            this.insertPs = createPreparedStatement(sql, placeholders);
+            this.insertPs = createInsertPs(this.insert);
         }
         return this.insertPs;
+    }
+
+    private PreparedStatement createInsertPs(String insert) {
+        var names = getColumnNames();
+        var values = columnList.stream().map(c -> c.getSqlName()).collect(Collectors.joining(","));
+        var sql = insert + " into " + tableName + "(" + names + ") values (" + values + ")";
+        var placeholders = getInsertPlaceholders();
+        return createPreparedStatement(sql, placeholders);
     }
 
     private List<Placeholder> getInsertPlaceholders() {

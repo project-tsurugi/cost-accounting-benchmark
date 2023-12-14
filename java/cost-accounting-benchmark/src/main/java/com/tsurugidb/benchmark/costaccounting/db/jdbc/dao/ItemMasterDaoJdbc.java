@@ -57,6 +57,11 @@ public class ItemMasterDaoJdbc extends JdbcDao<ItemMaster> implements ItemMaster
     }
 
     @Override
+    public int insertOnly(ItemMaster entity) {
+        return doInsert(entity);
+    }
+
+    @Override
     public int[] insertBatch(Collection<ItemMaster> entityList) {
         return doInsert(entityList);
     }

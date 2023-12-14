@@ -49,12 +49,12 @@ public class ItemConstructionMasterDaoTsubakuro extends TsubakuroDao<ItemConstru
 
     @Override
     public int insert(ItemConstructionMaster entity) {
-        return doInsert(entity);
+        return doInsert(entity, false);
     }
 
     @Override
-    public int[] insertBatch(Collection<ItemConstructionMaster> entityList) {
-        return doInsert(entityList);
+    public int[] insertBatch(Collection<ItemConstructionMaster> entityList, boolean insertOnly) {
+        return doInsert(entityList, insertOnly);
     }
 
     @Override

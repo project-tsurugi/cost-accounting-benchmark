@@ -35,7 +35,7 @@ public class FactoryMasterDaoTsubakuro extends TsubakuroDao<FactoryMaster> imple
 
     @Override
     public int insert(FactoryMaster entity) {
-        return doInsert(entity);
+        return doInsert(entity, false);
     }
 
     @Override

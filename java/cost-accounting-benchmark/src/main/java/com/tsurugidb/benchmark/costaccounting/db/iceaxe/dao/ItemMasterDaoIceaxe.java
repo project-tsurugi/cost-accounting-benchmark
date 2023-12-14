@@ -60,12 +60,17 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
 
     @Override
     public int insert(ItemMaster entity) {
-        return doInsert(entity);
+        return doInsert(entity, false);
+    }
+
+    @Override
+    public int insertOnly(ItemMaster entity) {
+        return doInsert(entity, true);
     }
 
     @Override
     public int[] insertBatch(Collection<ItemMaster> entityList) {
-        return doInsert(entityList);
+        return doInsert(entityList, false);
     }
 
     @Override

@@ -43,12 +43,12 @@ public class StockHistoryDaoIceaxe extends IceaxeDao<StockHistory> implements St
 
     @Override
     public int insert(StockHistory entity) {
-        return doInsert(entity);
+        return doInsert(entity, false);
     }
 
     @Override
     public int[] insertBatch(Collection<StockHistory> entityList) {
-        return doInsert(entityList);
+        return doInsert(entityList, false);
     }
 
     @Override
