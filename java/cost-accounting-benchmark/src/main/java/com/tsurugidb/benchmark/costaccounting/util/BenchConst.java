@@ -544,7 +544,7 @@ public class BenchConst {
         if (s != null) {
             return s;
         }
-        return getProperty("sql.insert", "insert");
+        return getProperty("sql.insert", "insert or replace");
     }
 
     public static boolean useReadArea() {
