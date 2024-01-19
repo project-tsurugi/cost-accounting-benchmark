@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
+import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistoryDateTime;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.CostBenchDbManagerJdbc;
 
 public class StockHistoryDaoJdbc extends JdbcDao<StockHistory> implements StockHistoryDao {
@@ -52,6 +53,44 @@ public class StockHistoryDaoJdbc extends JdbcDao<StockHistory> implements StockH
     @Override
     public int[] insertBatch(Collection<StockHistory> entityList) {
         return doInsert(entityList);
+    }
+
+    @Override
+    public List<StockHistoryDateTime> selectDistinctDateTime() {
+        String sql = "select distinct s_date, s_time from " + TABLE_NAME //
+                + " order by s_date, s_time";
+        return executeQueryList(sql, ps -> {
+        }, rs -> {
+            var entity = new StockHistoryDateTime();
+            entity.setSDate(JdbcUtil.getDate(rs, "s_date"));
+            entity.setSTime(JdbcUtil.getTime(rs, "s_time"));
+            return entity;
+        });
+    }
+
+    @Override
+    public int deleteOldDateTime(LocalDate date, LocalTime time) {
+        String sql = "delete from " + TABLE_NAME //
+                + " where (s_date < ?) or (s_date = ? and s_time <= ?)";
+        return executeUpdate(sql, ps -> {
+            int i = 1;
+            JdbcUtil.setDate(ps, i++, date);
+            JdbcUtil.setDate(ps, i++, date);
+            JdbcUtil.setTime(ps, i++, time);
+        });
+    }
+
+    @Override
+    public int deleteOldDateTime(LocalDate date, LocalTime time, int factoryId) {
+        String sql = "delete from " + TABLE_NAME //
+                + " where ((s_date < ?) or (s_date = ? and s_time <= ?)) and s_f_id = ?";
+        return executeUpdate(sql, ps -> {
+            int i = 1;
+            JdbcUtil.setDate(ps, i++, date);
+            JdbcUtil.setDate(ps, i++, date);
+            JdbcUtil.setTime(ps, i++, time);
+            JdbcUtil.setInt(ps, i++, factoryId);
+        });
     }
 
     private static final String INSERT_SELECT_FROM_COST_MASTER_SQL = "insert into " + TABLE_NAME //

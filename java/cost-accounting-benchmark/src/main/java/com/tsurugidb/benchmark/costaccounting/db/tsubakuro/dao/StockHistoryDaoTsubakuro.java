@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
+import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistoryDateTime;
 import com.tsurugidb.benchmark.costaccounting.db.tsubakuro.CostBenchDbManagerTsubakuro;
 import com.tsurugidb.sql.proto.SqlCommon.AtomType;
 
@@ -51,6 +52,21 @@ public class StockHistoryDaoTsubakuro extends TsubakuroDao<StockHistory> impleme
     @Override
     public int[] insertBatch(Collection<StockHistory> entityList) {
         return doInsert(entityList, false);
+    }
+
+    @Override
+    public List<StockHistoryDateTime> selectDistinctDateTime() {
+        throw new UnsupportedOperationException("not yet impl");
+    }
+
+    @Override
+    public int deleteOldDateTime(LocalDate date, LocalTime time) {
+        throw new UnsupportedOperationException("not yet impl");
+    }
+
+    @Override
+    public int deleteOldDateTime(LocalDate date, LocalTime time, int factoryId) {
+        throw new UnsupportedOperationException("not yet impl");
     }
 
     @Override
