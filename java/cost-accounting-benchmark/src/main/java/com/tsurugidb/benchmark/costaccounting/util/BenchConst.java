@@ -390,6 +390,10 @@ public class BenchConst {
         return getPropertyInt("periodic.schedule." + taskName + ".split.size", 1);
     }
 
+    public static int periodicKeepSize(String taskName) {
+        return getPropertyInt("periodic.schedule." + taskName + ".keep.size", -1);
+    }
+
     // online-command
 
     public static String onlineCommandLabel() {

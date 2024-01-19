@@ -3,11 +3,11 @@ package com.tsurugidb.benchmark.costaccounting.db.dao;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
-import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
-import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
+import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistoryDateTime;
 
 /**
  * 在庫履歴DAO
@@ -15,11 +15,6 @@ import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 public interface StockHistoryDao {
 
     public static final String TABLE_NAME = "stock_history";
-
-    public static final String PS_COND_DATE = "s_date = ?";
-
-    public static final TgBindVariable<LocalDate> vDate = BenchVariable.ofDate("date");
-    public static final String TG_COND_DATE = "s_date = " + vDate.sqlName();
 
     /**
      * <pre>
@@ -47,9 +42,33 @@ public interface StockHistoryDao {
 
     /**
      * <pre>
+     * select distinct s_date, s_time from stock_history
+     * order by s_date, s_time
+     * </pre>
+     */
+    List<StockHistoryDateTime> selectDistinctDateTime();
+
+    /**
+     * <pre>
+     * delete from stock_history
+     * where (s_date < :date) or (s_date = :date and s_time <= :time)
+     * </pre>
+     */
+    int deleteOldDateTime(LocalDate date, LocalTime time);
+
+    /**
+     * <pre>
+     * delete from stock_history
+     * where ((s_date < :date) or (s_date = :date and s_time <= :time) and s_f_id = :factoryId
+     * </pre>
+     */
+    int deleteOldDateTime(LocalDate date, LocalTime time, int factoryId);
+
+    /**
+     * <pre>
      * insert into stock_history
      * select ... from cost_master
-     * </prE>
+     * </pre>
      */
     void insertSelectFromCostMaster(LocalDate date, LocalTime time);
 
@@ -57,7 +76,7 @@ public interface StockHistoryDao {
      * <pre>
      * insert into stock_history
      * select ... from cost_master where c_f_id = :factoryId
-     * </prE>
+     * </pre>
      */
     void insertSelectFromCostMaster(LocalDate date, LocalTime time, int factoryId);
 

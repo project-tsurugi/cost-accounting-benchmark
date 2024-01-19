@@ -2,7 +2,7 @@ package com.tsurugidb.benchmark.costaccounting.online.periodic;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,6 +21,7 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
+import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistoryDateTime;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
@@ -35,9 +36,11 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
 
     public static final String TASK_NAME = "update-stock";
 
+    private TgTmSetting settingPre;
     private TgTmSetting settingMain;
     private final int threadSize;
     private final ExecutorService service;
+    private final int keepSize;
 
     public BenchPeriodicUpdateStockTask(int taskId) {
         super(TASK_NAME, taskId);
@@ -48,10 +51,22 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
         } else {
             this.service = Executors.newFixedThreadPool(threadSize);
         }
+        this.keepSize = BenchConst.periodicKeepSize(TASK_NAME);
+        LOG.info("keep.size={}", keepSize);
+    }
+
+    BenchPeriodicUpdateStockTask(int threadSize, int keepSize) { // for test
+        super(TASK_NAME, 0);
+        this.threadSize = threadSize;
+        this.service = null;
+        this.keepSize = keepSize;
     }
 
     @Override
     public void initializeSetting() {
+        this.settingPre = TgTmSetting.ofAlways(TgTxOption.ofLTX() // RTXだと古いデータが読まれてしまうことがある
+                .addInclusiveReadArea(StockHistoryDao.TABLE_NAME).label(TASK_NAME + ".pre"));
+//      this.settingPre = TgTmSetting.ofAlways(TgTxOption.ofOCC().label(TASK_NAME + ".pre"));
         this.settingMain = config.getSetting(LOG, this, () -> {
             if (BenchConst.useReadArea()) {
                 return TgTxOption.ofLTX(BenchConst.DEFAULT_TX_OPTION).addWritePreserve(StockHistoryDao.TABLE_NAME) //
@@ -65,15 +80,52 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
 
     @Override
     protected boolean execute1() {
-        if (threadSize <= 1) {
-            return executeAll();
-        } else {
-            return executeFactory(threadSize);
+        long start = System.currentTimeMillis();
+        var deleteDateTime = getDeleteDateTime();
+        LOG.info("deleteDateTime={} {}[ms]", deleteDateTime, System.currentTimeMillis() - start);
+        start = System.currentTimeMillis();
+        try {
+            if (threadSize <= 1) {
+                return executeAll(deleteDateTime);
+            } else {
+                return executeFactory(threadSize, deleteDateTime);
+            }
+        } finally {
+            if (deleteDateTime == null) {
+                LOG.info("insert {}[ms]", System.currentTimeMillis() - start);
+            } else {
+                LOG.info("delete+insert {}[ms]", System.currentTimeMillis() - start);
+            }
         }
     }
 
-    private boolean executeAll() {
+    private StockHistoryDateTime getDeleteDateTime() {
+        if (this.keepSize <= 0) {
+            return null;
+        }
+
+        var list = dbManager.execute(settingPre, () -> {
+            var dao = dbManager.getStockHistoryDao();
+            return dao.selectDistinctDateTime();
+        });
+        return getDeleteDateTime(list);
+    }
+
+    StockHistoryDateTime getDeleteDateTime(List<StockHistoryDateTime> list) {
+        int i = list.size() - this.keepSize;
+        if (i < 0) {
+            return null;
+        }
+        return list.get(i);
+    }
+
+    private boolean executeAll(StockHistoryDateTime deleteDateTime) {
         return dbManager.execute(settingMain, () -> {
+            if (deleteDateTime != null) {
+                var dao = dbManager.getStockHistoryDao();
+                dao.deleteOldDateTime(deleteDateTime.getSDate(), deleteDateTime.getSTime());
+            }
+
             executeAllInTransaction();
 
             return true;
@@ -81,30 +133,30 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
     }
 
     private void executeAllInTransaction() {
-        var time = LocalTime.now();
+        var now = LocalDateTime.now();
 
         if (BenchConst.WORKAROUND) {
             var costMasterDao = dbManager.getCostMasterDao();
             try (var stream = costMasterDao.selectAll()) {
-                streamInsert(stream, time);
+                streamInsert(stream, now);
             }
             return;
         }
 
         var dao = dbManager.getStockHistoryDao();
-        dao.insertSelectFromCostMaster(date, time);
+        dao.insertSelectFromCostMaster(now.toLocalDate(), now.toLocalTime());
     }
 
-    private void streamInsert(Stream<CostMaster> stream, LocalTime time) {
+    private void streamInsert(Stream<CostMaster> stream, LocalDateTime now) {
         var dao = dbManager.getStockHistoryDao();
         final int batchSize = 10000;
         var list = new ArrayList<StockHistory>(batchSize);
         stream.forEach(cost -> {
             var entity = new StockHistory();
-            entity.setSDate(date);
+            entity.setSDate(now.toLocalDate());
+            entity.setSTime(now.toLocalTime());
             entity.setSFId(cost.getCFId());
             entity.setSIId(cost.getCIId());
-            entity.setSTime(time);
             entity.setSStockUnit(cost.getCStockUnit());
             entity.setSStockQuantity(cost.getCStockQuantity());
             entity.setSStockAmount(cost.getCStockAmount());
@@ -119,12 +171,12 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
         }
     }
 
-    private boolean executeFactory(int threadSize) {
-        var time = LocalTime.now();
+    private boolean executeFactory(int threadSize, StockHistoryDateTime deleteDateTime) {
+        var now = LocalDateTime.now();
 
         List<Callable<Void>> taskList = new ArrayList<>(factoryList.size());
         for (int factoryId : factoryList) {
-            var task = new FactoryTask(factoryId, time);
+            var task = new FactoryTask(factoryId, now, deleteDateTime);
             taskList.add(task);
         }
 
@@ -172,17 +224,24 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
 
     private class FactoryTask implements Callable<Void> {
         private final int factoryId;
-        private final LocalTime time;
+        private final LocalDateTime now;
+        private final StockHistoryDateTime deleteDateTime;
 
-        public FactoryTask(int factoryId, LocalTime time) {
+        public FactoryTask(int factoryId, LocalDateTime now, StockHistoryDateTime deleteDateTime) {
             this.factoryId = factoryId;
-            this.time = time;
+            this.now = now;
+            this.deleteDateTime = deleteDateTime;
         }
 
         @Override
         public Void call() throws Exception {
             try {
                 dbManager.execute(settingMain, () -> {
+                    if (deleteDateTime != null) {
+                        var dao = dbManager.getStockHistoryDao();
+                        dao.deleteOldDateTime(deleteDateTime.getSDate(), deleteDateTime.getSTime(), factoryId);
+                    }
+
                     executeInTransaction();
                 });
             } catch (Throwable e) {
@@ -196,13 +255,13 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
             if (BenchConst.WORKAROUND) {
                 var costMasterDao = dbManager.getCostMasterDao();
                 try (var stream = costMasterDao.selectByFactory(factoryId)) {
-                    streamInsert(stream, time);
+                    streamInsert(stream, now);
                 }
                 return;
             }
 
             var dao = dbManager.getStockHistoryDao();
-            dao.insertSelectFromCostMaster(date, time, factoryId);
+            dao.insertSelectFromCostMaster(now.toLocalDate(), now.toLocalTime(), factoryId);
         }
     }
 
