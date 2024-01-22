@@ -13,8 +13,8 @@ drop table item_master;
 create table item_master
 (
   i_id numeric(9), -- 品目ID
-  i_effective_date date, -- 開始日
-  i_expired_date date, -- 終了日
+  i_effective_date date, -- 適用開始日
+  i_expired_date date, -- 適用終了日
   i_name varchar(20), -- 品目名
   i_type varchar(20), -- 品目種類
   i_unit varchar(5), -- 単位
@@ -31,8 +31,8 @@ create table item_construction_master
 (
   ic_parent_i_id numeric(9), -- 親品目ID
   ic_i_id numeric(9), -- 品目ID
-  ic_effective_date date, -- 開始日
-  ic_expired_date date, -- 終了日
+  ic_effective_date date, -- 適用開始日
+  ic_expired_date date, -- 適用終了日
   ic_material_unit varchar(5), -- 原料単位
   ic_material_quantity numeric(15, 4), -- 原料数量
   ic_loss_ratio numeric(5, 2) -- ロス率
@@ -45,8 +45,8 @@ create table item_manufacturing_master
 (
   im_f_id numeric(4), -- 工場ID
   im_i_id numeric(9), -- 品目ID
-  im_effective_date date, -- 開始日
-  im_expired_date date, -- 終了日
+  im_effective_date date, -- 適用開始日
+  im_expired_date date, -- 適用終了日
   im_manufacturing_quantity numeric(6) -- 生産数（1日分）
   ,primary key(im_f_id, im_i_id, im_effective_date)
 );
@@ -67,14 +67,14 @@ create table cost_master
 drop table stock_history;
 create table stock_history
 (
-  s_date date, -- 日付
+  s_date date, -- 計算日付
+  s_time time, -- 計算時刻
   s_f_id numeric(4), -- 工場ID
   s_i_id numeric(9), -- 品目ID
-  s_time time, -- 時刻
   s_stock_unit varchar(5), -- 在庫単位
   s_stock_quantity numeric(15, 4), -- 在庫数量
   s_stock_amount numeric(13, 2) -- 在庫金額
-  ,primary key(s_date, s_f_id, s_i_id, s_time)
+  ,primary key(s_date, s_time, s_f_id, s_i_id)
 );
 
 -- 度量衡マスター
