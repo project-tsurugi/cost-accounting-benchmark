@@ -13,7 +13,7 @@ public abstract class BenchPeriodicTask extends BenchTask implements Closeable {
     );
 
     protected List<Integer> factoryList;
-    protected LocalDate date;
+//  protected LocalDate date;
 
     public BenchPeriodicTask(String tableName, int taskId) {
         super(tableName, taskId);
@@ -21,7 +21,7 @@ public abstract class BenchPeriodicTask extends BenchTask implements Closeable {
 
     public void initialize(List<Integer> factoryList, LocalDate date) {
         this.factoryList = factoryList;
-        this.date = date;
+//      this.date = date;
     }
 
     public final void execute() {
