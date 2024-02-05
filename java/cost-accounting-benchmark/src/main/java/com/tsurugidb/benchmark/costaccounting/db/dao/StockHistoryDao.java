@@ -42,6 +42,15 @@ public interface StockHistoryDao {
 
     /**
      * <pre>
+     * select s_date, s_time from stock_history
+     * group by s_date, s_time
+     * order by s_date, s_time
+     * </pre>
+     */
+    List<StockHistoryDateTime> selectGroupByDateTime();
+
+    /**
+     * <pre>
      * select distinct s_date, s_time from stock_history
      * order by s_date, s_time
      * </pre>

@@ -56,6 +56,20 @@ public class StockHistoryDaoJdbc extends JdbcDao<StockHistory> implements StockH
     }
 
     @Override
+    public List<StockHistoryDateTime> selectGroupByDateTime() {
+        String sql = "select s_date, s_time from " + TABLE_NAME //
+                + " group by s_date, s_time" //
+                + " order by s_date, s_time";
+        return executeQueryList(sql, ps -> {
+        }, rs -> {
+            var entity = new StockHistoryDateTime();
+            entity.setSDate(JdbcUtil.getDate(rs, "s_date"));
+            entity.setSTime(JdbcUtil.getTime(rs, "s_time"));
+            return entity;
+        });
+    }
+
+    @Override
     public List<StockHistoryDateTime> selectDistinctDateTime() {
         String sql = "select distinct s_date, s_time from " + TABLE_NAME //
                 + " order by s_date, s_time";

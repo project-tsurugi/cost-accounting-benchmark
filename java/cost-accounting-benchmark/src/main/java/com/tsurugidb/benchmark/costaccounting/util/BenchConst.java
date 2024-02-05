@@ -555,6 +555,18 @@ public class BenchConst {
         return getPropertyBoolean("use.read-area", true);
     }
 
+    public enum SqlDistinct {
+        /** group by */
+        GROUP,
+        /** distinct */
+        DISTINCT
+    }
+
+    public static SqlDistinct sqlDistinct() {
+        String s = getProperty("sql.distinct", SqlDistinct.GROUP.name());
+        return SqlDistinct.valueOf(s.toUpperCase());
+    }
+
     public static final int DECIMAL_SCALE = getPropertyInt("decimal.scale", 20);
 
     // Iceaxeのデフォルトトランザクションオプションの使用例

@@ -64,6 +64,34 @@ public class StockHistoryDaoIceaxe extends IceaxeDao<StockHistory> implements St
     }
 
     @Override
+    public List<StockHistoryDateTime> selectGroupByDateTime() {
+        var ps = selectGroupByDateTimeCache.get();
+        var list = executeAndGetList(ps);
+        if (BenchConst.WORKAROUND) {
+            Collections.sort(list);
+        }
+        return list;
+    }
+
+    private final CacheQuery<StockHistoryDateTime> selectGroupByDateTimeCache = new CacheQuery<>() {
+        @Override
+        protected void initialize() {
+            if (BenchConst.WORKAROUND) {
+                this.sql = "select s_date, s_time from " + TABLE_NAME //
+                        + " group by s_date, s_time";
+//                      + " order by s_date, s_time";
+            } else {
+                this.sql = "select s_date, s_time from " + TABLE_NAME //
+                        + " group by s_date, s_time" //
+                        + " order by s_date, s_time";
+            }
+            this.resultMapping = TgResultMapping.of(StockHistoryDateTime::new) //
+                    .addDate("s_date", StockHistoryDateTime::setSDate) //
+                    .addTime("s_time", StockHistoryDateTime::setSTime);
+        }
+    };
+
+    @Override
     public List<StockHistoryDateTime> selectDistinctDateTime() {
         var ps = selectDistinctDateTimeCache.get();
         var list = executeAndGetList(ps);

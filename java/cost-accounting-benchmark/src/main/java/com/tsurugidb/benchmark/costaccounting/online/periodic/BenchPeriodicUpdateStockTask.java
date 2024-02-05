@@ -25,6 +25,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistoryDateTime;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst.SqlDistinct;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -35,6 +36,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
     private static final Logger LOG = LoggerFactory.getLogger(BenchPeriodicUpdateStockTask.class);
 
     public static final String TASK_NAME = "update-stock";
+    private static final SqlDistinct SQL_DISTINCT = BenchConst.sqlDistinct();
 
     private TgTmSetting settingPre;
     private TgTmSetting settingMain;
@@ -106,7 +108,14 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
 
         var list = dbManager.execute(settingPre, () -> {
             var dao = dbManager.getStockHistoryDao();
-            return dao.selectDistinctDateTime();
+            switch (SQL_DISTINCT) {
+            case GROUP:
+                return dao.selectGroupByDateTime();
+            case DISTINCT:
+                return dao.selectDistinctDateTime();
+            default:
+                throw new AssertionError(SQL_DISTINCT);
+            }
         });
         return getDeleteDateTime(list);
     }

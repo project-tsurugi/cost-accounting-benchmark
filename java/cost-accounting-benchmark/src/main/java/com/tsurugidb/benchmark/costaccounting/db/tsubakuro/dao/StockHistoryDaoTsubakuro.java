@@ -55,6 +55,11 @@ public class StockHistoryDaoTsubakuro extends TsubakuroDao<StockHistory> impleme
     }
 
     @Override
+    public List<StockHistoryDateTime> selectGroupByDateTime() {
+        throw new UnsupportedOperationException("not yet impl");
+    }
+
+    @Override
     public List<StockHistoryDateTime> selectDistinctDateTime() {
         throw new UnsupportedOperationException("not yet impl");
     }
