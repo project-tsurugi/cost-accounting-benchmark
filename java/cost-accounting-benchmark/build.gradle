@@ -1,7 +1,6 @@
 plugins {
     id 'java-library'
     id 'application'
-    id 'com.diffplug.eclipse.apt' version '3.44.0'
     id 'com.github.spotbugs' version '5.2.5'
 }
 
