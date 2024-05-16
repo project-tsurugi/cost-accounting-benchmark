@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -38,6 +37,7 @@ import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.BatchFactoryOrder;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
 import com.tsurugidb.benchmark.costaccounting.util.BenchRandom;
+import com.tsurugidb.benchmark.costaccounting.util.ThreadUtil;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOptionLtx;
@@ -339,7 +339,7 @@ public class CostAccountingBatch {
 
         int threadPoolSize = config.getThreadSize();
         LOG.info("threadPoolSize={}", threadPoolSize);
-        ExecutorService service = Executors.newFixedThreadPool(threadPoolSize);
+        ExecutorService service = ThreadUtil.newFixedThreadPool("CostAccountingBatch.thread-", threadPoolSize);
 
         List<Future<Void>> resultList = Collections.emptyList();
         try {
@@ -425,7 +425,7 @@ public class CostAccountingBatch {
         });
 
         int size = 8;
-        ExecutorService service = Executors.newFixedThreadPool(size);
+        ExecutorService service = ThreadUtil.newFixedThreadPool("CostAccountingBatch.thread-", size);
         threadList.clear();
         List<Callable<Void>> list = Stream.generate(() -> new Callable<Void>() {
 

@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
@@ -26,6 +25,7 @@ import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.SqlDistinct;
+import com.tsurugidb.benchmark.costaccounting.util.ThreadUtil;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 
@@ -51,7 +51,8 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
         if (threadSize <= 1) {
             this.service = null;
         } else {
-            this.service = Executors.newFixedThreadPool(threadSize);
+            String threadName = String.format("%s.%d.thread-", TASK_NAME, taskId);
+            this.service = ThreadUtil.newFixedThreadPool(threadName, threadSize);
         }
         this.keepSize = BenchConst.periodicKeepSize(TASK_NAME);
         LOG.info("keep.size={}", keepSize);
