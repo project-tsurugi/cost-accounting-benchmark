@@ -179,7 +179,7 @@ public class BatchRecord {
             return "-";
         }
         double value = elapsedMillis / 1000d;
-        return String.format("%,.2f", value / base * 100);
+        return String.format("%.2f", value / base * 100);
     }
 
     public void setCompareBaseRecord(BatchRecordPart compareBaseRecord) {
