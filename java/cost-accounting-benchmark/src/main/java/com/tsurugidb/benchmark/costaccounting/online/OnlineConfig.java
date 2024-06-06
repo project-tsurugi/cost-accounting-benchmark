@@ -23,6 +23,7 @@ public class OnlineConfig {
     private IsolationLevel isolationLevel;
     private boolean isMultiSession = true;
     private int coverRate = 100;
+    private boolean enableTsurugidbWatcher = false;
     private final Map<String, String> optionMap = new HashMap<>();
     private final Map<String, Integer> threadSizeMap = new HashMap<>();
     private int executeTime;
@@ -80,6 +81,14 @@ public class OnlineConfig {
             return rate.toString();
         }
         return "-";
+    }
+
+    public void setEnableTsurugidbWatcher(boolean enableTsurugidbWatcher) {
+        this.enableTsurugidbWatcher = enableTsurugidbWatcher;
+    }
+
+    public boolean enableTsurugidbWatcher() {
+        return this.enableTsurugidbWatcher;
     }
 
     public void setTxOption(String taskName, String option) {

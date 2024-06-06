@@ -26,6 +26,7 @@ public class BatchConfig {
     private int threadSize;
     private final int commitRatio;
     private IsolationLevel isolationLevel;
+    private boolean enableTsurugidbWatcher = false;
     private TgTxOption defaultTxOption;
     private Map<Integer, TgTxOption> txOptionMap;
     private BatchFactoryOrder batchFactoryOrder = BatchFactoryOrder.NONE;
@@ -116,6 +117,14 @@ public class BatchConfig {
 
     public IsolationLevel getIsolationLevel() {
         return this.isolationLevel;
+    }
+
+    public void setEnableTsurugidbWatcher(boolean enableTsurugidbWatcher) {
+        this.enableTsurugidbWatcher = enableTsurugidbWatcher;
+    }
+
+    public boolean enableTsurugidbWatcher() {
+        return this.enableTsurugidbWatcher;
     }
 
     public void setTxOptions(String txOptionProperty) {

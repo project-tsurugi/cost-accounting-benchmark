@@ -48,7 +48,10 @@ public class TsurugidbWatcher implements Runnable {
                     }
                 }
             } catch (IOException e) {
-                String msg = "Unable to retrieve memory info for tsurugidb. It is possible that the server has crashed.";
+                String msg = String.format( //
+                        "Failed to access the process status file for tsurugidb at %s: " + //
+                                "The server might be shut down. Check server status and logs.", //
+                        path.toString()); //
                 LOG.error(msg, e);
                 throw new UncheckedIOException(e);
             }

@@ -98,6 +98,7 @@ public class BatchCbCommand implements ExecutableCommand {
                                 config.setDefaultTxOption(getOption(txOption));
                                 config.setBatchFactoryOrder(BenchConst.getBatchCommandFactoryOrder());
                                 config.setThreadSize(threadSize);
+                                config.setEnableTsurugidbWatcher(BenchConst.tsurugiWatcherEnable());
 
                                 OnlineConfig onlineConfig = null;
                                 if (withOnline) {
@@ -145,7 +146,7 @@ public class BatchCbCommand implements ExecutableCommand {
 
         int exitCode;
         TsurugidbWatcher watcher;
-        try (var watcherService = TsurugidbWatcherService.of()) {
+        try (var watcherService = TsurugidbWatcherService.of(config.enableTsurugidbWatcher())) {
             watcher = watcherService.start();
             exitCode = execute1Main(config, onlineConfig, attempt, records);
         }

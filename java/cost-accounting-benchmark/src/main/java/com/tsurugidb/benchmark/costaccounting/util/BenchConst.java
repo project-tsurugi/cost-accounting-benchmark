@@ -54,6 +54,10 @@ public class BenchConst {
         return getProperty("tsurugi.password");
     }
 
+    public static boolean tsurugiWatcherEnable() {
+        return getPropertyBoolean("tsurugi.watcher.enable", false);
+    }
+
     public static String docDir() {
         return getProperty("doc.dir");
     }

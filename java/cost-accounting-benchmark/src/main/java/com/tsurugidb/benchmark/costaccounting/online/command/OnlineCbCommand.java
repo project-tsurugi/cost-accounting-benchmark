@@ -68,6 +68,7 @@ public class OnlineCbCommand implements ExecutableCommand {
                         config.setCoverRate(coverRate);
                         setTxOption(config, txOption);
                         config.setExecuteTime(executeTime);
+                        config.setEnableTsurugidbWatcher(BenchConst.tsurugiWatcherEnable());
 
                         exitCode |= execute1(config, i, records);
 
@@ -121,7 +122,7 @@ public class OnlineCbCommand implements ExecutableCommand {
 
         int exitCode;
         TsurugidbWatcher watcher;
-        try (var watcherService = TsurugidbWatcherService.of()) {
+        try (var watcherService = TsurugidbWatcherService.of(config.enableTsurugidbWatcher())) {
             watcher = watcherService.start();
             exitCode = execute1Main(config, attempt, records);
         }

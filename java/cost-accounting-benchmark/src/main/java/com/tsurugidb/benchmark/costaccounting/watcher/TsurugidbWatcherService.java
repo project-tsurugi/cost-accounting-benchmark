@@ -26,9 +26,9 @@ public class TsurugidbWatcherService implements AutoCloseable {
     private ExecutorService service;
     private Future<?> future;
 
-    public static TsurugidbWatcherService of() {
+    public static TsurugidbWatcherService of(boolean enableTsurugidbWatcher) {
         TsurugidbWatcher task = null;
-        if (BenchConst.dbmsType() == DbmsType.TSURUGI) {
+        if (BenchConst.dbmsType() == DbmsType.TSURUGI && enableTsurugidbWatcher) {
             int pid = findServerPid();
             task = new TsurugidbWatcher(pid);
         }
