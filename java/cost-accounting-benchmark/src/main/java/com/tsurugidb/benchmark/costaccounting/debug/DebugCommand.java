@@ -202,6 +202,10 @@ public class DebugCommand implements ExecutableCommand {
                         }
                     }
                 } catch (ServerException | IOException | InterruptedException e) {
+                    var message = e.getMessage();
+                    if (message.contains("already closed")) {
+                        return;
+                    }
                     LOG.error("thread error", e);
                     throw new RuntimeException(e);
                 }
@@ -296,7 +300,7 @@ public class DebugCommand implements ExecutableCommand {
                         if (message.contains("already closed")) { // wire
                             return;
                         }
-                        if (message.contains("Server crashed")) {
+                        if (message.contains("lost connection")) {
                             return;
                         }
                         LOG.error("thread error", e);
