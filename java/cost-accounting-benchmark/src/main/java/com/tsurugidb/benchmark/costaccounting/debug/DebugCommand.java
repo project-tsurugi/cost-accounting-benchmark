@@ -203,11 +203,15 @@ public class DebugCommand implements ExecutableCommand {
                     }
                 } catch (ServerException | IOException | InterruptedException e) {
                     var message = e.getMessage();
+                    LOG.info("{}.message={}", e.getClass().getSimpleName(), message);
                     if (message.contains("already closed")) {
                         return;
                     }
                     LOG.error("thread error", e);
                     throw new RuntimeException(e);
+                } catch (Throwable e) {
+                    LOG.error("thread error", e);
+                    throw e;
                 }
             });
             threadList.add(thread);
@@ -288,6 +292,7 @@ public class DebugCommand implements ExecutableCommand {
                         }
                     } catch (IOException e) {
                         var message = e.getMessage();
+                        LOG.info("IOException.message={}", message);
                         if (message.contains("The wire was closed before receiving a response to this request")) {
                             return;
                         }
@@ -307,6 +312,7 @@ public class DebugCommand implements ExecutableCommand {
                         throw new RuntimeException(e);
                     } catch (ServerException e) {
                         var message = e.getMessage();
+                        LOG.info("ServerException.message={}", message);
                         if (message.contains("Current transaction is inactive (maybe aborted already.)")) {
                             return;
                         }
@@ -318,6 +324,9 @@ public class DebugCommand implements ExecutableCommand {
                     } catch (InterruptedException e) {
                         LOG.error("thread error", e);
                         throw new RuntimeException(e);
+                    } catch (Throwable e) {
+                        LOG.error("thread error", e);
+                        throw e;
                     }
                 });
                 threadList.add(thread);
