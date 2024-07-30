@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -13,7 +12,6 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistoryDateTime;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
-import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable.TgBindVariableInteger;
@@ -67,24 +65,15 @@ public class StockHistoryDaoIceaxe extends IceaxeDao<StockHistory> implements St
     public List<StockHistoryDateTime> selectGroupByDateTime() {
         var ps = selectGroupByDateTimeCache.get();
         var list = executeAndGetList(ps);
-        if (BenchConst.WORKAROUND) {
-            Collections.sort(list);
-        }
         return list;
     }
 
     private final CacheQuery<StockHistoryDateTime> selectGroupByDateTimeCache = new CacheQuery<>() {
         @Override
         protected void initialize() {
-            if (BenchConst.WORKAROUND) {
-                this.sql = "select s_date, s_time from " + TABLE_NAME //
-                        + " group by s_date, s_time";
-//                      + " order by s_date, s_time";
-            } else {
-                this.sql = "select s_date, s_time from " + TABLE_NAME //
-                        + " group by s_date, s_time" //
-                        + " order by s_date, s_time";
-            }
+            this.sql = "select s_date, s_time from " + TABLE_NAME //
+                    + " group by s_date, s_time" //
+                    + " order by s_date, s_time";
             this.resultMapping = TgResultMapping.of(StockHistoryDateTime::new) //
                     .addDate("s_date", StockHistoryDateTime::setSDate) //
                     .addTime("s_time", StockHistoryDateTime::setSTime);
@@ -95,9 +84,6 @@ public class StockHistoryDaoIceaxe extends IceaxeDao<StockHistory> implements St
     public List<StockHistoryDateTime> selectDistinctDateTime() {
         var ps = selectDistinctDateTimeCache.get();
         var list = executeAndGetList(ps);
-        if (BenchConst.WORKAROUND) {
-            Collections.sort(list);
-        }
         return list;
     }
 

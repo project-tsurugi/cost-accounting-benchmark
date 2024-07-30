@@ -160,7 +160,7 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
     public Stream<ResultTable> selectRequiredQuantity(int factoryId, LocalDate date) {
         var ps = selectRequiredQuantityCache.get();
         var parameter = TgBindParameters.of(vFactoryId.bind(factoryId), vDate.bind(date));
-        if (BenchConst.WORKAROUND) {
+        if (BenchConst.WORKAROUND) { // order by
             var list = executeAndGetList(ps, parameter);
             list.sort(Comparator.comparing(ResultTable::getRIId));
             return list.stream();
@@ -171,7 +171,7 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
     private final CachePreparedQuery<TgBindParameters, ResultTable> selectRequiredQuantityCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
-            if (BenchConst.WORKAROUND) {
+            if (BenchConst.WORKAROUND) { // between
                 this.sql = "select" //
                         + "  r_f_id," //
                         + "  r_manufacturing_date," //
