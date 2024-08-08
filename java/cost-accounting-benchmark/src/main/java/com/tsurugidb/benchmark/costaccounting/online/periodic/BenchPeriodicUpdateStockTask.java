@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -24,6 +25,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistoryDateTime;
 import com.tsurugidb.benchmark.costaccounting.init.InitialData;
 import com.tsurugidb.benchmark.costaccounting.online.OnlineConfig;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst.InsertSelectType;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.SqlDistinct;
 import com.tsurugidb.benchmark.costaccounting.util.ThreadUtil;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
@@ -37,6 +39,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
 
     public static final String TASK_NAME = "update-stock";
     private static final SqlDistinct SQL_DISTINCT = BenchConst.sqlDistinct();
+    private static final InsertSelectType INSERT_SELECT_TYPE = BenchConst.periodicInsertSelectType(TASK_NAME);
 
     private TgTmSetting settingPre;
     private TgTmSetting settingMain;
@@ -54,6 +57,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
             String threadName = String.format("%s.%d.thread-", TASK_NAME, taskId);
             this.service = ThreadUtil.newFixedThreadPool(threadName, threadSize);
         }
+        LOG.info("insert_select_type={}", INSERT_SELECT_TYPE);
         this.keepSize = BenchConst.periodicKeepSize(TASK_NAME);
         LOG.info("keep.size={}", keepSize);
     }
@@ -145,7 +149,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
     private void executeAllInTransaction() {
         var now = LocalDateTime.now();
 
-        if (BenchConst.WORKAROUND) {
+        if (INSERT_SELECT_TYPE == InsertSelectType.SELECT_AND_INSERT) {
             var costMasterDao = dbManager.getCostMasterDao();
             try (var stream = costMasterDao.selectAll()) {
                 streamInsert(stream, now);
@@ -158,6 +162,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
     }
 
     private void streamInsert(Stream<CostMaster> stream, LocalDateTime now) {
+        var count = new AtomicInteger(0);
         var dao = dbManager.getStockHistoryDao();
         final int batchSize = 10000;
         var list = new ArrayList<StockHistory>(batchSize);
@@ -173,11 +178,15 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
             list.add(entity);
             if (list.size() >= batchSize) {
                 dao.insertBatch(list);
+                count.addAndGet(list.size());
+                LOG.info("streamInsert() inserted {}", count.get());
                 list.clear();
             }
         });
         if (!list.isEmpty()) {
             dao.insertBatch(list);
+            count.addAndGet(list.size());
+            LOG.info("streamInsert() inserted {}", count.get());
         }
     }
 
@@ -262,7 +271,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
         }
 
         private void executeInTransaction() {
-            if (BenchConst.WORKAROUND) {
+            if (INSERT_SELECT_TYPE == InsertSelectType.SELECT_AND_INSERT) {
                 var costMasterDao = dbManager.getCostMasterDao();
                 try (var stream = costMasterDao.selectByFactory(factoryId)) {
                     streamInsert(stream, now);

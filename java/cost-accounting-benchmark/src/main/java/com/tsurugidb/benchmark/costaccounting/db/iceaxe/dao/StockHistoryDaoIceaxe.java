@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.tsurugidb.benchmark.costaccounting.db.dao.CostMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistoryDateTime;
@@ -132,13 +133,39 @@ public class StockHistoryDaoIceaxe extends IceaxeDao<StockHistory> implements St
 
     @Override
     public void insertSelectFromCostMaster(LocalDate date, LocalTime time) {
-        throw new UnsupportedOperationException("not yet impl");
+        var ps = insertSelectFromCostMasterCache.get();
+        var parameter = TgBindParameters.of(vDate.bind(date), vTime.bind(time));
+        executeAndGetCount(ps, parameter);
     }
+
+    private final CachePreparedStatement<TgBindParameters> insertSelectFromCostMasterCache = new CachePreparedStatement<>() {
+        @Override
+        protected void initialize() {
+            var names = getColumnNames();
+            this.sql = insert + " into " + TABLE_NAME //
+                    + "(" + names + ")" //
+                    + " select " + vDate + ", " + vTime + ", c_f_id, c_i_id, c_stock_unit, c_stock_quantity, c_stock_amount from " + CostMasterDao.TABLE_NAME;
+            this.parameterMapping = TgParameterMapping.of(vDate, vTime);
+        }
+    };
 
     @Override
     public void insertSelectFromCostMaster(LocalDate date, LocalTime time, int factoryId) {
-        throw new UnsupportedOperationException("not yet impl");
+        var ps = insertSelectFromCostMasterByFactoryCache.get();
+        var parameter = TgBindParameters.of(vDate.bind(date), vTime.bind(time), vFactory.bind(factoryId));
+        executeAndGetCount(ps, parameter);
     }
+
+    private final CachePreparedStatement<TgBindParameters> insertSelectFromCostMasterByFactoryCache = new CachePreparedStatement<>() {
+        @Override
+        protected void initialize() {
+            var names = getColumnNames();
+            this.sql = insert + " into " + TABLE_NAME //
+                    + "(" + names + ")" //
+                    + " select " + vDate + ", " + vTime + ", c_f_id, c_i_id, c_stock_unit, c_stock_quantity, c_stock_amount from " + CostMasterDao.TABLE_NAME + " where c_f_id=" + vFactory;
+            this.parameterMapping = TgParameterMapping.of(vDate, vTime, vFactory);
+        }
+    };
 
     @Override
     public void forEach(Consumer<StockHistory> entityConsumer) {

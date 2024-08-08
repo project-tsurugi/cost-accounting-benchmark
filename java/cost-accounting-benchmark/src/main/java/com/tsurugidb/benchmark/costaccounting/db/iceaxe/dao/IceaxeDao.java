@@ -330,15 +330,18 @@ public abstract class IceaxeDao<E> {
         var rcList = new ArrayList<TsurugiStatementResult>(parameterList.size());
         try {
             var transaction = getTransaction();
+            int i = 0;
             for (var parameter : parameterList) {
                 debugExplain(ps, () -> ps.explain(parameter));
                 try {
                     var rc = transaction.executeStatement(ps, parameter);
                     rcList.add(rc);
                 } catch (IOException e) {
+                    LOG.error("executeAndGetCount error. i={}/{}", i, parameterList.size(), e);
                     re = new UncheckedIOException(e.getMessage(), e);
                     throw re;
                 } catch (InterruptedException e) {
+                    LOG.error("executeAndGetCount error. i={}/{}", i, parameterList.size(), e);
                     re = new RuntimeException(e);
                     throw re;
                 } catch (TsurugiTransactionException e) {
@@ -351,38 +354,59 @@ public abstract class IceaxeDao<E> {
                         String message = MessageFormat.format("sql={0}, parameter={1}", ps.getSql(), parameter);
                         re.addSuppressed(new ExceptionInfo(message));
                     }
+                    LOG.error("executeAndGetCount error. i={}/{}", i, parameterList.size(), e);
                     throw re;
                 }
+                i++;
             }
         } finally {
+            var set = new HashSet<String>();
+            int i = 0;
             for (var rc : rcList) {
-                try {
-                    rc.close();
+                try (rc) {
+                    rc.checkLowResult();
                 } catch (IOException e) {
+                    if (!set.contains(e.getMessage())) {
+                        set.add(e.getMessage());
+                        LOG.error("executeAndGetCount.close() error. i={}/{}", i, rcList.size(), e);
+                    }
                     if (re != null) {
                         re.addSuppressed(e);
                     } else {
                         re = new UncheckedIOException(e.getMessage(), e);
                     }
                 } catch (TsurugiTransactionException e) {
+                    if (!set.contains(e.getMessage())) {
+                        set.add(e.getMessage());
+                        LOG.error("executeAndGetCount.close() error. i={}/{}", i, rcList.size(), e);
+                    }
                     if (re != null) {
                         re.addSuppressed(e);
                     } else {
                         re = new TsurugiTransactionRuntimeException(e);
                     }
                 } catch (RuntimeException e) {
+                    if (!set.contains(e.getMessage())) {
+                        set.add(e.getMessage());
+                        LOG.error("executeAndGetCount.close() error. i={}/{}", i, rcList.size(), e);
+                    }
                     if (re != null) {
                         re.addSuppressed(e);
                     } else {
                         re = e;
                     }
                 } catch (Exception e) {
+                    if (!set.contains(e.getMessage())) {
+                        set.add(e.getMessage());
+                        LOG.error("executeAndGetCount.close() error. i={}/{}", i, rcList.size(), e);
+                    }
                     if (re != null) {
                         re.addSuppressed(e);
                     } else {
                         re = new RuntimeException(e);
                     }
                 }
+                i++;
             }
             if (re != null) {
                 throw re;

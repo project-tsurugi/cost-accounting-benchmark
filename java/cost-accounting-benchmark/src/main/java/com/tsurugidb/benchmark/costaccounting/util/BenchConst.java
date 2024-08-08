@@ -394,6 +394,23 @@ public class BenchConst {
         return getPropertyInt("periodic.schedule." + taskName + ".split.size", 1);
     }
 
+    public enum InsertSelectType {
+        /** select * from src &amp; insert into dst */
+        SELECT_AND_INSERT,
+        /** insert into dst select * from src */
+        INSERT_SELECT,
+    }
+
+    public static InsertSelectType periodicInsertSelectType(String taskName) {
+        String key = "periodic.schedule." + taskName + ".insert_select.type";
+        String s = getProperty(key, InsertSelectType.INSERT_SELECT.name());
+        try {
+            return InsertSelectType.valueOf(s.toUpperCase());
+        } catch (Exception e) {
+            throw new RuntimeException("invalid InsertSelectType. " + key + "=" + s, e);
+        }
+    }
+
     public static int periodicKeepSize(String taskName) {
         return getPropertyInt("periodic.schedule." + taskName + ".keep.size", -1);
     }

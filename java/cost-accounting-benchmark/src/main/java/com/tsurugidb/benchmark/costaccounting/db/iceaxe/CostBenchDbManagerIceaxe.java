@@ -393,6 +393,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
         }
 
         if (re != null) {
+            LOG.error("{} all session close error. message={}", purpose, re.getMessage());
             throw re;
         }
 
