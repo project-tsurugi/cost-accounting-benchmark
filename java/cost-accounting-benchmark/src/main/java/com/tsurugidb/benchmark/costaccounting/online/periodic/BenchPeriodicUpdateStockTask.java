@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -162,7 +161,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
     }
 
     private void streamInsert(Stream<CostMaster> stream, LocalDateTime now) {
-        var count = new AtomicInteger(0);
+        // var count = new AtomicInteger(0);
         var dao = dbManager.getStockHistoryDao();
         final int batchSize = 10000;
         var list = new ArrayList<StockHistory>(batchSize);
@@ -178,15 +177,15 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
             list.add(entity);
             if (list.size() >= batchSize) {
                 dao.insertBatch(list);
-                count.addAndGet(list.size());
-                LOG.info("streamInsert() inserted {}", count.get());
+//              count.addAndGet(list.size());
+//              LOG.info("streamInsert() inserted {}", count.get());
                 list.clear();
             }
         });
         if (!list.isEmpty()) {
             dao.insertBatch(list);
-            count.addAndGet(list.size());
-            LOG.info("streamInsert() inserted {}", count.get());
+//          count.addAndGet(list.size());
+//          LOG.info("streamInsert() inserted {}", count.get());
         }
     }
 
