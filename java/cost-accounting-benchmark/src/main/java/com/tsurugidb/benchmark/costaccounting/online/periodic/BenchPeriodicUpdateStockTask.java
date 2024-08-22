@@ -45,6 +45,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
     private final int threadSize;
     private final ExecutorService service;
     private final int keepSize;
+    private final boolean delete1;
 
     public BenchPeriodicUpdateStockTask(int taskId) {
         super(TASK_NAME, taskId);
@@ -59,6 +60,10 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
         LOG.info("insert_select_type={}", INSERT_SELECT_TYPE);
         this.keepSize = BenchConst.periodicKeepSize(TASK_NAME);
         LOG.info("keep.size={}", keepSize);
+        this.delete1 = BenchConst.periodicDelete1(TASK_NAME);
+        if (delete1) {
+            LOG.info("delete1={}", delete1);
+        }
     }
 
     BenchPeriodicUpdateStockTask(int threadSize, int keepSize) { // for test
@@ -66,6 +71,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
         this.threadSize = threadSize;
         this.service = null;
         this.keepSize = keepSize;
+        this.delete1 = false;
     }
 
     @Override
@@ -129,20 +135,34 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
         if (i < 0) {
             return null;
         }
+
+        if (this.delete1) {
+            return list.get(0); // 最も古い履歴
+        }
+
         return list.get(i);
     }
 
     private boolean executeAll(StockHistoryDateTime deleteDateTime) {
         return dbManager.execute(settingMain, () -> {
-            if (deleteDateTime != null) {
-                var dao = dbManager.getStockHistoryDao();
-                dao.deleteOldDateTime(deleteDateTime.getSDate(), deleteDateTime.getSTime());
-            }
-
+            deleteAllInTransaction(deleteDateTime);
             executeAllInTransaction();
 
             return true;
         });
+    }
+
+    private void deleteAllInTransaction(StockHistoryDateTime deleteDateTime) {
+        if (deleteDateTime == null) {
+            return;
+        }
+
+        var dao = dbManager.getStockHistoryDao();
+        if (this.delete1) {
+            dao.deleteByDateTime(deleteDateTime.getSDate(), deleteDateTime.getSTime());
+        } else {
+            dao.deleteOldDateTime(deleteDateTime.getSDate(), deleteDateTime.getSTime());
+        }
     }
 
     private void executeAllInTransaction() {
@@ -255,11 +275,7 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
         public Void call() throws Exception {
             try {
                 dbManager.execute(settingMain, () -> {
-                    if (deleteDateTime != null) {
-                        var dao = dbManager.getStockHistoryDao();
-                        dao.deleteOldDateTime(deleteDateTime.getSDate(), deleteDateTime.getSTime(), factoryId);
-                    }
-
+                    deleteInTransaction();
                     executeInTransaction();
                 });
             } catch (Throwable e) {
@@ -267,6 +283,19 @@ public class BenchPeriodicUpdateStockTask extends BenchPeriodicTask {
                 throw e;
             }
             return null;
+        }
+
+        private void deleteInTransaction() {
+            if (deleteDateTime == null) {
+                return;
+            }
+
+            var dao = dbManager.getStockHistoryDao();
+            if (delete1) {
+                dao.deleteByDateTime(deleteDateTime.getSDate(), deleteDateTime.getSTime(), factoryId);
+            } else {
+                dao.deleteOldDateTime(deleteDateTime.getSDate(), deleteDateTime.getSTime(), factoryId);
+            }
         }
 
         private void executeInTransaction() {

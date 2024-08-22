@@ -87,7 +87,7 @@ public class CostBenchDbManagerIceaxe extends CostBenchDbManager {
         var credential = new UsernamePasswordCredential(BenchConst.tsurugiUser(), BenchConst.tsurugiPassword());
         this.connector = TsurugiConnector.of(endpoint, credential);
         try {
-            this.sessionOption = TgSessionOption.of();
+            this.sessionOption = TgSessionOption.of().setApplicationName("CostBenchDbManagerIceaxe");
             if (!isMultiSession) {
                 var session = connector.createSession(sessionOption);
                 var tm = session.createTransactionManager();

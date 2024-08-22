@@ -3,8 +3,10 @@ package com.tsurugidb.benchmark.costaccounting.online.periodic;
 import java.io.Closeable;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchTask;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 public abstract class BenchPeriodicTask extends BenchTask implements Closeable {
 
@@ -15,8 +17,17 @@ public abstract class BenchPeriodicTask extends BenchTask implements Closeable {
     protected List<Integer> factoryList;
 //  protected LocalDate date;
 
-    public BenchPeriodicTask(String tableName, int taskId) {
-        super(tableName, taskId);
+    private final int capSize;
+
+    private int executeCount = 0;
+
+    public BenchPeriodicTask(String taskName, int taskId) {
+        super(taskName, taskId);
+
+        this.capSize = BenchConst.periodicCapSize(taskName);
+        if (capSize >= 0) {
+            LOG.info("cap.size={}", capSize);
+        }
     }
 
     public void initialize(List<Integer> factoryList, LocalDate date) {
@@ -25,7 +36,17 @@ public abstract class BenchPeriodicTask extends BenchTask implements Closeable {
     }
 
     public final void execute() {
+        if (!canExecute()) {
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            return;
+        }
+
         incrementStartCounter();
+        executeCount++;
 
         boolean exists;
         try {
@@ -40,6 +61,23 @@ public abstract class BenchPeriodicTask extends BenchTask implements Closeable {
         } else {
             incrementNothingCounter();
         }
+    }
+
+    private boolean capLog = false;
+
+    protected boolean canExecute() {
+        if (capSize < 0) {
+            return true;
+        }
+
+        boolean isExecute = executeCount < capSize;
+        if (!isExecute) {
+            if (!capLog) {
+                capLog = true;
+                LOG.info("executeCount has reached the limit. executeCount={}, capSize={}", executeCount, capSize);
+            }
+        }
+        return isExecute;
     }
 
     protected abstract boolean execute1();

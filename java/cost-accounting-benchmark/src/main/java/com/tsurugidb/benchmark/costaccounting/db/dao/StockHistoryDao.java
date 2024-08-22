@@ -60,6 +60,22 @@ public interface StockHistoryDao {
     /**
      * <pre>
      * delete from stock_history
+     * where s_date = :date and s_time = :time
+     * </pre>
+     */
+    int deleteByDateTime(LocalDate date, LocalTime time);
+
+    /**
+     * <pre>
+     * delete from stock_history
+     * where s_date = :date and s_time = :time and s_f_id = :factoryId
+     * </pre>
+     */
+    int deleteByDateTime(LocalDate date, LocalTime time, int factoryId);
+
+    /**
+     * <pre>
+     * delete from stock_history
      * where (s_date < :date) or (s_date = :date and s_time <= :time)
      * </pre>
      */

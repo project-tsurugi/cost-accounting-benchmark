@@ -55,7 +55,7 @@ public class CostBenchDbManagerTsubakuro extends CostBenchDbManager {
         LOG.info("endpoint={}", endpoint);
         try {
             var credential = new UsernamePasswordCredential(BenchConst.tsurugiUser(), BenchConst.tsurugiPassword());
-            this.session = SessionBuilder.connect(endpoint).withCredential(credential).create();
+            this.session = SessionBuilder.connect(endpoint).withCredential(credential).withApplicationName("CostBenchDbManagerTsubakuro").create();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } catch (ServerException | InterruptedException e) {

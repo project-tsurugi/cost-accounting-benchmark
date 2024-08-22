@@ -13,6 +13,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistoryDateTime;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable.TgBindVariableInteger;
@@ -100,6 +101,38 @@ public class StockHistoryDaoIceaxe extends IceaxeDao<StockHistory> implements St
     };
 
     @Override
+    public int deleteByDateTime(LocalDate date, LocalTime time) {
+        var ps = deleteByDateTimeCache.get();
+        var parameter = TgBindParameters.of(vDate.bind(date), vTime.bind(time));
+        return executeAndGetCount(ps, parameter);
+    }
+
+    private final CachePreparedStatement<TgBindParameters> deleteByDateTimeCache = new CachePreparedStatement<>() {
+        @Override
+        protected void initialize() {
+            this.sql = "delete from " + TABLE_NAME //
+                    + " where s_date = " + vDate + " and s_time = " + vTime;
+            this.parameterMapping = TgParameterMapping.of(vDate, vTime);
+        }
+    };
+
+    @Override
+    public int deleteByDateTime(LocalDate date, LocalTime time, int factoryId) {
+        var ps = deleteByDateTimeFactoryCache.get();
+        var parameter = TgBindParameters.of(vDate.bind(date), vTime.bind(time), vFactory.bind(factoryId));
+        return executeAndGetCount(ps, parameter);
+    }
+
+    private final CachePreparedStatement<TgBindParameters> deleteByDateTimeFactoryCache = new CachePreparedStatement<>() {
+        @Override
+        protected void initialize() {
+            this.sql = "delete from " + TABLE_NAME //
+                    + " where s_date = " + vDate + " and s_time = " + vTime + " and s_f_id = " + vFactory;
+            this.parameterMapping = TgParameterMapping.of(vDate, vTime, vFactory);
+        }
+    };
+
+    @Override
     public int deleteOldDateTime(LocalDate date, LocalTime time) {
         var ps = deleteOldDateTimeCache.get();
         var parameter = TgBindParameters.of(vDate.bind(date), vTime.bind(time));
@@ -109,8 +142,11 @@ public class StockHistoryDaoIceaxe extends IceaxeDao<StockHistory> implements St
     private final CachePreparedStatement<TgBindParameters> deleteOldDateTimeCache = new CachePreparedStatement<>() {
         @Override
         protected void initialize() {
-            this.sql = "delete from " + TABLE_NAME //
-                    + " where (s_date < " + vDate + ") or (s_date = " + vDate + " and s_time <= " + vTime + ")";
+            String where = "(s_date < " + vDate + ") or (s_date = " + vDate + " and s_time <= " + vTime + ")";
+            if (BenchConst.WORKAROUND) { // orでつなぐとfull scanになる為
+                where = "(" + where + ") and s_date <= " + vDate;
+            }
+            this.sql = "delete from " + TABLE_NAME + " where " + where;
             this.parameterMapping = TgParameterMapping.of(vDate, vTime);
         }
     };
@@ -125,8 +161,11 @@ public class StockHistoryDaoIceaxe extends IceaxeDao<StockHistory> implements St
     private final CachePreparedStatement<TgBindParameters> deleteOldDateTimeFactoryCache = new CachePreparedStatement<>() {
         @Override
         protected void initialize() {
-            this.sql = "delete from " + TABLE_NAME //
-                    + " where ((s_date < " + vDate + ") or (s_date = " + vDate + " and s_time <= " + vTime + ")) and s_f_id = " + vFactory;
+            String where = "((s_date < " + vDate + ") or (s_date = " + vDate + " and s_time <= " + vTime + ")) and s_f_id = " + vFactory;
+            if (BenchConst.WORKAROUND) { // orでつなぐとfull scanになる為
+                where = "(" + where + ") and s_date <= " + vDate;
+            }
+            this.sql = "delete from " + TABLE_NAME + " where " + where;
             this.parameterMapping = TgParameterMapping.of(vDate, vTime, vFactory);
         }
     };

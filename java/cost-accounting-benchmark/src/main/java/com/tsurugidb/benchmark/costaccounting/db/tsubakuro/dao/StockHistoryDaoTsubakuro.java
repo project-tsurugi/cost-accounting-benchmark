@@ -65,6 +65,16 @@ public class StockHistoryDaoTsubakuro extends TsubakuroDao<StockHistory> impleme
     }
 
     @Override
+    public int deleteByDateTime(LocalDate date, LocalTime time) {
+        throw new UnsupportedOperationException("not yet impl");
+    }
+
+    @Override
+    public int deleteByDateTime(LocalDate date, LocalTime time, int factoryId) {
+        throw new UnsupportedOperationException("not yet impl");
+    }
+
+    @Override
     public int deleteOldDateTime(LocalDate date, LocalTime time) {
         throw new UnsupportedOperationException("not yet impl");
     }

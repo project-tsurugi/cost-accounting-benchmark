@@ -390,6 +390,10 @@ public class BenchConst {
         return TimeUnit.SECONDS.toMillis(seconds);
     }
 
+    public static int periodicCapSize(String taskName) {
+        return getPropertyInt("periodic.schedule." + taskName + ".cap.size", -1);
+    }
+
     public static int periodicSplitSize(String taskName) {
         return getPropertyInt("periodic.schedule." + taskName + ".split.size", 1);
     }
@@ -413,6 +417,10 @@ public class BenchConst {
 
     public static int periodicKeepSize(String taskName) {
         return getPropertyInt("periodic.schedule." + taskName + ".keep.size", -1);
+    }
+
+    public static boolean periodicDelete1(String taskName) {
+        return getPropertyBoolean("periodic.schedule." + taskName + ".delete1", false);
     }
 
     // online-command

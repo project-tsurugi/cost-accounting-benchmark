@@ -83,6 +83,29 @@ public class StockHistoryDaoJdbc extends JdbcDao<StockHistory> implements StockH
     }
 
     @Override
+    public int deleteByDateTime(LocalDate date, LocalTime time) {
+        String sql = "delete from " + TABLE_NAME //
+                + " where s_date = ? and s_time = ?";
+        return executeUpdate(sql, ps -> {
+            int i = 1;
+            JdbcUtil.setDate(ps, i++, date);
+            JdbcUtil.setTime(ps, i++, time);
+        });
+    }
+
+    @Override
+    public int deleteByDateTime(LocalDate date, LocalTime time, int factoryId) {
+        String sql = "delete from " + TABLE_NAME //
+                + " where s_date = ? and s_time = ? and s_f_id = ?";
+        return executeUpdate(sql, ps -> {
+            int i = 1;
+            JdbcUtil.setDate(ps, i++, date);
+            JdbcUtil.setTime(ps, i++, time);
+            JdbcUtil.setInt(ps, i++, factoryId);
+        });
+    }
+
+    @Override
     public int deleteOldDateTime(LocalDate date, LocalTime time) {
         String sql = "delete from " + TABLE_NAME //
                 + " where (s_date < ?) or (s_date = ? and s_time <= ?)";
