@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'application'
     id 'com.github.spotbugs' version '5.2.5'
+    id "com.github.hierynomus.license" version "0.16.1"
 }
 
 group = 'com.tsurugidb.benchmark.cost-accounting-benchmark'
@@ -58,6 +59,21 @@ spotbugsMain {
 }
 
 spotbugsTest.enabled = false
+
+license {
+    header rootProject.file("source-header.txt")
+    mapping {
+        java = 'SLASHSTAR_STYLE'
+        sh = 'SCRIPT_STYLE'
+        properties = 'SCRIPT_STYLE'
+    }
+    includes(['**/*.java', '**/*.sh', '**/*.properties'])
+}
+
+task licenseFormatDist(type: com.hierynomus.gradle.license.tasks.LicenseFormat) {
+    source = fileTree(dir: "src/dist")
+}
+licenseFormat.dependsOn licenseFormatDist
 
 dependencies {
   // https://mvnrepository.com/artifact/org.postgresql/postgresql
