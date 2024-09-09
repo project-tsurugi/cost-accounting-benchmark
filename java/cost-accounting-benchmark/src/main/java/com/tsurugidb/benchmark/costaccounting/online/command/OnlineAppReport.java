@@ -36,13 +36,15 @@ import com.tsurugidb.benchmark.costaccounting.online.periodic.BenchPeriodicTask;
 import com.tsurugidb.benchmark.costaccounting.online.periodic.BenchPeriodicUpdateStockTask;
 import com.tsurugidb.benchmark.costaccounting.online.task.BenchOnlineTask;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
+import com.tsurugidb.benchmark.costaccounting.util.PathUtil;
 
 public class OnlineAppReport {
     private static final Logger LOG = LoggerFactory.getLogger(OnlineAppReport.class);
 
     private static final String HEADER1 = "# Online Application Report";
 
-    private final StringBuilder onlineAppReport = new StringBuilder(HEADER1 + "\n");
+    private final StringBuilder onlineAppReport = new StringBuilder(2048).append(HEADER1 + "\n");
+    private final StringBuilder csvReport = new StringBuilder(2048).append(OnlineTimeRecord.CSV_HEADER + "\n");
 
     public void writeOnlineAppReport(OnlineConfig config, OnlineAppReportHeader title, Path onlineReportPath, long dedicatedTime, Path compareBaseFile) {
         LOG.debug("Creating an online application report for {}", title);
@@ -54,6 +56,14 @@ public class OnlineAppReport {
         LOG.debug("Writing online application reports to {}", onlineReportPath.toAbsolutePath());
         try {
             Files.writeString(onlineReportPath, onlineAppReport);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e.getMessage(), e);
+        }
+
+        Path csvReportPath = PathUtil.convertExt(onlineReportPath, "csv");
+        LOG.debug("Writing online application csv reports to {}", csvReportPath.toAbsolutePath());
+        try {
+            Files.writeString(csvReportPath, csvReport.toString());
         } catch (IOException e) {
             throw new UncheckedIOException(e.getMessage(), e);
         }
@@ -150,6 +160,9 @@ public class OnlineAppReport {
         var record = OnlineTimeRecord.of(config, taskName, dedicatedTime, counter, compareBaseRecord);
         sb.append(record);
         sb.append("\n");
+
+        record.toCsv(csvReport);
+        csvReport.append("\n");
     }
 
     // compare base

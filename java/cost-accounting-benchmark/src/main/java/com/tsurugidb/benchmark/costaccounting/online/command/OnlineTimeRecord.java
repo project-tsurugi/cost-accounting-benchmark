@@ -29,10 +29,17 @@ public class OnlineTimeRecord {
             "| title | tx option | cover rate | dedicated time[ms] | numbers of txs | latency<br>avg[ms] | latency<br>min[ms] | latency<br>max[ms] | committed tx through put[task/s] |", //
             "|-------|-----------|-----------:|-------------------:|---------------:|-------------------:|-------------------:|-------------------:|---------------------------------:|");
 
+    public static final String CSV_HEADER = "title, tx option, cover rate(config), cover rate, dedicated time[ms], numbers of txs," //
+            + " latency avg[ms], latency avg rate[%]," //
+            + " latency min[ms], latency min rate[%]" //
+            + " latency max[ms], latency max rate[%]" //
+            + " committed tx through put[task/s], committed tx through put rate[%]";
+
     public static OnlineTimeRecord of(OnlineConfig config, String taskName, long dedicatedTime, BenchDbCounter counter, OnlineTimeRecord compareBaseRecord) {
         var record = new OnlineTimeRecord();
         record.taskName = taskName;
         record.txOption = counter.getTxOptionDescription(taskName);
+        record.configCoverRate = config.getCoverRate();
         record.coverRate = config.getCoverRateForReport(taskName);
         record.dedicatedTime = dedicatedTime;
         var time = counter.getTime(taskName, CounterName.TASK_SUCCESS);
@@ -99,6 +106,8 @@ public class OnlineTimeRecord {
         }
         return Double.parseDouble(s.replace(",", ""));
     }
+
+    int configCoverRate;
 
     String taskName;
     String txOption;
@@ -182,5 +191,57 @@ public class OnlineTimeRecord {
             return s + "<br>(" + String.format("%,.2f", value / base * 100) + "%)";
         }
         return s;
+    }
+
+    public void toCsv(StringBuilder sb) {
+        sb.append(taskName);
+        sb.append(",");
+        sb.append(txOption.replace(',', ':'));
+        sb.append(",");
+        sb.append(configCoverRate);
+        sb.append(",");
+        sb.append(coverRate);
+
+        // dedicated time
+        sb.append(",");
+        sb.append(dedicatedTime);
+
+        {
+            // numbers of txs
+            sb.append(",");
+            sb.append(numbersOfTxs);
+
+            // latency
+            sb.append(",");
+            appendCsv(sb, OnlineTimeRecord::latencyAvg);
+            sb.append(",");
+            appendCsv(sb, OnlineTimeRecord::latencyMin);
+            sb.append(",");
+            appendCsv(sb, OnlineTimeRecord::latencyMax);
+
+            // committed tx through put
+            sb.append(",");
+            appendCsv(sb, OnlineTimeRecord::committedTxThroughPut);
+        }
+    }
+
+    private void appendCsv(StringBuilder sb, ToDoubleFunction<OnlineTimeRecord> getter) {
+        double value = getter.applyAsDouble(this);
+        if (Double.isNaN(value)) {
+            sb.append("-,-");
+            return;
+        }
+        sb.append(String.format("%.3f", value));
+
+        sb.append(",");
+        if (this.compareBaseRecord != null) {
+            double base = getter.applyAsDouble(compareBaseRecord);
+            if (Double.isNaN(base) || base == 0) {
+                sb.append("-");
+            }
+            sb.append(String.format("%.2f", value / base * 100)); // [%]
+        } else {
+            sb.append("-");
+        }
     }
 }
