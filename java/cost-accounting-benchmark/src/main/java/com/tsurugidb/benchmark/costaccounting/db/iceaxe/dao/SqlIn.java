@@ -15,7 +15,6 @@
  */
 package com.tsurugidb.benchmark.costaccounting.db.iceaxe.dao;
 
-import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 
 public class SqlIn {
@@ -33,10 +32,10 @@ public class SqlIn {
     }
 
     public void add(String sqlName) {
-        if (BenchConst.WORKAROUND) {
-            addWorkaround(sqlName);
-            return;
-        }
+//      if (BenchConst.WORKAROUND) {
+//          addWorkaround(sqlName);
+//          return;
+//      }
 
         if (sb.length() != 0) {
             sb.append(",");
@@ -44,6 +43,7 @@ public class SqlIn {
         sb.append(sqlName);
     }
 
+    @SuppressWarnings("unused")
     private void addWorkaround(String sqlName) {
         if (sb.length() != 0) {
             sb.append(" or ");
@@ -55,9 +55,9 @@ public class SqlIn {
 
     @Override
     public String toString() {
-        if (BenchConst.WORKAROUND) {
-            return "(" + sb + ")";
-        }
+//      if (BenchConst.WORKAROUND) {
+//          return "(" + sb + ")";
+//      }
 
         return columnName + " in (" + sb + ")";
     }
