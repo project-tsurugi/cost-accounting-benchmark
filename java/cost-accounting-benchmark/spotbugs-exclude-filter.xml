@@ -21,6 +21,10 @@
     <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE" />
   </Match>
   <Match>
+    <Class name="com.tsurugidb.benchmark.costaccounting.debug.iceaxe_dbtest.DebugIceaxeWorkaround" />
+    <Bug pattern="DMI_RANDOM_USED_ONLY_ONCE" />
+  </Match>
+  <Match>
     <Package name="com.tsurugidb.benchmark.costaccounting.example" />
   </Match>
   <Match>
