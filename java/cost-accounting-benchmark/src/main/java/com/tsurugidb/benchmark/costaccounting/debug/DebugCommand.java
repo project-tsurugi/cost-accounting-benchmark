@@ -40,6 +40,7 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.CostMaster;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ResultTable;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
+import com.tsurugidb.benchmark.costaccounting.debug.iceaxe_dbtest.DebugIceaxeWorkaround;
 import com.tsurugidb.benchmark.costaccounting.debug.iceaxe_dbtest.DebugInsertDuplicate;
 import com.tsurugidb.benchmark.costaccounting.debug.iceaxe_dbtest.DebugSelectFetch;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
@@ -98,6 +99,9 @@ public class DebugCommand implements ExecutableCommand {
             break;
         case "fetch":
             new DebugSelectFetch(args).execute();
+            break;
+        case "workaround":
+            new DebugIceaxeWorkaround(args).execute();
             break;
         case "select-result":
             selectResult();

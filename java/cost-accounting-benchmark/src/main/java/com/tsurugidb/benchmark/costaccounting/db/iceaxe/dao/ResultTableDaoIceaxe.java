@@ -20,7 +20,6 @@ import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -29,7 +28,6 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ResultTable;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
-import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable.TgBindVariableInteger;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariables;
@@ -175,43 +173,23 @@ public class ResultTableDaoIceaxe extends IceaxeDao<ResultTable> implements Resu
     public Stream<ResultTable> selectRequiredQuantity(int factoryId, LocalDate date) {
         var ps = selectRequiredQuantityCache.get();
         var parameter = TgBindParameters.of(vFactoryId.bind(factoryId), vDate.bind(date));
-        if (BenchConst.WORKAROUND) { // order by
-            var list = executeAndGetList(ps, parameter);
-            list.sort(Comparator.comparing(ResultTable::getRIId));
-            return list.stream();
-        }
         return executeAndGetStream(ps, parameter);
     }
 
     private final CachePreparedQuery<TgBindParameters, ResultTable> selectRequiredQuantityCache = new CachePreparedQuery<>() {
         @Override
         protected void initialize() {
-            if (BenchConst.WORKAROUND) { // between
-                this.sql = "select" //
-                        + "  r_f_id," //
-                        + "  r_manufacturing_date," //
-                        + "  r_i_id," //
-                        + "  sum(r_required_quantity) as r_required_quantity," //
-                        + "  max(r_required_quantity_unit) as r_required_quantity_unit" //
-                        + " from " + TABLE_NAME + " r" //
-                        + " inner join item_master m on m.i_id=r.r_i_id and m.i_effective_date<=r.r_manufacturing_date and r.r_manufacturing_date<=m.i_expired_date" //
-                        + " where r_f_id=" + vFactoryId + " and r_manufacturing_date=" + vDate + " and m.i_type='raw_material'" //
-                        + " group by r_f_id, r_manufacturing_date, r_i_id" //
-                // + " order by r_i_id"
-                ;
-            } else {
-                this.sql = "select" //
-                        + "  r_f_id," //
-                        + "  r_manufacturing_date," //
-                        + "  r_i_id," //
-                        + "  sum(r_required_quantity) r_required_quantity," //
-                        + "  max(r_required_quantity_unit) r_required_quantity_unit" //
-                        + " from " + TABLE_NAME + " r" //
-                        + " left join item_master m on m.i_id=r.r_i_id and r.r_manufacturing_date between m.i_effective_date and m.i_expired_date" //
-                        + " where r_f_id=" + vFactoryId + " and r_manufacturing_date=" + vDate + " and m.i_type='raw_material'" //
-                        + " group by r_f_id, r_manufacturing_date, r_i_id" //
-                        + " order by r_i_id";
-            }
+            this.sql = "select" //
+                    + "  r_f_id," //
+                    + "  r_manufacturing_date," //
+                    + "  r_i_id," //
+                    + "  sum(r_required_quantity) r_required_quantity," //
+                    + "  max(r_required_quantity_unit) r_required_quantity_unit" //
+                    + " from " + TABLE_NAME + " r" //
+                    + " left join item_master m on m.i_id=r.r_i_id and r.r_manufacturing_date between m.i_effective_date and m.i_expired_date" //
+                    + " where r_f_id=" + vFactoryId + " and r_manufacturing_date=" + vDate + " and m.i_type='raw_material'" //
+                    + " group by r_f_id, r_manufacturing_date, r_i_id" //
+                    + " order by r_i_id";
             this.parameterMapping = TgParameterMapping.of(vFactoryId, vDate);
             this.resultMapping = TgResultMapping.of(ResultTable::new) //
                     .addInt(ResultTable::setRFId) //

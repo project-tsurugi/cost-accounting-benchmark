@@ -90,7 +90,7 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
 
     @Override
     public List<ItemMaster> selectByIds(Iterable<Integer> ids, LocalDate date) {
-        if (BenchConst.WORKAROUND) {
+        if (BenchConst.WORKAROUND) { // pkのinがfull scanになるため
             return selectByIdsWorkaround(ids, date);
         }
 
