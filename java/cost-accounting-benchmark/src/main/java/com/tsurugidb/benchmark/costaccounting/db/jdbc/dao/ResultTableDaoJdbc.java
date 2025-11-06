@@ -22,6 +22,8 @@ import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.getStr
 import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.setDate;
 import static com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.JdbcUtil.setInt;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -29,12 +31,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.tsurugidb.benchmark.costaccounting.db.dao.ResultTableDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ResultTable;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.CostBenchDbManagerJdbc;
+import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 public class ResultTableDaoJdbc extends JdbcDao<ResultTable> implements ResultTableDao {
 
@@ -118,7 +122,30 @@ public class ResultTableDaoJdbc extends JdbcDao<ResultTable> implements ResultTa
 
     @Override
     public int[] insertBatch(Collection<ResultTable> entityList) {
+        if (dbManager.isTsurugi() && BenchConst.WORKAROUND) { // Tsurugi側で小数点以下を丸めてくれない
+            for (var entity : entityList) {
+                setScale(entity);
+            }
+        }
         return doInsert(entityList);
+    }
+
+    private void setScale(ResultTable entity) {
+        setScale(entity::getRWeight, entity::setRWeight, ResultTable.R_WEIGHT_SCALE);
+        setScale(entity::getRWeightTotal, entity::setRWeightTotal, ResultTable.R_WEIGHT_TOTAL_SCALE);
+        setScale(entity::getRWeightRatio, entity::setRWeightRatio, ResultTable.R_WEIGHT_RATIO_SCALE);
+        setScale(entity::getRStandardQuantity, entity::setRStandardQuantity, ResultTable.R_STANDARD_QUANTITY_SCALE);
+        setScale(entity::getRRequiredQuantity, entity::setRRequiredQuantity, ResultTable.R_REQUIRED_QUANTITY_SCALE);
+        setScale(entity::getRUnitCost, entity::setRUnitCost, ResultTable.R_UNIT_COST_SCALE);
+        setScale(entity::getRTotalUnitCost, entity::setRTotalUnitCost, ResultTable.R_TOTAL_UNIT_COST_SCALE);
+        setScale(entity::getRManufacturingCost, entity::setRManufacturingCost, ResultTable.R_MANUFACTURING_COST_SCALE);
+        setScale(entity::getRTotalManufacturingCost, entity::setRTotalManufacturingCost, ResultTable.R_TOTAL_MANUFACTURING_COST_SCALE);
+    }
+
+    private void setScale(Supplier<BigDecimal> getter, Consumer<BigDecimal> setter, int scale) {
+        BigDecimal value = getter.get();
+        BigDecimal changed = value.setScale(scale, RoundingMode.HALF_UP);
+        setter.accept(changed);
     }
 
     @Override

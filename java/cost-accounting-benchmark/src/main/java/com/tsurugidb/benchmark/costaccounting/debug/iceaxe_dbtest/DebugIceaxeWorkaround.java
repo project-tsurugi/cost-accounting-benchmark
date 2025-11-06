@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -104,20 +105,11 @@ public class DebugIceaxeWorkaround extends DbTester {
             }
             expectedList.sort(Comparator.comparing(ItemMaster::getIId));
 
-            LOG.info("expectedList.size={}, actualList.size={}", expectedList.size(), actualList.size());
-            if (expectedList.size() != actualList.size()) {
-                LOG.error("ItemMasterDao.selectByIds() error.\nexpected={}\nactual={}", expectedList, actualList);
-                throw new RuntimeException("ItemMasterDao.selectByIds() error");
-            }
-            for (int i = 0; i < expectedList.size(); i++) {
-                ItemMaster expected = expectedList.get(i);
-                ItemMaster actual = actualList.get(i);
-//              if (!expected.getIId().equals(actual.getIId())) {
-                if (!expected.toString().equals(actual.toString())) {
-                    LOG.error("ItemMasterDao.selectByIds() error.\nexpected={}\nactual={}", expected, actual);
-                    throw new RuntimeException("ItemMasterDao.selectByIds() error");
-                }
-            }
+            assert_ItemMasterDao_selectByIds(expectedList, actualList);
+
+            LOG.info("ItemMasterDao.selectByIds() JDBC");
+            var jdbcActualList = jdbc_ItemMasterDao_selectByIds(idSet);
+            assert_ItemMasterDao_selectByIds(expectedList, jdbcActualList);
         });
     }
 
@@ -125,6 +117,33 @@ public class DebugIceaxeWorkaround extends DbTester {
         var session = getSession();
         var tm = createTransactionManagerOcc(session);
         return tm.executeAndFindRecord("select min(i_id), max(i_id) from item_master where i_type='raw_material'").get();
+    }
+
+    private List<ItemMaster> jdbc_ItemMasterDao_selectByIds(Set<Integer> idSet) {
+        String jdbcUrlKey = "jdbc.url";
+        System.setProperty(jdbcUrlKey, "jdbc:tsurugi:" + BenchConst.tsurugiEndpoint());
+        System.setProperty("jdbc.user", "dummy");
+        System.setProperty("jdbc.password", "dummy");
+        try (var manager = CostBenchDbManager.createInstance(DbManagerType.JDBC, DbManagerPurpose.DEBUG, IsolationLevel.SERIALIZABLE, true)) {
+            var dao = manager.getItemMasterDao();
+            return dao.selectByIds(idSet, batchDate);
+        }
+    }
+
+    private void assert_ItemMasterDao_selectByIds(List<ItemMaster> expectedList, List<ItemMaster> actualList) {
+        LOG.info("expectedList.size={}, actualList.size={}", expectedList.size(), actualList.size());
+        if (expectedList.size() != actualList.size()) {
+            LOG.error("ItemMasterDao.selectByIds() error.\nexpected={}\nactual={}", expectedList, actualList);
+            throw new RuntimeException("ItemMasterDao.selectByIds() error");
+        }
+        for (int i = 0; i < expectedList.size(); i++) {
+            ItemMaster expected = expectedList.get(i);
+            ItemMaster actual = actualList.get(i);
+            if (!expected.toString().equals(actual.toString())) {
+                LOG.error("ItemMasterDao.selectByIds() error.\nexpected={}\nactual={}", expected, actual);
+                throw new RuntimeException("ItemMasterDao.selectByIds() error");
+            }
+        }
     }
 
     void test_ItemConstructionMasterDao_selectByItemType(CostBenchDbManager manager) throws IOException {

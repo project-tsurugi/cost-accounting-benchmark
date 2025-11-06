@@ -50,11 +50,29 @@ public class BenchConst {
     }
 
     public static String jdbcUser() {
-        return getProperty("jdbc.user");
+        String key = "jdbc.user";
+        String s = getProperty(key, null);
+        if (s != null) {
+            return s;
+        }
+        s = getProperty("tsurugi.user", null);
+        if (s != null) {
+            return s;
+        }
+        throw new RuntimeException("not found key'" + key + "' in property-file");
     }
 
     public static String jdbcPassword() {
-        return getProperty("jdbc.password");
+        String key = "jdbc.password";
+        String s = getProperty(key, null);
+        if (s != null) {
+            return s;
+        }
+        s = getProperty("tsurugi.password", null);
+        if (s != null) {
+            return s;
+        }
+        throw new RuntimeException("not found key'" + key + "' in property-file");
     }
 
     public static String tsurugiEndpoint() {

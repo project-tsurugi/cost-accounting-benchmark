@@ -71,7 +71,7 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
     };
 
     public CostBenchDbManagerJdbc(DbManagerPurpose purpose, IsolationLevel isolationLevel) {
-        super("JDBC", false, purpose);
+        super("JDBC", BenchConst.jdbcUrl().startsWith("jdbc:tsurugi:"), purpose);
         this.jdbcUrl = BenchConst.jdbcUrl();
         this.isolationLevel = Objects.requireNonNull(isolationLevel);
         LOG.info("jdbcUrl={}", jdbcUrl);
