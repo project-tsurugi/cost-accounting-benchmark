@@ -99,7 +99,7 @@ public interface StockHistoryDao {
     /**
      * <pre>
      * delete from stock_history
-     * where ((s_date < :date) or (s_date = :date and s_time <= :time) and s_f_id = :factoryId
+     * where ((s_date < :date) or (s_date = :date and s_time <= :time)) and s_f_id = :factoryId
      * </pre>
      */
     int deleteOldDateTime(LocalDate date, LocalTime time, int factoryId);
