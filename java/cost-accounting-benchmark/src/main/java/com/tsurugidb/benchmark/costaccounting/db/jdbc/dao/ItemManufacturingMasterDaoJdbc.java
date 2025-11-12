@@ -135,8 +135,10 @@ public class ItemManufacturingMasterDaoJdbc extends JdbcDao<ItemManufacturingMas
 
     @Override
     public ItemManufacturingMaster selectByIdForUpdate(int factoryId, int itemId, LocalDate date) {
-        String sql = "select * from " + TABLE_NAME + " where im_f_id = ? and im_i_id = ? and " + PS_COND_DATE //
-                + " for update";
+        String sql = "select * from " + TABLE_NAME + " where im_f_id = ? and im_i_id = ? and " + PS_COND_DATE;
+        if (!dbManager.isTsurugi()) {
+            sql += " for update";
+        }
         return executeQuery1(sql, ps -> {
             int i = 1;
             setInt(ps, i++, factoryId);

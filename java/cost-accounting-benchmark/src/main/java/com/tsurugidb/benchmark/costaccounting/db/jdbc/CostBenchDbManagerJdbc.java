@@ -15,6 +15,8 @@
  */
 package com.tsurugidb.benchmark.costaccounting.db.jdbc;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -51,7 +53,18 @@ import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.ResultTableDaoJdbc;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.dao.StockHistoryDaoJdbc;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.benchmark.costaccounting.util.BenchConst.IsolationLevel;
+import com.tsurugidb.iceaxe.session.TgSessionOption;
+import com.tsurugidb.iceaxe.session.TsurugiSession;
+import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
+import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 import com.tsurugidb.iceaxe.transaction.manager.TgTmSetting;
+import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
+import com.tsurugidb.iceaxe.util.InterruptedRuntimeException;
+import com.tsurugidb.jdbc.connection.TsurugiJdbcConnection;
+import com.tsurugidb.jdbc.transaction.TsurugiJdbcTransactionType;
+import com.tsurugidb.tsubakuro.exception.ServerException;
+import com.tsurugidb.tsubakuro.sql.Transaction;
+import com.tsurugidb.tsubakuro.util.FutureResponse;
 
 public class CostBenchDbManagerJdbc extends CostBenchDbManager {
     private static final Logger LOG = LoggerFactory.getLogger(CostBenchDbManagerJdbc.class);
@@ -201,22 +214,49 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
 
     @Override
     public void execute(TgTmSetting setting, Runnable runnable) {
-        for (;;) {
+        execute(setting, () -> {
+            runnable.run();
+            return null;
+        });
+    }
+
+    @Override
+    public <T> T execute(TgTmSetting setting, Supplier<T> supplier) {
+        final Object executeInfo = setting.getTransactionOptionSupplier().createExecuteInfo(0);
+        TgTxOption tsurugiTxOption = null;
+        if (isTsurugi()) {
+            tsurugiTxOption = getTsurugiTransactionOption(setting, executeInfo, 0, null, null, null);
+        }
+        for (int i = 0;; i++) {
+            Transaction tsurugiTransaction = null;
             try {
                 counter.increment(setting, CounterName.BEGIN_TX);
-                runnable.run();
+                if (isTsurugi()) {
+                    initializeTsurugiTransactionOption(tsurugiTxOption);
+                    tsurugiTransaction = getTsurugiTransaction();
+                }
+                T r = supplier.get();
                 counter.increment(setting, CounterName.TRY_COMMIT);
                 commit();
                 counter.increment(setting, CounterName.SUCCESS);
-                return;
+                return r;
             } catch (Throwable e) {
                 counter.increment(setting, CounterName.ABORTED);
+                boolean retry = isRetryable(e);
+                if (retry && isTsurugi()) {
+                    try {
+                        tsurugiTxOption = getTsurugiTransactionOption(setting, executeInfo, i + 1, tsurugiTransaction, tsurugiTxOption, e);
+                    } catch (Throwable t) {
+                        e.addSuppressed(t);
+                        retry = false;
+                    }
+                }
                 try {
                     rollback();
                 } catch (Throwable t) {
                     e.addSuppressed(t);
                 }
-                if (isRetryable(e)) {
+                if (retry) {
                     removeCurrentTransaction();
                     LOG.info("retry");
                     continue;
@@ -226,30 +266,73 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
         }
     }
 
-    @Override
-    public <T> T execute(TgTmSetting setting, Supplier<T> supplier) {
-        for (;;) {
-            try {
-                counter.increment(setting, CounterName.BEGIN_TX);
-                T r = supplier.get();
-                counter.increment(setting, CounterName.TRY_COMMIT);
-                commit();
-                counter.increment(setting, CounterName.SUCCESS);
-                return r;
-            } catch (Throwable e) {
-                counter.increment(setting, CounterName.ABORTED);
-                try {
-                    rollback();
-                } catch (Throwable t) {
-                    e.addSuppressed(t);
-                }
-                if (isRetryable(e)) {
-                    removeCurrentTransaction();
-                    LOG.info("retry");
-                    continue;
-                }
-                throw e;
+    private Transaction getTsurugiTransaction() {
+        try {
+            var connection = getConnection().unwrap(TsurugiJdbcConnection.class);
+            var transaction = connection.getTransaction();
+            return transaction.getLowTransaction();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private TgTxOption getTsurugiTransactionOption(TgTmSetting setting, Object executeInfo, int attempt, Transaction lowTransaction, TgTxOption txOption, Throwable t) {
+        try {
+            var supplier = setting.getTransactionOptionSupplier();
+            if (attempt == 0) {
+                return supplier.get(executeInfo, 0, null, null).getTransactionOption();
             }
+
+            var iceaxeException = findTsurugiTransactionException(t);
+            if (iceaxeException == null) {
+                throw new RuntimeException(t);
+            }
+
+            var connection = getConnection().unwrap(TsurugiJdbcConnection.class);
+            var iceaxeSession = new TsurugiSession(FutureResponse.returns(connection.getLowSession()), TgSessionOption.of());
+            var iceaxeTransaction = new TsurugiTransaction(iceaxeSession, txOption);
+            iceaxeTransaction.initialize(FutureResponse.returns(lowTransaction));
+            return supplier.get(executeInfo, attempt, iceaxeTransaction, iceaxeException).getTransactionOption();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new InterruptedRuntimeException(e);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private TsurugiTransactionException findTsurugiTransactionException(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (t instanceof ServerException) {
+                return new TsurugiTransactionException((ServerException) t);
+            }
+        }
+        return null;
+    }
+
+    private void initializeTsurugiTransactionOption(TgTxOption txOption) {
+        TsurugiJdbcConnection connection;
+        try {
+            connection = getConnection().unwrap(TsurugiJdbcConnection.class);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        connection.setTransactionLabel(txOption.label());
+        if (txOption.isOCC()) {
+            connection.setTransactionType(TsurugiJdbcTransactionType.OCC);
+        } else if (txOption.isLTX()) {
+            connection.setTransactionType(TsurugiJdbcTransactionType.LTX);
+            var ltx = txOption.asLtxOption();
+            connection.setTransactionIncludeDdl(ltx.includeDdl());
+            connection.setWritePreserve(ltx.writePreserve());
+            connection.setInclusiveReadArea(ltx.inclusiveReadArea());
+            connection.setExclusiveReadArea(ltx.exclusiveReadArea());
+        } else {
+            connection.setTransactionType(TsurugiJdbcTransactionType.RTX);
+            var rtx = txOption.asRtxOption();
+            rtx.scanParallel().ifPresent(connection::setTransactionScanParallel);
         }
     }
 
@@ -269,10 +352,10 @@ public class CostBenchDbManagerJdbc extends CostBenchDbManager {
     }
 
     protected boolean isRetryableSQLException(SQLException e) {
-        // PostgreSQL
+        // PostgreSQL, Tsurugi
         String sqlState = e.getSQLState();
         if (sqlState != null && sqlState.equals("40001")) {
-            // シリアライゼーション失敗
+            // シリアライゼーションエラー
             return true;
         }
         return false;

@@ -149,8 +149,10 @@ public class ItemConstructionMasterDaoJdbc extends JdbcDao<ItemConstructionMaste
     @Override
     public ItemConstructionMaster lock(ItemConstructionMaster in) {
         String sql = "select * from " + TABLE_NAME //
-                + " where ic_i_id=? and ic_parent_i_id=? and ic_effective_date=?" //
-                + " for update";
+                + " where ic_i_id=? and ic_parent_i_id=? and ic_effective_date=?";
+        if (!dbManager.isTsurugi()) {
+            sql += " for update";
+        }
         return executeQuery1(sql, ps -> {
             int i = 1;
             setInt(ps, i++, in.getIcIId());

@@ -17,6 +17,7 @@ package com.tsurugidb.benchmark.costaccounting.db.jdbc.dao;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -49,6 +50,10 @@ public class JdbcUtil {
 
     public static void setDecimal(PreparedStatement ps, int i, BigDecimal value) throws SQLException {
         ps.setBigDecimal(i, value);
+    }
+
+    public static void setDecimal(PreparedStatement ps, int i, BigDecimal value, int scale) throws SQLException {
+        ps.setBigDecimal(i, value.setScale(scale, RoundingMode.HALF_UP));
     }
 
     public static void setDate(PreparedStatement ps, int i, LocalDate value) throws SQLException {

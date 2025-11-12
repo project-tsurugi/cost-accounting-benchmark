@@ -95,7 +95,7 @@ public class CostMasterDaoJdbc extends JdbcDao<CostMaster> implements CostMaster
     @Override
     public CostMaster selectById(int fId, int iId, boolean forUpdate) {
         String sql = "select * from " + TABLE_NAME + " where c_f_id = ? and c_i_id = ?";
-        if (forUpdate) {
+        if (forUpdate && !dbManager.isTsurugi()) {
             sql += " for update";
         }
         return executeQuery1(sql, ps -> {
@@ -113,8 +113,13 @@ public class CostMasterDaoJdbc extends JdbcDao<CostMaster> implements CostMaster
                 + " where c_f_id=? and c_i_id=?";
         return executeUpdate(sql, ps -> {
             int i = 1;
-            setDecimal(ps, i++, quantity);
-            setDecimal(ps, i++, amount);
+            if (dbManager.isTsurugi()) {
+                setDecimal(ps, i++, quantity, CostMaster.C_STOCK_QUANTITY_SCALE);
+                setDecimal(ps, i++, amount, CostMaster.C_STOCK_AMOUNT_SCALE);
+            } else {
+                setDecimal(ps, i++, quantity);
+                setDecimal(ps, i++, amount);
+            }
             setInt(ps, i++, entity.getCFId());
             setInt(ps, i++, entity.getCIId());
         });
@@ -122,14 +127,28 @@ public class CostMasterDaoJdbc extends JdbcDao<CostMaster> implements CostMaster
 
     @Override
     public int updateDecrease(CostMaster entity, BigDecimal quantity) {
-        String sql = "update " + TABLE_NAME + " set" //
-                + " c_stock_quantity = c_stock_quantity - ?" //
-                + ",c_stock_amount = c_stock_amount - c_stock_amount * ? / c_stock_quantity" //
-                + " where c_f_id=? and c_i_id=?";
+        String sql;
+        if (dbManager.isTsurugi()) {
+            String stockAmountType = "decimal(15," + CostMaster.C_STOCK_AMOUNT_SCALE + ")";
+            sql = "update " + TABLE_NAME + " set" //
+                    + " c_stock_quantity = c_stock_quantity - ?" //
+                    + ",c_stock_amount = cast(c_stock_amount - c_stock_amount * ? / c_stock_quantity as " + stockAmountType + ")" //
+                    + " where c_f_id=? and c_i_id=?";
+        } else {
+            sql = "update " + TABLE_NAME + " set" //
+                    + " c_stock_quantity = c_stock_quantity - ?" //
+                    + ",c_stock_amount = c_stock_amount - c_stock_amount * ? / c_stock_quantity" //
+                    + " where c_f_id=? and c_i_id=?";
+        }
         return executeUpdate(sql, ps -> {
             int i = 1;
-            setDecimal(ps, i++, quantity);
-            setDecimal(ps, i++, quantity);
+            if (dbManager.isTsurugi()) {
+                setDecimal(ps, i++, quantity, CostMaster.C_STOCK_QUANTITY_SCALE);
+                setDecimal(ps, i++, quantity, CostMaster.C_STOCK_QUANTITY_SCALE);
+            } else {
+                setDecimal(ps, i++, quantity);
+                setDecimal(ps, i++, quantity);
+            }
             setInt(ps, i++, entity.getCFId());
             setInt(ps, i++, entity.getCIId());
         });

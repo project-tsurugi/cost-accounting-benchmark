@@ -228,20 +228,6 @@ public abstract class JdbcDao<E> {
         }
     }
 
-    private boolean isUniqueConstraint(SQLException e) {
-        var type = BenchConst.dbmsType();
-        switch (type) {
-        case ORACLE:
-            int code = e.getErrorCode();
-            return code == 1; // ORA-0001
-        case POSTGRESQL:
-            String state = e.getSQLState();
-            return PSQLState.UNIQUE_VIOLATION.getState().equals(state);
-        default:
-            throw new UnsupportedOperationException("unsupported dbms. type=" + type);
-        }
-    }
-
     protected final int[] executeBatch(String sql, Collection<E> list, SqlBiConsumer<E, PreparedStatement> prepare) {
         var ps = preparedStatement(sql);
         try {
@@ -253,7 +239,27 @@ public abstract class JdbcDao<E> {
             }
             return ps.executeBatch();
         } catch (SQLException e) {
+            if (isUniqueConstraint(e)) {
+                throw new UniqueConstraintException(e);
+            }
             throw new RuntimeException(e);
+        }
+    }
+
+    private boolean isUniqueConstraint(SQLException e) {
+        var type = BenchConst.dbmsType();
+        switch (type) {
+        case ORACLE:
+            int code = e.getErrorCode();
+            return code == 1; // ORA-0001
+        case POSTGRESQL:
+            String state = e.getSQLState();
+            return PSQLState.UNIQUE_VIOLATION.getState().equals(state);
+        case TSURUGI:
+            int tsurugiCode = e.getErrorCode();
+            return tsurugiCode == 2_02002; // SQL-02002 UNIQUE_CONSTRAINT_VIOLATION_EXCEPTION
+        default:
+            throw new UnsupportedOperationException("unsupported dbms. type=" + type, e);
         }
     }
 
