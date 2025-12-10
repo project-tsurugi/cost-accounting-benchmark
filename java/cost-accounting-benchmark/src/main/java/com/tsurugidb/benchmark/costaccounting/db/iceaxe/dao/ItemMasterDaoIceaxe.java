@@ -20,8 +20,6 @@ import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -31,7 +29,6 @@ import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
-import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable.TgBindVariableInteger;
@@ -90,10 +87,6 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
 
     @Override
     public List<ItemMaster> selectByIds(Iterable<Integer> ids, LocalDate date) {
-        if (BenchConst.WORKAROUND) { // pkのinがfull scanになるため
-            return selectByIdsWorkaround(ids, date);
-        }
-
         var variables = TgBindVariables.of();
         var inSql = new SqlIn(I_ID.name());
         var parameter = TgBindParameters.of();
@@ -119,28 +112,6 @@ public class ItemMasterDaoIceaxe extends IceaxeDao<ItemMaster> implements ItemMa
             throw new RuntimeException(e);
         }
     }
-
-    private List<ItemMaster> selectByIdsWorkaround(Iterable<Integer> ids, LocalDate date) {
-        var ps = selectByIdsWorkaroundCache.get();
-
-        var result = new ArrayList<ItemMaster>();
-        for (int id : ids) {
-            var parameter = TgBindParameters.of(vId.bind(id), vDate.bind(date));
-            var r = executeAndGetList(ps, parameter);
-            result.addAll(r);
-        }
-        Collections.sort(result, Comparator.comparing(ItemMaster::getIId));
-        return result;
-    }
-
-    private final CachePreparedQuery<TgBindParameters, ItemMaster> selectByIdsWorkaroundCache = new CachePreparedQuery<>() {
-        @Override
-        protected void initialize() {
-            this.sql = getSelectEntitySql() + " where i_id=" + vId + " and " + TG_COND_DATE;
-            this.parameterMapping = TgParameterMapping.of(vId, vDate);
-            this.resultMapping = getEntityResultMapping();
-        }
-    };
 
     private static final TgBindVariable<ItemType> vType = I_TYPE.clone("type");
 

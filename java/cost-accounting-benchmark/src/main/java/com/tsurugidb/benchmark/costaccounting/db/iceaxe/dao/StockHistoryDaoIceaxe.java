@@ -28,7 +28,6 @@ import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistoryDateTime;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.CostBenchDbManagerIceaxe;
 import com.tsurugidb.benchmark.costaccounting.db.iceaxe.domain.BenchVariable;
-import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariable.TgBindVariableInteger;
@@ -158,9 +157,6 @@ public class StockHistoryDaoIceaxe extends IceaxeDao<StockHistory> implements St
         @Override
         protected void initialize() {
             String where = "(s_date < " + vDate + ") or (s_date = " + vDate + " and s_time <= " + vTime + ")";
-            if (BenchConst.WORKAROUND) { // orでつなぐとfull scanになる為
-                where = "(" + where + ") and s_date <= " + vDate;
-            }
             this.sql = "delete from " + TABLE_NAME + " where " + where;
             this.parameterMapping = TgParameterMapping.of(vDate, vTime);
         }
@@ -177,9 +173,6 @@ public class StockHistoryDaoIceaxe extends IceaxeDao<StockHistory> implements St
         @Override
         protected void initialize() {
             String where = "((s_date < " + vDate + ") or (s_date = " + vDate + " and s_time <= " + vTime + ")) and s_f_id = " + vFactory;
-            if (BenchConst.WORKAROUND) { // orでつなぐとfull scanになる為
-                where = "(" + where + ") and s_date <= " + vDate;
-            }
             this.sql = "delete from " + TABLE_NAME + " where " + where;
             this.parameterMapping = TgParameterMapping.of(vDate, vTime, vFactory);
         }

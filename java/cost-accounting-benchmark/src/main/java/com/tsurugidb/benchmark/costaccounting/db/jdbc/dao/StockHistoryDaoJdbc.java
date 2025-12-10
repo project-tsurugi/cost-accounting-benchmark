@@ -30,7 +30,6 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.StockHistoryDao;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistory;
 import com.tsurugidb.benchmark.costaccounting.db.entity.StockHistoryDateTime;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.CostBenchDbManagerJdbc;
-import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 public class StockHistoryDaoJdbc extends JdbcDao<StockHistory> implements StockHistoryDao {
 
@@ -124,9 +123,6 @@ public class StockHistoryDaoJdbc extends JdbcDao<StockHistory> implements StockH
     @Override
     public int deleteOldDateTime(LocalDate date, LocalTime time) {
         String where = "(s_date < ?) or (s_date = ? and s_time <= ?)";
-        if (dbManager.isTsurugi() && BenchConst.WORKAROUND) { // orでつなぐとfull scanになる為
-            where = "(" + where + ") and s_date <= ?";
-        }
         String sql = "delete from " + TABLE_NAME //
                 + " where " + where;
         return executeUpdate(sql, ps -> {
@@ -134,18 +130,12 @@ public class StockHistoryDaoJdbc extends JdbcDao<StockHistory> implements StockH
             JdbcUtil.setDate(ps, i++, date);
             JdbcUtil.setDate(ps, i++, date);
             JdbcUtil.setTime(ps, i++, time);
-            if (dbManager.isTsurugi() && BenchConst.WORKAROUND) {
-                JdbcUtil.setDate(ps, i++, date);
-            }
         });
     }
 
     @Override
     public int deleteOldDateTime(LocalDate date, LocalTime time, int factoryId) {
         String where = "((s_date < ?) or (s_date = ? and s_time <= ?)) and s_f_id = ?";
-        if (dbManager.isTsurugi() && BenchConst.WORKAROUND) { // orでつなぐとfull scanになる為
-            where = "(" + where + ") and s_date <= ?";
-        }
         String sql = "delete from " + TABLE_NAME //
                 + " where " + where;
         return executeUpdate(sql, ps -> {
@@ -154,9 +144,6 @@ public class StockHistoryDaoJdbc extends JdbcDao<StockHistory> implements StockH
             JdbcUtil.setDate(ps, i++, date);
             JdbcUtil.setTime(ps, i++, time);
             JdbcUtil.setInt(ps, i++, factoryId);
-            if (dbManager.isTsurugi() && BenchConst.WORKAROUND) {
-                JdbcUtil.setDate(ps, i++, date);
-            }
         });
     }
 

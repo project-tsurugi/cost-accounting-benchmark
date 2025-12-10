@@ -25,8 +25,6 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -35,7 +33,6 @@ import com.tsurugidb.benchmark.costaccounting.db.dao.ItemMasterDao;
 import com.tsurugidb.benchmark.costaccounting.db.domain.ItemType;
 import com.tsurugidb.benchmark.costaccounting.db.entity.ItemMaster;
 import com.tsurugidb.benchmark.costaccounting.db.jdbc.CostBenchDbManagerJdbc;
-import com.tsurugidb.benchmark.costaccounting.util.BenchConst;
 
 public class ItemMasterDaoJdbc extends JdbcDao<ItemMaster> implements ItemMasterDao {
 
@@ -86,10 +83,6 @@ public class ItemMasterDaoJdbc extends JdbcDao<ItemMaster> implements ItemMaster
 
     @Override
     public List<ItemMaster> selectByIds(Iterable<Integer> ids, LocalDate date) {
-        if (dbManager.isTsurugi() && BenchConst.WORKAROUND) { // pkのinがfull scanになるため
-            return selectByIdsWorkaround(ids, date);
-        }
-
         StringBuilder sb = new StringBuilder();
         for (@SuppressWarnings("unused")
         int id : ids) {
@@ -106,21 +99,6 @@ public class ItemMasterDaoJdbc extends JdbcDao<ItemMaster> implements ItemMaster
             }
             setDate(ps, i++, date);
         }, this::newEntity);
-    }
-
-    private List<ItemMaster> selectByIdsWorkaround(Iterable<Integer> ids, LocalDate date) {
-        var result = new ArrayList<ItemMaster>();
-        for (int id : ids) {
-            String sql = "select * from " + TABLE_NAME + " where i_id=? and " + PS_COND_DATE;
-            var list = executeQueryList(sql, ps -> {
-                int i = 1;
-                setInt(ps, i++, id);
-                setDate(ps, i++, date);
-            }, this::newEntity);
-            result.addAll(list);
-        }
-        Collections.sort(result, Comparator.comparing(ItemMaster::getIId));
-        return result;
     }
 
     @Override
