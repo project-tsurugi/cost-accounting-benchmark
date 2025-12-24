@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.tsurugidb.benchmark.cost-accounting-benchmark'
-version = '1.13.0'
+version = '1.14.0-SNAPSHOT'
 
 if (hasProperty('mavenLocal')) {
     repositories {
@@ -83,8 +83,8 @@ dependencies {
   implementation group: 'com.oracle.database.jdbc', name: 'ucp', version: '21.1.0.0'
   runtimeOnly group: 'com.oracle.database.nls', name: 'orai18n', version: '21.1.0.0'
 
-  api 'com.tsurugidb.iceaxe:iceaxe-core:1.13.0'
-  api 'com.tsurugidb.jdbc:tsurugi-jdbc:0.2.0'
+  api 'com.tsurugidb.iceaxe:iceaxe-core:1.14.0-SNAPSHOT'
+  api 'com.tsurugidb.jdbc:tsurugi-jdbc:0.3.0-SNAPSHOT'
 
   // https://mvnrepository.com/artifact/org.apache.poi/poi
   implementation group: 'org.apache.poi', name: 'poi', version: '4.1.2'
