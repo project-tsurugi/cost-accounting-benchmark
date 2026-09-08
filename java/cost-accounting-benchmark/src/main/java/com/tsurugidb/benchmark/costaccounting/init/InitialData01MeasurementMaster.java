@@ -94,6 +94,8 @@ public class InitialData01MeasurementMaster extends InitialData {
         var insertCount = new AtomicInteger();
         dbManager.execute(setting, () -> {
             dao.truncate();
+        });
+        dbManager.execute(setting, () -> {
             insertCount.set(0);
             insertMeasureMaster(table, dao, insertCount);
         });

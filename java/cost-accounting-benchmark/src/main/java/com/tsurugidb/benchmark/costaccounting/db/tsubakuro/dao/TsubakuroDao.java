@@ -86,7 +86,15 @@ public abstract class TsubakuroDao<E> {
     // do sql
 
     protected final void doTruncate() {
-        doDeleteAll();
+        var sql = "truncate table " + tableName;
+        try {
+            var transaction = getTransaction();
+            transaction.executeStatement(sql).await();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e.getMessage(), e);
+        } catch (ServerException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     protected final int doDeleteAll() {

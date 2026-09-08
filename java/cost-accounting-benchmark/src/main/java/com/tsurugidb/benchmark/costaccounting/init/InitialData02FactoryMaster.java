@@ -52,6 +52,8 @@ public class InitialData02FactoryMaster extends InitialData {
         var insertCount = new AtomicInteger();
         dbManager.execute(setting, () -> {
             dao.truncate();
+        });
+        dbManager.execute(setting, () -> {
             insertCount.set(0);
             insertFactoryMaster(size, dao, insertCount);
         });

@@ -100,7 +100,18 @@ public abstract class IceaxeDao<E> {
     // do sql
 
     protected final void doTruncate() {
-        doDeleteAll();
+        var sql = "truncate table " + tableName;
+        var session = getSession();
+        try (var ps = session.createStatement(sql)) {
+            var transaction = getTransaction();
+            transaction.executeAndGetCount(ps);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (TsurugiTransactionException e) {
+            throw new TsurugiTransactionRuntimeException(e);
+        }
     }
 
     protected final int doDeleteAll() {
